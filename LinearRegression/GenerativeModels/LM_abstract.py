@@ -1,0 +1,38 @@
+from abc import ABC, abstractmethod
+import torch 
+
+@abstractmethod
+def pprogram_linear_model_return_dict(x: torch.tensor, y: torch.tensor = None) -> dict:
+    """
+    A probabilistic program that models a linear model. x denotes the covariates and y denotes the response variable.
+    Args: 
+        x: torch.tensor: the covariates
+        y: torch.tensor: the response variable
+    Returns:
+        dict: a dictionary containing the parameters of the linear model. Contains at least the following keys:
+        {
+            "x": torch.tensor: the covariates
+            "y": torch.tensor: the response variable
+            "beta": torch.tensor: the parameters of the linear model
+        }
+    """
+    pass 
+
+def return_only_y(pprogram: pprogram_linear_model_return_dict) -> callable:
+    """
+    A decorator that ensures a ppogram returns only the response variable y.
+    Args:
+        pprogram: pprogram_linear_model_return_dict: the probabilistic program
+    Returns:
+        callable: a callable that returns only the response variable y
+    """
+    def wrapper(x: torch.tensor) -> torch.tensor:
+        """
+        A wrapper function that returns only the response variable y.
+        Args:
+            x: torch.tensor: the covariates
+        Returns:
+            torch.tensor: the response variable y
+        """
+        return pprogram(x)["y"]
+    return wrapper
