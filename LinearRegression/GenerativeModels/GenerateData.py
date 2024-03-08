@@ -96,7 +96,136 @@ class GenerateData:
 
         return r
 
+    def make_dataloaders_static(self,
+                         n:int = 100,
+                         p:int = 5,
+                        n_batch:int = 10_000,
+                        batch_size:int = 256,
+                        train_frac = 0.7,
+                        val_frac = 0.15,
+                        shuffle: bool = True
+                        ) -> Tuple[Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader], list[dict]]:
+        """
+        Make a dataloader from a generated dataset
+        Args:
+            n: int: the number of observations per batch 
+            p: int: the number of covariates
+            n_batch: int: the number of batches
+            batch_size: int: the batch size
+            train_frac: float: the fraction of the data to use for training
+            val_frac: float: the fraction of the data to use for validation
+            shuffle: bool: whether to shuffle the data
+        Returns:
+            Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]: a tuple of dataloaders for the training, test and validation data
+            list[dict]: the simulated data
+        """
+        sample_data, discarded = self.simulate_data(n, p, n_batch)
+        dataloaders = make_dataloaders_static_data(sample_data, batch_size, train_frac, val_frac, shuffle)
+        return dataloaders, sample_data
+    
+    def make_dataloaders_dynamic(self,
+                                 n:int = 100,
+                                 p:int = 5,
+                                 n_batch:int = 10_000,
+                                 batch_size:int = 256,
+                                 train_frac = 0.7,
+                                 val_frac = 0.15,
+                                 shuffle: bool = True
+                                 ) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
+        """
+        Make a dataloader where the data is generated on the fly
+        Args:
+            n: int: the number of observations per batch 
+            p: int: the number of covariates
+            n_batch : int: the number of batches
+            batch_size: int: the batch size
+            train_frac: float: the fraction of the data to use for training
+            val_frac: float: the fraction of the data to use for validation
+            shuffle: bool: whether to shuffle the data
+        Returns:
+            Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]: a tuple of dataloaders for the training, test and validation data
+        """
 
+        train_size = int(train_frac * n_batch)
+        val_size = int(val_frac * n_batch)
+        test_size = n_batch - train_size - val_size
+
+        dataset_train = SyntheticData(n = n, 
+                                p = p, 
+                                n_batch = train_size, 
+                                pprogram = self.pprogram, 
+                                pprogram_covariates = self.pprogram_covariates, 
+                                seed = self.seed)
+        dataset_val = SyntheticData(n = n,
+                                p = p,
+                                n_batch = val_size,
+                                pprogram = self.pprogram,
+                                pprogram_covariates = self.pprogram_covariates,
+                                seed = self.seed)
+        dataset_test = SyntheticData(n = n,
+                                p = p,
+                                n_batch = test_size,
+                                pprogram = self.pprogram,
+                                pprogram_covariates = self.pprogram_covariates,
+                                seed = self.seed)
+        
+        train_loader = torch.utils.data.DataLoader(dataset_train, batch_size=batch_size, shuffle=shuffle)
+        test_loader = torch.utils.data.DataLoader(dataset_test, batch_size=batch_size, shuffle=shuffle)
+        val_loader = torch.utils.data.DataLoader(dataset_val, batch_size=batch_size, shuffle=shuffle)
+
+        return train_loader, test_loader, val_loader
+
+
+
+
+class SyntheticData(torch.utils.data.Dataset):
+    """
+    A class to represent synthetic data that is generated on the fly
+    Note that sampling is always random and the same seed is used for all batches
+    """
+    def __init__(
+                self,
+                n:int = 100,
+                p:int = 5,
+                n_batch:int = 10_000,
+                pprogram: pprogram_linear_model_return_dict = None,
+                pprogram_covariates: pprogram_X = simulate_X_uniform,
+                seed:int = 42
+                ):
+        """
+        a  torch.utils.data.Dataset that generates synthetic data on the fly
+        Args:
+            n: int: the number of observations per batch 
+            p: int: the number of covariates
+            n_batch: int: the number of batches
+            pprogram: pprogram_linear_model_return_dict: a linear model probabilistic program
+            pprogram_covariates: pprogram_X: a probabilistic program that simulates covariates
+            seed: int: the seed for the random number generator
+        """
+        self.n = n
+        self.p = p
+        self.n_batch = n_batch
+        self.pprogram = pprogram
+        self.pprogram_covariates = pprogram_covariates
+        self.seed = seed
+
+        torch.manual_seed(seed)
+        pyro.set_rng_seed(seed)
+    
+    def __len__(self):
+        return self.n_batch
+
+    def __getitem__(self, idx):
+        x = self.pprogram_covariates(self.n, self.p)
+
+        while True:
+            lm_res = self.pprogram(x)
+
+            # if anything is nan or inf, sample again
+            if all([torch.isfinite(lm_res[key]).all() for key in lm_res.keys()]):
+                break
+
+        return lm_res
 
 def check_data(data: List[Dict[str, torch.tensor]]) -> dict:
     """
@@ -226,4 +355,36 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]]) -> None:
 
     return overall_agg_stats
 
+def make_dataloaders_static_data(
+                            data: List[Dict[str, torch.tensor]], 
+                            batch_size: int = 256,
+                            train_frac = 0.7,
+                            val_frac = 0.15,
+                            shuffle: bool = True
+                            ) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
+    """
+    Make a dataloader from a generated dataset
+    Args:
+        data: List[Dict[str, torch.tensor]]: the simulated data in the form of a list of dictionaries where each element of the list is a dictionary containing the data for one batch
+        batch_size: int: the batch size
+        train_frac: float: the fraction of the data to use for training
+        val_frac: float: the fraction of the data to use for validation
+        shuffle: bool: whether to shuffle the data
+    Returns:
+        Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]: a tuple of dataloaders for the training, test and validation data
+    """
+    val_frac = 0.15  
 
+    train_size = int(train_frac * len(data))
+    val_size = int(val_frac * len(data))
+    test_size = len(data) - train_size - val_size
+
+    train_data = data[:train_size]
+    test_data = data[train_size:train_size + test_size]
+    val_data = data[train_size + test_size:]
+
+    train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=shuffle)
+    test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=shuffle)
+    val_loader = torch.utils.data.DataLoader(val_data, batch_size=batch_size, shuffle=shuffle)
+
+    return train_loader, test_loader, val_loader
