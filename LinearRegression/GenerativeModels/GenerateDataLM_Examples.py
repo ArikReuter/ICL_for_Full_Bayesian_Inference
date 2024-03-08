@@ -50,8 +50,12 @@ def make_lm_program_gamma_gamma(
                 LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
         """
         def multivariate_lm_return_dict(x: torch.tensor, y: torch.tensor = None) -> dict:
-            beta_var = pyro.sample("beta_var", pyro.distributions.Gamma(a0, b0))
-            sigma_squared = pyro.sample("sigma_squared", pyro.distributions.Gamma(a1, b1))
+            
+            beta_dist = pyro.distributions.Gamma(a0, b0)
+            beta_var = pyro.sample("beta_var", beta_dist)
+        
+            sigma_squared_dist = pyro.distributions.Gamma(a1, b1)
+            sigma_squared = pyro.sample("sigma_squared", sigma_squared_dist)
 
             beta_cov = torch.eye(x.shape[1]) * beta_var # the covariance matrix of the parameters of the linear model
             beta = pyro.sample("beta", pyro.distributions.MultivariateNormal(torch.zeros(x.shape[1]), beta_cov)) # the parameters of the linear model
@@ -59,13 +63,15 @@ def make_lm_program_gamma_gamma(
             mean = torch.matmul(x, beta)
 
             with pyro.plate("data", x.shape[0]):
-                y = pyro.sample("y", pyro.distributions.Normal(mean, sigma_squared))
+                y = pyro.sample("obs", pyro.distributions.Normal(mean, sigma_squared), obs=y)
 
             return {
-                    "x": x,
-                    "y": y,
-                    "beta": beta
-                    }
+                        "x": x,
+                        "y": y,
+                        "sigma_squared": sigma_squared,
+                        "beta_var": beta_var,
+                        "beta": beta
+                }
         
         return multivariate_lm_return_dict
 
@@ -104,7 +110,6 @@ def make_lm_program_gamma_gamma_augmented(
                 mean = torch.matmul(x, beta)
 
                 with pyro.plate("data", len(x)):
-
                         y = pyro.sample("obs", pyro.distributions.Normal(mean, sigma_squared), obs=y)
 
                 return {
