@@ -179,17 +179,15 @@ def visualize_results(results: Tuple[list[dict[str, float]], list[dict[str, floa
         results: Tuple[list[dict[str, float]], list[dict[str, float]]]: the results
     """
 
-    n_subplots = len(results[0])
+    n_subplots = len(results[0][0])
 
     fig, axs = plt.subplots(n_subplots, 1, figsize=(10, 10*n_subplots))
 
-    for i, key in enumerate(results[0].keys()):
-        train = [r[key] for r in results[0]]
-        val = [r[key] for r in results[1]]
+    for i, (name, fun) in enumerate(results[0][0].items()):
+        training = [result[name] for result in results[0]]
+        validation = [result[name] for result in results[1]]
 
-        axs[i].plot(train, label="Training")
-        axs[i].plot(val, label="Validation")
-        axs[i].set_title(key)
+        axs[i].plot(training, label="Training")
+        axs[i].plot(validation, label="Validation")
+        axs[i].set_title(name)
         axs[i].legend()
-    
-    plt.show()
