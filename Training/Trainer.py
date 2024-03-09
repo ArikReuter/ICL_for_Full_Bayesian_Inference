@@ -1,5 +1,7 @@
 import torch 
-
+from tqdm import tqdm
+import time
+import os
 
 def batch_to_model_lm(batch:dict) -> torch.tensor:
     x = batch['x']
@@ -58,10 +60,14 @@ class Trainer():
 
         self.evaluation_functions["loss"] = self.loss_function 
 
+        if not os.path.exists(os.path.dirname(self.save_path)):
+            os.makedirs(os.path.dirname(self.save_path))
 
-    def validate(self):
+    def validate(self) -> dict[str, float]:
         """
         Validate the model
+        Returns
+            dict[str, float]: the validation results where the key is the name of the evaluation function and the value is the result of the evaluation function
         """
         self.model.eval()
 
@@ -86,4 +92,77 @@ class Trainer():
                 results[name] = fun(predictions, targets)
 
         
+        return results
                 
+
+    def train(self) -> tuple[list[dict[str, float]], list[dict[str, float]], list[float]]:
+        """
+        Train the model
+        Returns:
+            tuple[list[dict[str, float]], list[dict[str, float]], list[float]]: a tuple containing the training results, the validation results and the time for each epoch
+        """
+        best_val_loss = float("inf")
+        patience = 0
+
+        self.model = self.model.to(self.device)
+
+        all_results_training = []
+        all_results_validation = []
+        all_results_time = []
+        
+        start_time_epoch = time.time()
+        for epoch in range(self.n_epochs):
+            self.model.train()
+            predictions = []
+            targets = []
+            for batch in tqdm(self.trainset):
+                batch = {k: v.to(self.device) for k, v in batch.items()}
+                x = self.batch_to_model_function(batch)
+                target = batch[self.target_key_in_batch]
+                pred = self.model(x)
+
+                loss = self.loss_function(pred, target)
+
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+
+                predictions.append(pred.detach().cpu())
+                targets.append(target.detach().cpu())
+
+            predictions = torch.cat(predictions, dim=0)
+            targets = torch.cat(targets, dim=0)
+
+            validation_results = self.validate()
+            training_results = {}
+            for name, fun in self.evaluation_functions.items():
+                training_results[name] = fun(predictions, targets)
+
+            end_time_epoch = time.time()
+            time_epoch = end_time_epoch - start_time_epoch
+
+            all_results_training.append(training_results)
+            all_results_validation.append(validation_results)
+            all_results_time.append(time_epoch)
+
+            print(f"Epoch {epoch}:")
+            print(f"Training: {training_results}")
+            print(f"Validation: {validation_results}")
+            print(f"Time: {time_epoch}")
+            print("\n")
+            print(100*"-")
+
+            val_loss = validation_results["loss"]
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                print("Saving model")
+                torch.save(self.model.state_dict(), self.save_path)
+                patience = 0
+            else:
+                patience += 1
+
+            if patience > self.early_stopping_patience:
+                print("Early stopping")
+                break
+
+        return all_results_training, all_results_validation, all_results_time
