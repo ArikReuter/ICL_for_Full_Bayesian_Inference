@@ -24,7 +24,7 @@ class Trainer():
                  batch_to_model_function: callable = batch_to_model_lm,
                  target_key_in_batch: str = "beta",
                  evaluation_functions: dict[str, callable] = {},
-                 device: torch.device = torch.device("cude" if torch.cuda.is_available() else "cpu"),
+                 device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
                  n_epochs: int = 100,
                  save_path: str = "../models/model.pth",
                  early_stopping_patience: int = 10,
