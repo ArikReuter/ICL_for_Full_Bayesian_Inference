@@ -115,7 +115,7 @@ class PositionwiseFeedForward(nn.Module):
                  d_model_in:int, 
                  d_ff:int, 
                  d_model_out:int, 
-                 dropout=0.1):
+                 dropout: float =0.1):
         """
         Args:
             d_model_in: int: the input dimension of the position wise feed forward network
@@ -156,7 +156,7 @@ class Transformer(nn.Module):
                seq_len: int = 100, 
                d_model: int = 256, 
                dim_feedforward :int = 256, 
-               dropout_rate: int = 0.1, 
+               dropout_rate: float = 0.1, 
                n_heads: int = 4, 
                n_layers: int = 3, 
                n_skip_layers_final_heads: int = 2,
@@ -175,7 +175,6 @@ class Transformer(nn.Module):
         n_heads: int: the number of heads
         n_layers: int: the number of layers
         n_skip_layers_final_heads: int: the number of skip layers in the final heads
-        n_outputs: int: the number of output heads
         n_output_units_per_head: list: the number of output units per head
         projection_size_after_trafo: int: the projection size after the transformer
     """
@@ -196,7 +195,8 @@ class Transformer(nn.Module):
     if projection_size_after_trafo is None:
       self.projection_size_after_trafo = d_model//4
     
-    self.projection_size_after_trafo = projection_size_after_trafo
+    else: 
+        self.projection_size_after_trafo = projection_size_after_trafo
     self.n_outputs = len(n_output_units_per_head)
 
     self.mlp1 = PositionwiseFeedForward(d_model_in = n_features, d_ff = (d_model + n_features)//2, d_model_out = d_model, dropout = dropout_rate) # use a position-wise feed forward network on the initial input to scale it to the model dimension
@@ -218,12 +218,12 @@ class Transformer(nn.Module):
                                                dropout_rate = dropout_rate) for i in range(self.n_outputs))  # use an individual mlp for each head
 
 
-  def forward(self, x):
+  def forward(self, x: torch.tensor) -> torch.tensor:
     """
     Args: 
         x: torch.tensor: the input tensor of shape (n_batch_size, seq_len, n_features)
     Returns:
-        list: a list of output tensors of shape (n_batch_size, n_output_units_per_head[i]) for i in range(n_outputs)
+        torch.tensor: the output tensor of shape (n_batch_size, n_outputs, n_output_units_per_head[i])
     """
     x = self.mlp1(x)
     x = self.act1(x)
@@ -233,8 +233,10 @@ class Transformer(nn.Module):
     x = self.act2(x)
 
     x = x.view(x.shape[0], -1) # flatten the output of the transformer
-    x = self.mlp2(x)
+    x = self.mlp3(x)
     x = self.act3(x)
     x = [head(x) for head in self.final_heads]
+
+    x = torch.stack(x, dim = 1)
 
     return x

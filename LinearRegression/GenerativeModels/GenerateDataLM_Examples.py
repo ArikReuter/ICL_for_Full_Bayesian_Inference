@@ -1,6 +1,9 @@
 import torch 
 import pyro 
-import LM_abstract
+try:
+        import LM_abstract
+except:
+      from PFNExperiments.LinearRegression.GenerativeModels import LM_abstract 
 
 def make_lm_program_plain(
         beta_var: float = 1.0,

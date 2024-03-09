@@ -2,9 +2,12 @@ import torch
 import pyro
 from tqdm import tqdm
 from typing import List, Dict, Tuple
-from LM_abstract import pprogram_linear_model_return_dict, return_only_y, pprogram_X
-from GenerateX import simulate_X_uniform
-
+try:
+    from LM_abstract import pprogram_linear_model_return_dict, return_only_y, pprogram_X
+    from GenerateX import simulate_X_uniform
+except:
+    from PFNExperiments.LinearRegression.GenerativeModels.LM_abstract import pprogram_linear_model_return_dict, return_only_y, pprogram_X
+    from PFNExperiments.LinearRegression.GenerativeModels.GenerateX import simulate_X_uniform
 
 
 class GenerateData:
@@ -174,9 +177,6 @@ class GenerateData:
         val_loader = torch.utils.data.DataLoader(dataset_val, batch_size=batch_size, shuffle=shuffle)
 
         return train_loader, test_loader, val_loader
-
-
-
 
 class SyntheticData(torch.utils.data.Dataset):
     """
