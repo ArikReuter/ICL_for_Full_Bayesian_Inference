@@ -2,6 +2,8 @@ import torch
 from tqdm import tqdm
 import time
 import os
+import matplotlib.pyplot as plt
+from typing import Tuple
 
 def batch_to_model_lm(batch:dict) -> torch.tensor:
     x = batch['x']
@@ -59,6 +61,8 @@ class Trainer():
         self.early_stopping_patience = early_stopping_patience
 
         self.evaluation_functions["loss"] = self.loss_function 
+
+        self.model = self.model.to(self.device)
 
         if not os.path.exists(os.path.dirname(self.save_path)):
             os.makedirs(os.path.dirname(self.save_path))
@@ -166,3 +170,26 @@ class Trainer():
                 break
 
         return all_results_training, all_results_validation, all_results_time
+    
+
+def visualize_results(results: Tuple[list[dict[str, float]], list[dict[str, float]]],):
+    """
+    visualize results as returned by train()
+    Args: 
+        results: Tuple[list[dict[str, float]], list[dict[str, float]]]: the results
+    """
+
+    n_subplots = len(results[0])
+
+    fig, axs = plt.subplots(n_subplots, 1, figsize=(10, 10*n_subplots))
+
+    for i, key in enumerate(results[0].keys()):
+        train = [r[key] for r in results[0]]
+        val = [r[key] for r in results[1]]
+
+        axs[i].plot(train, label="Training")
+        axs[i].plot(val, label="Validation")
+        axs[i].set_title(key)
+        axs[i].legend()
+    
+    plt.show()
