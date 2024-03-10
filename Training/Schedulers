@@ -1,0 +1,27 @@
+import torch
+from torch.optim.lr_scheduler import LambdaLR
+
+class WarmupInverseSquareRootSchedule(torch.optim.lr_scheduler._LRScheduler):
+    def __init__(self, optimizer: torch.optim.Optimizer, warmup_steps: int, model_dim: int, last_epoch: int = -1):
+        """
+        A custom learning rate scheduler that uses the inverse square root schedule with warmup
+        Args:
+            optimizer: torch.optim.Optimizer: the optimizer
+            warmup_steps: int: the number of warmup steps
+            model_dim: int: the model dimension
+            last_epoch: int: the last epoch
+        """
+        self.warmup_steps = warmup_steps
+        self.model_dim = model_dim
+        super().__init__(optimizer, last_epoch)
+
+    def get_lr(self):
+        """
+        Return the learning rate
+        Returns:
+            list: the learning rate
+        """
+
+        step = max(self.last_epoch, 1)
+        scale = self.model_dim ** -0.5
+        return [base_lr * scale * min(step ** -0.5, step * self.warmup_steps ** -1.5) for base_lr in self.base_lrs]

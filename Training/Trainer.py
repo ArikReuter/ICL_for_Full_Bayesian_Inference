@@ -155,6 +155,8 @@ class Trainer():
             print(f"Training: {training_results}")
             print(f"Validation: {validation_results}")
             print(f"Time: {time_epoch}")
+            if self.scheduler is not None:
+                print(f"Learning rate: {self.scheduler.get_last_lr()}")
             print("\n")
             print(100*"-")
 
