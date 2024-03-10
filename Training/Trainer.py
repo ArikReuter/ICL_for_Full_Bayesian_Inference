@@ -65,8 +65,6 @@ class Trainer():
         self.save_path = save_path
         self.early_stopping_patience = early_stopping_patience
 
-        self.evaluation_functions["loss"] = self.loss_function 
-
         self.model = self.model.to(self.device)
 
         if not os.path.exists(os.path.dirname(self.save_path)):
@@ -90,50 +88,18 @@ class Trainer():
                 target = batch[self.target_key_in_batch]
                 pred = self.model(x)
 
-                predictions.append(pred.detach().cpu())
+                predictions.append([elem.detach().cpu() for elem in pred])
                 targets.append(target.detach().cpu())
 
-            predictions = torch.cat(predictions, dim=0)
-            targets = torch.cat(targets, dim=0)
-
+        
             results = {}
             for name, fun in self.evaluation_functions.items():
-                results[name] = fun(predictions, targets)
+                results[name] = fun(targets, predictions)
 
         
         return results
     
-    def test(self) -> dict[str, float]:
-        """
-        Test the model
-        Returns
-            dict[str, float]: the test results where the key is the name of the evaluation function and the value is the result of the evaluation function
-        """
-        self.model.eval()
-
-        predictions = []
-        targets = []
-
-        with torch.no_grad():
-            for batch in self.testset:
-                batch = {k: v.to(self.device) for k, v in batch.items()}
-                x = self.batch_to_model_function(batch)
-                target = batch[self.target_key_in_batch]
-                pred = self.model(x)
-
-                predictions.append(pred.detach().cpu())
-                targets.append(target.detach().cpu())
-
-            predictions = torch.cat(predictions, dim=0)
-            targets = torch.cat(targets, dim=0)
-
-            results = {}
-            for name, fun in self.evaluation_functions.items():
-                results[name] = fun(predictions, targets)
-
-        return results
                 
-
     def train(self) -> tuple[list[dict[str, float]], list[dict[str, float]], list[float]]:
         """
         Train the model
@@ -166,20 +132,17 @@ class Trainer():
                 loss.backward()
                 self.optimizer.step()
 
-                predictions.append(pred.detach().cpu())
+                predictions.append([elem.detach().cpu() for elem in pred])
                 targets.append(target.detach().cpu())
 
             if self.scheduler is not None:
                 self.scheduler.step()
             
 
-            predictions = torch.cat(predictions, dim=0)
-            targets = torch.cat(targets, dim=0)
-
             validation_results = self.validate()
             training_results = {}
             for name, fun in self.evaluation_functions.items():
-                training_results[name] = fun(predictions, targets)
+                training_results[name] = fun(targets, predictions)
 
             end_time_epoch = time.time()
             time_epoch = end_time_epoch - start_time_epoch
@@ -218,6 +181,12 @@ class Trainer():
 
         return all_results_training, all_results_validation, all_results_time
     
+
+    def load_best_model(self) -> None:
+        """
+        Load the best model
+        """
+        self.model.load_state_dict(torch.load(self.save_path))
 
 def visualize_results(results: Tuple[list[dict[str, float]], list[dict[str, float]]], loglog = True):
     """

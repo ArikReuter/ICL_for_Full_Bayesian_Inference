@@ -5,47 +5,49 @@ Class to implement a few evaluation metrics
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 import torch
 
-def mean_squared_error_torch(y_true: torch.tensor, y_pred: torch.tensor) -> float:
+def mean_squared_error_torch_avg(y_true: torch.tensor, y_pred: list[list[torch.tensor]]) -> float:
     """
-    Compute the mean squared error
+    Compute the mean squared error averaged over the batch
     Args:
         y_true: torch.tensor: the true values
-        y_pred: torch.tensor: the predicted values
+        y_pred: list[list[torch.tensor]]: the predicted values where the first list is the batch and the second list is the output that CAN contain multiple outputs
     Returns:
         float: the mean squared error
     """
-    y_true = y_true.flatten()
-    y_pred = y_pred.flatten()
+    mse = 0
+    for i in range(len(y_pred)):
+        
+        assert y_true[i].detach().numpy().shape == y_pred[i][0].detach().numpy().shape, f"y_true shape {y_true[i].detach().numpy().shape} does not match y_pred shape {y_pred[i][0].detach().numpy().shape}"
+        mse += mean_squared_error(y_true[i].detach().numpy(), y_pred[i][0].detach().numpy())
+    return mse / len(y_pred)
+    
 
-    assert y_true.shape == y_pred.shape, f"y_true shape {y_true.shape} does not match y_pred shape {y_pred.shape}"
-
-    return torch.tensor(mean_squared_error(y_true.detach().numpy(), y_pred.detach().numpy()), dtype=torch.float64)
-
-def r2_score_torch(y_true: torch.tensor, y_pred: torch.tensor) -> float:
+def r2_score_torch_avg(y_true: torch.tensor, y_pred: list[list[torch.tensor]]) -> float:
     """
-    Compute the r2 score
+    Compute the r2 score averaged over the batch
     Args:
         y_true: torch.tensor: the true values
-        y_pred: torch.tensor: the predicted values
+        y_pred: list[list[torch.tensor]]: the predicted values where the first list is the batch and the second list is the output that CAN contain multiple outputs
     Returns:
         float: the r2 score
     """
-    y_true = y_true.flatten()
-    y_pred = y_pred.flatten()
+    r2 = 0
+    for i in range(len(y_pred)):
+        assert y_true[i].detach().numpy().shape == y_pred[i][0].detach().numpy().shape, f"y_true shape {y_true[i].detach().numpy().shape} does not match y_pred shape {y_pred[i][0].detach().numpy().shape}"
+        r2 += r2_score(y_true[i].detach().numpy(), y_pred[i][0].detach().numpy())
+    return r2 / len(y_pred)
 
-    return torch.tensor(r2_score(y_true.detach().numpy(), y_pred.detach().numpy()), dtype=torch.float64)
-
-def mean_absolute_error_torch(y_true: torch.tensor, y_pred: torch.tensor) -> float:
+def mae_torch_avg(y_true: torch.tensor, y_pred: list[list[torch.tensor]]) -> float:
     """
-    Compute the mean absolute error
+    Compute the mean absolute error averaged over the batch
     Args:
         y_true: torch.tensor: the true values
-        y_pred: torch.tensor: the predicted values
+        y_pred: list[list[torch.tensor]]: the predicted values where the first list is the batch and the second list is the output that CAN contain multiple outputs
     Returns:
         float: the mean absolute error
     """
-    y_true = y_true.flatten()
-    y_pred = y_pred.flatten()
-
-    return torch.tensor(mean_absolute_error(y_true.detach().numpy(), y_pred.detach().numpy()), dtype=torch.float64)
-
+    mae = 0
+    for i in range(len(y_pred)):
+        assert y_true[i].detach().numpy().shape == y_pred[i][0].detach().numpy().shape, f"y_true shape {y_true[i].detach().numpy().shape} does not match y_pred shape {y_pred[i][0].detach().numpy().shape}"
+        mae += mean_absolute_error(y_true[i].detach().numpy(), y_pred[i][0].detach().numpy())
+    return mae / len(y_pred)

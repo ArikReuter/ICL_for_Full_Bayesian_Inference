@@ -237,6 +237,4 @@ class Transformer(nn.Module):
     x = self.act3(x)
     x = [head(x) for head in self.final_heads]
 
-    x = torch.stack(x, dim = 1)
-
     return x
