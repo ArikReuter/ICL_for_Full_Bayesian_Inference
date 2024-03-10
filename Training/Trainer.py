@@ -136,7 +136,10 @@ class Trainer():
                 targets.append(target.detach().cpu())
 
             if self.scheduler is not None:
-                self.scheduler.step()
+                try: 
+                    self.scheduler.step()
+                except:
+                    self.scheduler.step(validation_results["loss"])
             
 
             validation_results = self.validate()
