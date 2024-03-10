@@ -99,6 +99,35 @@ class Trainer():
         
         return results
     
+    def test(self) -> dict[str, float]:
+        """
+        Test the model
+        Returns
+            dict[str, float]: the test results where the key is the name of the evaluation function and the value is the result of the evaluation function
+        """
+        self.model.eval()
+
+        predictions = []
+        targets = []
+
+        with torch.no_grad():
+            for batch in self.testset:
+                batch = {k: v.to(self.device) for k, v in batch.items()}
+                x = self.batch_to_model_function(batch)
+                target = batch[self.target_key_in_batch]
+                pred = self.model(x)
+
+                predictions.append([elem.detach().cpu() for elem in pred])
+                targets.append(target.detach().cpu())
+
+        
+            results = {}
+            for name, fun in self.evaluation_functions.items():
+                results[name] = fun(targets, predictions)
+
+        
+        return results
+    
                 
     def train(self) -> tuple[list[dict[str, float]], list[dict[str, float]], list[float]]:
         """
