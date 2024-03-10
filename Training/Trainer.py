@@ -135,14 +135,14 @@ class Trainer():
                 predictions.append([elem.detach().cpu() for elem in pred])
                 targets.append(target.detach().cpu())
 
+        
+            validation_results = self.validate()
+
             if self.scheduler is not None:
                 try: 
                     self.scheduler.step()
                 except:
                     self.scheduler.step(validation_results["loss"])
-            
-
-            validation_results = self.validate()
             training_results = {}
             for name, fun in self.evaluation_functions.items():
                 training_results[name] = fun(targets, predictions)
