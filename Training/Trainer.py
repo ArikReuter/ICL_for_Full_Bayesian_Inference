@@ -159,7 +159,14 @@ class Trainer():
             print(f"Validation: {validation_results}")
             print(f"Time: {time_epoch}")
             if self.scheduler is not None:
-                print(f"Learning rate: {self.scheduler.get_last_lr()}")
+                try:
+                    print(f"Learning rate: {self.scheduler.get_last_lr()}")
+                except:
+                    try: 
+                        print(f"Learning rate: {self.scheduler._last_lr}")
+                    except:
+                        print("Could not get learning rate")
+                
             print("\n")
             print(100*"-")
 
