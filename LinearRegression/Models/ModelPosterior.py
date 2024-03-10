@@ -32,7 +32,7 @@ class ModelPosterior(ABC):
         """
         pass
 
-    def negative_log_likelihood_list(self, list_of_preds, list_of_targets: list[torch.Tensor]) -> list[float]:
+    def negative_log_likelihood_list(self, list_of_targets: list[torch.Tensor], list_of_preds) -> list[torch.Tensor]:
         """
         A method that takes in the models prediction and the target and returns the negative log likelihood averaged over the batch
         Args:
@@ -41,25 +41,27 @@ class ModelPosterior(ABC):
         Returns:
             torch.Tensor: the negative log likelihood
         """
-        nll_list = []
+        nll = []
+        assert len(list_of_preds) == len(list_of_targets), "The length of list_of_preds does not match the length of list_of_targets"
         for pred, target in zip(list_of_preds, list_of_targets):
-            nll_list.append(self.negative_log_likelihood(pred, target).item())
-        
-        return nll_list
+            nll.append(self.negative_log_likelihood(pred, target))
+
+        return nll
     
-    def negative_log_likelihood_avg(self, list_of_preds, list_of_targets: list[torch.Tensor]) -> float:
+    def negative_log_likelihood_avg(self, list_of_targets: list[torch.Tensor], list_of_preds) -> torch.Tensor:
         """
         A method that takes in the models prediction and the target and returns the negative log likelihood averaged over the batch
         Args:
             list_of_preds: list[torch.Tensor]: the models prediction
             list_of_targets: list[torch.Tensor]: the target
+        
         Returns:
             torch.Tensor: the negative log likelihood
         """
-        nll_list = self.negative_log_likelihood_list(list_of_preds, list_of_targets)
-        return mean(nll_list)
+        nll = self.negative_log_likelihood_list(list_of_targets, list_of_preds)
+        return mean(nll)
     
-    def negative_log_likelihood_std(self, list_of_preds, list_of_targets: list[torch.Tensor]) -> float:
+    def negative_log_likelihood_std(self, list_of_targets: list[torch.Tensor], list_of_preds) -> torch.Tensor:
         """
         A method that takes in the models prediction and the target and returns the standard deviation of the negative log likelihood over the batch
         Args:
@@ -68,10 +70,10 @@ class ModelPosterior(ABC):
         Returns:
             torch.Tensor: the negative log likelihood
         """
-        nll_list = self.negative_log_likelihood_list(list_of_preds, list_of_targets)
-        return std(nll_list)
+        nll = self.negative_log_likelihood_list(list_of_targets, list_of_preds)
+        return std(nll)
     
-    def negative_log_likelihood_median(self, list_of_preds, list_of_targets: list[torch.Tensor]) -> float:
+    def negative_log_likelihood_median(self, list_of_targets: list[torch.Tensor], list_of_preds) -> torch.Tensor:
         """
         A method that takes in the models prediction and the target and returns the median of the negative log likelihood over the batch
         Args:
@@ -80,10 +82,8 @@ class ModelPosterior(ABC):
         Returns:
             torch.Tensor: the negative log likelihood
         """
-        nll_list = self.negative_log_likelihood_list(list_of_preds, list_of_targets)
-        return median(nll_list)
-    
-    
+        nll = self.negative_log_likelihood_list(list_of_targets, list_of_preds)
+        return median(nll)
     
 
     def pred2posterior_samples(self, pred, n_samples: int) -> torch.Tensor:
@@ -141,6 +141,11 @@ class ModelPosteriorFullGaussian(ModelPosterior):
         Returns:
             torch.Tensor: the negative log likelihood
         """
+
+        if type(target) == list:
+            assert len(target) == 1, "The target is a list but the length is not 1"
+            target = target[0]
+        
         dist = self.pred2posterior(pred)
 
         nll = - dist.log_prob(target)
