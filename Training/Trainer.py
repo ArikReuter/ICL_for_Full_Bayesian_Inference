@@ -24,6 +24,7 @@ class Trainer():
                  trainset: torch.utils.data.Dataset,
                  valset: torch.utils.data.Dataset,
                  testset: torch.utils.data.Dataset = None,
+                 scheduler: torch.optim.lr_scheduler = None,
                  batch_to_model_function: callable = batch_to_model_lm,
                  target_key_in_batch: str = "beta",
                  evaluation_functions: dict[str, callable] = {},
@@ -55,6 +56,7 @@ class Trainer():
         self.trainset = trainset
         self.valset = valset
         self.testset = testset
+        self.scheduler = scheduler
         self.batch_to_model_function = batch_to_model_function
         self.evaluation_functions = evaluation_functions
         self.target_key_in_batch = target_key_in_batch
@@ -166,6 +168,10 @@ class Trainer():
 
                 predictions.append(pred.detach().cpu())
                 targets.append(target.detach().cpu())
+
+            if self.scheduler is not None:
+                self.scheduler.step()
+            
 
             predictions = torch.cat(predictions, dim=0)
             targets = torch.cat(targets, dim=0)
