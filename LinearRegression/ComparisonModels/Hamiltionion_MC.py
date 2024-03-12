@@ -5,8 +5,9 @@ from pyro.infer import Predictive
 import torch
 
 from PFNExperiments.LinearRegression.GenerativeModels.LM_abstract import ppgram_linear_model_return_y
+from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel
 
-class Hamiltionian_MC:
+class Hamiltionian_MC(PosteriorComparisonModel):
     """
     use Hamiltonian Monte Carlo to obtain posterior samples for a given probabilistic program
     """

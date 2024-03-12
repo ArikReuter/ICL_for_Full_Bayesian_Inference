@@ -1,11 +1,16 @@
 import pyro 
 import torch
 from scipy.stats import ks_2samp
+import numpy as np
 import ot
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+
+
 
 
 def compare_basic_statistics(P: torch.tensor, Q:torch.tensor) -> dict:
@@ -304,7 +309,7 @@ def compare_marginals(P: torch.Tensor,
 
         return results
 
-def compare_all_metrics(P: torch.tensor, Q: torch.tensor, methods: list[callable] = [compare_basic_statistics, compare_covariance, compare_Wasserstein, compare_KLD_Gaussian, compare_marginals]) -> dict:
+def compare_all_metrics(P: torch.tensor, Q: torch.tensor, methods: list[callable] = [compare_Wasserstein, compare_KLD_Gaussian, compare_basic_statistics, compare_covariance, compare_marginals]) -> dict:
     """
     A method that compares two sets of samples using a list of comparison methods.
     Args:
@@ -393,29 +398,53 @@ def marginal_plots_kde_together(P: torch.tensor, Q: torch.tensor):
 
     plt.show()
 
-def projected_sample_plot(P: torch.tensor, Q: torch.tensor, method: str = "PCA"):
+def sample_plot_2d(P: torch.tensor, Q: torch.tensor, method: str = "PCA"):
     """
-    A method that plots the marginals of two sets of samples using kernel density estimation.
+    A method that plots the samples P and Q together in a scatterplot after projecting them into the same 2d space
     Args:
         P: torch.tensor: the first set of samples
         Q: torch.tensor: the second set of samples
-        method: str: the method to use for dimensionality reduction. Options are "PCA" and "tSNE"
+        method: str: dimensionality reduction method to use ('PCA' or 't-SNE')
     """
-    assert method in ["PCA", "tSNE"], "The method must be either PCA or tSNE"
-    if method == "PCA":
-        from sklearn.decomposition import PCA
-        pca = PCA(n_components=2)
-        P_reduced = pca.fit_transform(P)
-        Q_reduced = pca.fit_transform(Q)
-    else:
-        from sklearn.manifold import TSNE
-        tsne = TSNE(n_components=2)
-        P_reduced = tsne.fit_transform(P)
-        Q_reduced = tsne.fit_transform(Q)
+    # Convert tensors to numpy arrays for compatibility with sklearn
+    P_np = P.numpy()
+    Q_np = Q.numpy()
 
-    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-    ax[0].scatter(P_reduced[:, 0], P_reduced[:, 1])
-    ax[0].set_title("P")
-    ax[1].scatter(Q_reduced[:, 0], Q_reduced[:, 1])
-    ax[1].set_title("Q")
+    # Combine P and Q for dimensionality reduction
+    combined_data = np.vstack((P_np, Q_np))
+
+    # Apply dimensionality reduction
+    if method.lower() == "pca":
+        reducer = PCA(n_components=2)
+    elif method.lower() == "tsne":
+        reducer = TSNE(n_components=2, learning_rate='auto', init='random')
+    else:
+        raise ValueError("Unsupported dimensionality reduction method. Use 'PCA' or 't-SNE'.")
+
+    transformed_data = reducer.fit_transform(combined_data)
+
+    # Split the transformed data back into P and Q
+    P_transformed = transformed_data[:len(P), :]
+    Q_transformed = transformed_data[len(P):, :]
+
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    plt.scatter(P_transformed[:, 0], P_transformed[:, 1], label='P samples', alpha=0.5)
+    plt.scatter(Q_transformed[:, 0], Q_transformed[:, 1], label='Q samples', alpha=0.5)
+    plt.title(f"{method} projection of P and Q samples")
+    plt.legend()
+    plt.xlabel('Component 1')
+    plt.ylabel('Component 2')
+    plt.grid(True)
     plt.show()
+
+def plot(P: torch.tensor, Q:torch.tensor, plot_funs: list[callable] = [marginal_plots_hist_parallel, marginal_plots_kde_together, sample_plot_2d]):
+    """
+    A method that plots the comparison of two sets of samples using a list of plotting methods.
+    Args:
+        P: torch.tensor: the first set of samples
+        Q: torch.tensor: the second set of samples
+        plot_funs: list[callable]: a list of plotting methods to use
+    """
+    for fun in plot_funs:
+        fun(P, Q)

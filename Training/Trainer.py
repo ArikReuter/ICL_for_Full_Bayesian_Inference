@@ -219,6 +219,7 @@ class Trainer():
             test_results = self.test()
             print(f"Test: {test_results}")
             return all_results_training, all_results_validation, all_results_time, test_results
+        
 
         return all_results_training, all_results_validation, all_results_time
     
