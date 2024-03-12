@@ -319,7 +319,7 @@ def compare_all_metrics(P: torch.tensor, Q: torch.tensor, methods: list[callable
         results.update(method(P, Q))
     return results
 
-def marginal_plots_hist(P: torch.tensor, Q: torch.tensor):
+def marginal_plots_hist_parallel(P: torch.tensor, Q: torch.tensor):
     """
     A method that plots the marginals of two sets of samples.
     Args:
@@ -344,7 +344,7 @@ def marginal_plots_hist(P: torch.tensor, Q: torch.tensor):
         
         plt.show()
 
-def marginal_plots_kde(P: torch.tensor, Q: torch.tensor):
+def marginal_plots_kde_parallel(P: torch.tensor, Q: torch.tensor):
     """
     A method that plots the marginals of two sets of samples using kernel density estimation.
     Args:
@@ -366,6 +366,32 @@ def marginal_plots_kde(P: torch.tensor, Q: torch.tensor):
         ax[1].axvline(Q_df[f"Dim_{i}"].mean(), color='r', linestyle='--')
 
         plt.show()
+
+def marginal_plots_kde_together(P: torch.tensor, Q: torch.tensor):
+    """
+    A method that plots the marginals of two sets of samples using kernel density estimation.
+    Plot the densities for each dimension of the samples in the same plot.
+    Args:
+        P: torch.tensor: the first set of samples
+        Q: torch.tensor: the second set of samples
+    """
+    P_df = pd.DataFrame(P.numpy(), columns=[f"Dim_{i}" for i in range(P.shape[1])])
+    Q_df = pd.DataFrame(Q.numpy(), columns=[f"Dim_{i}" for i in range(Q.shape[1])])
+
+    n_dims = P.shape[1]
+    fig, ax = plt.subplots(1, n_dims, figsize=(5*n_dims, 5))
+
+    for i in range(n_dims):
+        sns.kdeplot(P_df[f"Dim_{i}"], ax=ax[i], label="P", color='b')
+        sns.kdeplot(Q_df[f"Dim_{i}"], ax=ax[i], label="Q", color='r')
+        ax[i].set_title(f"Marginal dim {i}")
+        ax[i].legend()
+
+        # also plot the means as vertical lines
+        ax[i].axvline(P_df[f"Dim_{i}"].mean(), color='b', linestyle='--', label="P mean")
+        ax[i].axvline(Q_df[f"Dim_{i}"].mean(), color='r', linestyle='--', label="Q mean")
+
+    plt.show()
 
 def projected_sample_plot(P: torch.tensor, Q: torch.tensor, method: str = "PCA"):
     """
