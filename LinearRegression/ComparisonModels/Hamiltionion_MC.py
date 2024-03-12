@@ -12,16 +12,12 @@ class Hamiltionian_MC:
     """
 
     def __init__(self, 
-                 X: torch.Tensor,
-                 y: torch.Tensor,
                  pprogram: ppgram_linear_model_return_y,
                  n_samples:int = 200,
                  n_warmup:int = 100) -> None:
         
         """
         Args:
-            X: torch.Tensor: the covariates
-            y: torch.Tensor: the response variables
             pprogram: ppgram_linear_model_return_y: the probabilistic program
             n_samples: int: the number of samples to draw from the posterior
             n_warmup: int: the number of warmup samples to draw from the posterior
@@ -29,11 +25,6 @@ class Hamiltionian_MC:
         Returns:
             None
         """
-
-        assert len(X) == len(y), "The number of observations in X and y are not the same"
-
-        self.X = X
-        self.y = y
         self.pprogram = pprogram
         self.n_samples = n_samples
         self.n_warmup = n_warmup
@@ -42,12 +33,17 @@ class Hamiltionian_MC:
         self.mcmc = MCMC(self.nuts_kernel, num_samples=self.n_samples, warmup_steps=self.n_warmup)
 
 
-    def sample_posterior(self) -> torch.Tensor:
+    def sample_posterior(self,  
+                X: torch.Tensor,
+                y: torch.Tensor) -> torch.Tensor:
         """
         A method that samples from the posterior distribution
+        Args:
+            X: torch.Tensor: the covariates
+            y: torch.Tensor: the response variable
         Returns:
             torch.Tensor: the samples from the posterior distribution
         """
-        self.mcmc.run(self.X, self.y)
+        self.mcmc.run(X, y)
         posterior_samples = self.mcmc.get_samples()
         return posterior_samples

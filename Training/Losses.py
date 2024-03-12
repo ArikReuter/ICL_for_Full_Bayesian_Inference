@@ -27,9 +27,13 @@ def nll_loss_full_gaussian(pred, target):
     target: torch.tensor: the target tensor
   """
 
+  if type(target) == list:
+        assert len(target) == 1, "The target is a list but the length is not 1"
+        target = target[0]
+
   mu, cov_factor, cov_diag = pred
   cov_factor = cov_factor.reshape(mu.shape[0], mu.shape[1], -1)
-  cov_diag = cov_diag **2 + 1e-5
+  cov_diag = cov_diag **2 + 1e-9
   dist = torch.distributions.LowRankMultivariateNormal(
       loc = mu,
       cov_factor = cov_factor,

@@ -229,7 +229,7 @@ class Trainer():
         """
         self.model.load_state_dict(torch.load(self.save_path))
 
-def visualize_results(results: Tuple[list[dict[str, float]], list[dict[str, float]]], loglog = True):
+def visualize_training_results(results: Tuple[list[dict[str, float]], list[dict[str, float]]], loglog = True):
     """
     visualize results as returned by train()
     Args: 
