@@ -105,12 +105,13 @@ class ModelPosteriorFullGaussian(ModelPosterior):
     A class that takes in a model and returns the posterior the model provides
     """
 
-    def __init__(self, cov_reg_factor: float = 0.0):
+    def __init__(self, cov_reg_factor: float = 0.0, loss_on_error: float = 1e10):
         """
         Args:
             cov_reg_factor: float: the regularization factor for the covariance matrix
         """
         self.cov_reg_factor = cov_reg_factor
+        self.loss_on_error = loss_on_error
 
 
     
@@ -122,6 +123,8 @@ class ModelPosteriorFullGaussian(ModelPosterior):
         Returns:
             torch.distributions.distribution.Distribution: the posterior distribution
         """
+
+
         mu, cov_factor, cov_diag = pred
         cov_factor = cov_factor.reshape(mu.shape[0], mu.shape[1], -1)
         cov_diag = cov_diag **2 + self.cov_reg_factor
@@ -146,9 +149,16 @@ class ModelPosteriorFullGaussian(ModelPosterior):
             assert len(target) == 1, "The target is a list but the length is not 1"
             target = target[0]
         
-        dist = self.pred2posterior(pred)
+        try: 
+            dist = self.pred2posterior(pred)
 
-        nll = - dist.log_prob(target)
+            nll = - dist.log_prob(target)
+
+        except ValueError as e:
+            print(f"Error in negative_log_likelihood, returning {self.loss_on_error} instead of the nll")
+            print(e)
+            
+            return torch.tensor(self.loss_on_error)
 
         return nll.mean()
     
