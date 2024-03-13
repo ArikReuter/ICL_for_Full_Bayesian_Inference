@@ -15,13 +15,19 @@ class Hamiltionian_MC(PosteriorComparisonModel):
     def __init__(self, 
                  pprogram: ppgram_linear_model_return_y,
                  n_samples:int = 200,
-                 n_warmup:int = 100) -> None:
+                 n_warmup:int = 100,
+                 kernel_kwargs: dict = {},
+                 mcmc_kwargs: dict = {}
+
+                 ) -> None:
         
         """
         Args:
             pprogram: ppgram_linear_model_return_y: the probabilistic program
             n_samples: int: the number of samples to draw from the posterior
             n_warmup: int: the number of warmup samples to draw from the posterior
+            kernel_kwargs: dict: the keyword arguments for the kernel
+            mcmc_kwargs: dict: the keyword arguments for the mcmc
         
         Returns:
             None
@@ -30,8 +36,11 @@ class Hamiltionian_MC(PosteriorComparisonModel):
         self.n_samples = n_samples
         self.n_warmup = n_warmup
 
-        self.nuts_kernel = NUTS(self.pprogram, adapt_step_size=True)
-        self.mcmc = MCMC(self.nuts_kernel, num_samples=self.n_samples, warmup_steps=self.n_warmup)
+        if "adapt_step_size" not in kernel_kwargs:
+            kernel_kwargs["adapt_step_size"] = True
+
+        self.nuts_kernel = NUTS(self.pprogram, **kernel_kwargs)
+        self.mcmc = MCMC(self.nuts_kernel, num_samples=self.n_samples, warmup_steps=self.n_warmup, **mcmc_kwargs)
 
 
     def sample_posterior(self,  

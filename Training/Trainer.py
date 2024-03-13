@@ -238,7 +238,8 @@ def visualize_training_results(results: Tuple[list[dict[str, float]], list[dict[
         loglog: bool: whether to use loglog scale
     """
 
-    n_subplots = len(results[0][0])
+    n_subplots = len(results[0])
+
 
     fig, axs = plt.subplots(n_subplots, 1, figsize=(10, 10*n_subplots))
 
