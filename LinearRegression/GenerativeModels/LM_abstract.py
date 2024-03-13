@@ -20,7 +20,7 @@ def pprogram_linear_model_return_dict(x: torch.tensor, y: torch.tensor = None) -
     pass 
 
 @abstractmethod
-def ppgram_linear_model_return_y(x: torch.tensor) -> torch.tensor:
+def ppgram_linear_model_return_y(x: torch.tensor,  y: torch.tensor = None) -> torch.tensor:
     """
     A probabilistic program that models a linear model. x denotes the covariates and y denotes the response variable.
     Args: 
@@ -30,7 +30,7 @@ def ppgram_linear_model_return_y(x: torch.tensor) -> torch.tensor:
     """
     pass
 
-def return_only_y(pprogram: pprogram_linear_model_return_dict) -> callable:
+def return_only_y(pprogram: pprogram_linear_model_return_dict) -> ppgram_linear_model_return_y:
     """
     A decorator that ensures a ppogram returns only the response variable y.
     Args:
@@ -38,17 +38,10 @@ def return_only_y(pprogram: pprogram_linear_model_return_dict) -> callable:
     Returns:
         callable: a callable that returns only the response variable y
     """
-    def wrapper(x: torch.tensor) -> torch.tensor:
-        """
-        A wrapper function that returns only the response variable y.
-        Args:
-            x: torch.tensor: the covariates
-        Returns:
-            torch.tensor: the response variable y
-        """
-        return pprogram(x)["y"]
+    def wrapper(x: torch.tensor, y: torch.tensor = None) -> torch.tensor:
+        return pprogram(x, y)["y"]
+    
     return wrapper
-
 
 def pprogram_X(n: int, p:int) -> torch.Tensor:
     """
