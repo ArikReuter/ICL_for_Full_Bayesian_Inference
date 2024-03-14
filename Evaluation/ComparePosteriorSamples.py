@@ -11,6 +11,21 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
 
+def try_otherwise_return_nan(fun: callable) -> callable:
+    """
+    A wrapper that modifies a fuction to return torch.nan if the function fails
+    Args:
+        fun: callable: the function
+    Returns:
+        callable: a function that returns torch.nan if the original function fails
+    """
+    def wrapper(*args, **kwargs):
+        try:
+            return fun(*args, **kwargs)
+        except:
+            return torch.nan
+    return wrapper
+    
 
 
 def compare_basic_statistics(P: torch.tensor, Q:torch.tensor) -> dict:
@@ -309,18 +324,21 @@ def compare_marginals(P: torch.Tensor,
 
         return results
 
-def compare_all_metrics(P: torch.tensor, Q: torch.tensor, methods: list[callable] = [compare_Wasserstein, compare_KLD_Gaussian, compare_basic_statistics, compare_covariance, compare_marginals]) -> dict:
+def compare_all_metrics(P: torch.tensor, Q: torch.tensor, methods: list[callable] = [compare_Wasserstein, compare_Wasserstein, compare_basic_statistics, compare_covariance, compare_marginals], 
+                        fun_wrapper = try_otherwise_return_nan) -> dict:
     """
     A method that compares two sets of samples using a list of comparison methods.
     Args:
         P: torch.tensor: the first set of samples
         Q: torch.tensor: the second set of samples
         methods: list[callable]: a list of comparison methods to use
+        fun_wrapper: callable: a wrapper that ensures a function returns a value or torch.nan if an exception is raised
     Returns:
         dict: a dictionary containing the results of the comparison methods
     """
     results = {}
     for method in methods:
+        method = fun_wrapper(method)
         results.update(method(P, Q))
     return results
 
