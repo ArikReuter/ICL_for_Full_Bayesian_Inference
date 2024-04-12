@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import torch
-
+from torch.distributions import LowRankMultivariateNormal
+from numpy.linalg import LinAlgError
 
 from PFNExperiments.Training.EvalMetrics import mean, median, std
 
@@ -154,7 +155,7 @@ class ModelPosteriorFullGaussian(ModelPosterior):
 
             nll = - dist.log_prob(target)
 
-        except ValueError as e:
+        except LinAlgError as e:
             print(f"Error in negative_log_likelihood, returning {self.loss_on_error} instead of the nll")
             print(e)
             
