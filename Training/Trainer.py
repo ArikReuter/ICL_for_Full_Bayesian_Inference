@@ -82,7 +82,7 @@ class Trainer():
         targets = []
 
         with torch.no_grad():
-            for batch in self.valset:
+            for batch in tqdm(self.valset):
                 batch = {k: v.to(self.device) for k, v in batch.items()}
                 x = self.batch_to_model_function(batch)
                 target = batch[self.target_key_in_batch]
@@ -111,7 +111,7 @@ class Trainer():
         targets = []
 
         with torch.no_grad():
-            for batch in self.testset:
+            for batch in tqdm(self.testset):
                 batch = {k: v.to(self.device) for k, v in batch.items()}
                 x = self.batch_to_model_function(batch)
                 target = batch[self.target_key_in_batch]
