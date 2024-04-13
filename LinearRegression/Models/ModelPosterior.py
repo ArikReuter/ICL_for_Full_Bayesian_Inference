@@ -160,8 +160,9 @@ class ModelPosteriorFullGaussian(ModelPosterior):
                 print("Caught a _LinAlgError related to Cholesky decomposition: The input is not positive-definite.")
             else:
                 raise
-            
-            return torch.tensor(self.loss_on_error)
+
+            mu, cov_factor, cov_diag = pred
+            return torch.tensor(self.loss_on_error) + torch.sum(cov_diag **2) - torch.sum(cov_diag **2) + torch.sum(cov_factor **2) - torch.sum(cov_factor **2) + torch.sum(mu **2) - torch.sum(mu **2)
 
         return nll.mean()
     
