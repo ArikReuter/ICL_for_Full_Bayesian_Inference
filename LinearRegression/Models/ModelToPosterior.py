@@ -29,3 +29,4 @@ class ModelToPosterior:
         pred = self.model(x)
         posterior = self.posterior_model.pred2posterior(pred)
         return posterior
+    
