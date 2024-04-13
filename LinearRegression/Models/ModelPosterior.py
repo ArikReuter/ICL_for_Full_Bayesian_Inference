@@ -162,7 +162,7 @@ class ModelPosteriorFullGaussian(ModelPosterior):
                 raise
 
             mu, cov_factor, cov_diag = pred
-            return torch.tensor(self.loss_on_error) + 1/torch.sum(cov_diag **2) + 1/torch.sum(cov_factor **2) + 1/torch.sum(mu **2)
+            return torch.tensor(self.loss_on_error, requires_grad = True) + 1/torch.sum(cov_diag **2) + 1/torch.sum(cov_factor **2) + 1/torch.sum(mu **2)
 
         return nll.mean()
     
