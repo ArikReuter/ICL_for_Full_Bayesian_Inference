@@ -155,9 +155,11 @@ class ModelPosteriorFullGaussian(ModelPosterior):
 
             nll = - dist.log_prob(target)
 
-        except LinAlgError as e:
-            print(f"Error in negative_log_likelihood, returning {self.loss_on_error} instead of the nll")
-            print(e)
+        except RuntimeError as e:
+            if 'linalg.cholesky' in str(e):
+                print("Caught a _LinAlgError related to Cholesky decomposition: The input is not positive-definite.")
+            else:
+                raise
             
             return torch.tensor(self.loss_on_error)
 
