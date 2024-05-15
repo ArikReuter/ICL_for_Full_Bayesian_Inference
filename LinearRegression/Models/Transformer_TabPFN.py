@@ -172,7 +172,9 @@ class TransformerTabPFN(torch.nn.Module):
                  dim_feedforward:int,
                  dropout_rate:float,
                  projection_size_after_trafo:int,
-                 n_skip_layers_final_heads:int):
+                 n_skip_layers_final_heads:int,
+                 device = torch.device('cpu') if not torch.cuda.is_available() else torch.device('cuda')
+    ):
         
         """
         Args:
@@ -186,6 +188,8 @@ class TransformerTabPFN(torch.nn.Module):
         """
         
         super(TransformerTabPFN, self).__init__()
+
+        self.device = device
 
         self.seq_len = seq_len
         self.n_outputs = n_outputs
@@ -344,7 +348,7 @@ class TransformerTabPFN(torch.nn.Module):
 
         eval_xs_ = torch.cat(
             [eval_xs_,
-                torch.zeros((eval_xs_.shape[0], eval_xs_.shape[1], max_features- eval_xs_.shape[2]))], -1)
+                torch.zeros((eval_xs_.shape[0], eval_xs_.shape[1], max_features- eval_xs_.shape[2])).to(self.device())], -1)
 
 
         x = self.pfnbackbone.encoder(eval_xs_)
