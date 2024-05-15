@@ -348,7 +348,7 @@ class TransformerTabPFN(torch.nn.Module):
 
         eval_xs_ = torch.cat(
             [eval_xs_,
-                torch.zeros((eval_xs_.shape[0], eval_xs_.shape[1], max_features- eval_xs_.shape[2])).to(self.device())], -1)
+                torch.zeros((eval_xs_.shape[0], eval_xs_.shape[1], max_features- eval_xs_.shape[2])).to(self.device)], -1)
 
 
         x = self.pfnbackbone.encoder(eval_xs_)
