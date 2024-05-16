@@ -25,6 +25,7 @@ class Trainer():
                  valset: torch.utils.data.Dataset,
                  testset: torch.utils.data.Dataset = None,
                  scheduler: torch.optim.lr_scheduler = None,
+                 schedule_step_on: str = "epoch",
                  batch_to_model_function: callable = batch_to_model_lm,
                  target_key_in_batch: str = "beta",
                  evaluation_functions: dict[str, callable] = {},
@@ -42,6 +43,8 @@ class Trainer():
             trainset: torch.utils.data.Dataset: the training set
             valset: torch.utils.data.Dataset: the validation set
             testset: torch.utils.data.Dataset: the test set
+            scheduler: torch.optim.lr_scheduler: the scheduler
+            schedule_step_on: str: the step on which to schedule the learning rate. Can be "epoch" or "batch"
             batch_to_model_function: callable: a function that maps a batch to the model input
             target_key_in_batch: str: the key of the target in the batch
             evaluation_functions: dict[str, callable]: the evaluation functions in a dictionary where the key is the name of the evaluation function and the value is the evaluation function
@@ -50,6 +53,9 @@ class Trainer():
             save_path: str: the path to save the model
             early_stopping_patience: int: the patience for early stopping
         """
+
+        assert schedule_step_on in ["epoch", "batch"], "schedule_step_on must be either 'epoch' or 'batch'"
+
         self.model = model
         self.optimizer = optimizer
         self.loss_function = loss_function
@@ -57,6 +63,7 @@ class Trainer():
         self.valset = valset
         self.testset = testset
         self.scheduler = scheduler
+        self.schedule_step_on = schedule_step_on
         self.batch_to_model_function = batch_to_model_function
         self.evaluation_functions = evaluation_functions
         self.target_key_in_batch = target_key_in_batch
@@ -161,13 +168,19 @@ class Trainer():
                 loss.backward()
                 self.optimizer.step()
 
+                if self.scheduler is not None and self.schedule_step_on == "batch":
+                    try: 
+                        self.scheduler.step()
+                    except:
+                        self.scheduler.step(loss)
+
                 predictions.append([elem.detach().cpu() for elem in pred])
                 targets.append(target.detach().cpu())
 
         
             validation_results = self.validate()
 
-            if self.scheduler is not None:
+            if self.scheduler is not None and self.schedule_step_on == "epoch":
                 try: 
                     self.scheduler.step()
                 except:
