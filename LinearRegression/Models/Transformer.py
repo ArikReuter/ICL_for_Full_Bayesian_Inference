@@ -161,7 +161,8 @@ class Transformer(nn.Module):
                n_layers: int = 3, 
                n_skip_layers_final_heads: int = 2,
                n_output_units_per_head = [5,5],
-               projection_size_after_trafo = None):
+               projection_size_after_trafo = None,
+               transpose_input:int = False):
     
     """
     A simple transformer encoder model that takes as input a sequence of features of shape (n_batch_size, seq_len, n_features) and returns a list of output tensors of shape (n_batch_size, n_output_units_per_head[i]) for i in range(n_outputs).
@@ -177,6 +178,7 @@ class Transformer(nn.Module):
         n_skip_layers_final_heads: int: the number of skip layers in the final heads
         n_output_units_per_head: list: the number of output units per head
         projection_size_after_trafo: int: the projection size after the transformer
+        transpose_input: bool: whether to transpose the input tensor, i.e. to change the shape from (n_batch_size, seq_len, n_features) to (n_batch_size, n_features, seq_len)
     """
     
     super(Transformer, self).__init__()
@@ -191,6 +193,7 @@ class Transformer(nn.Module):
     self.n_layers = n_layers
     self.n_skip_layers_final_heads = n_skip_layers_final_heads
     self.n_output_units_per_head = n_output_units_per_head
+    self.transpose_input = transpose_input
 
     if projection_size_after_trafo is None:
       self.projection_size_after_trafo = d_model//4
@@ -221,10 +224,14 @@ class Transformer(nn.Module):
   def forward(self, x: torch.tensor) -> torch.tensor:
     """
     Args: 
-        x: torch.tensor: the input tensor of shape (n_batch_size, seq_len, n_features)
+        x: torch.tensor: the input tensor of shape (n_batch_size, seq_len, n_features). If self.transpose_input is True, the input tensor should have the shape (n_batch_size, n_features, seq_len)
     Returns:
         torch.tensor: the output tensor of shape (n_batch_size, n_outputs, n_output_units_per_head[i])
     """
+
+    if self.transpose_input:
+      x = x.transpose(1,2) # transpose the input tensor if necessary to have the shape (n_batch_size, n_features, seq_len)
+
     x = self.mlp1(x)
     x = self.act1(x)
 
