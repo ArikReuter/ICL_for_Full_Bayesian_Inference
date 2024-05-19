@@ -1,8 +1,5 @@
 import torch
-try:
-    from GenerateDataCurriculum import GenerateDataCurriculum
-except:
-    from PFNExperiments.LinearRegression.GenerativeModels.GenerateDataCurriculum import GenerateDataCurriculum
+
 from typing import Tuple
 
 
@@ -12,7 +9,7 @@ class EpochLoader():
     """
 
     def __init__(self,
-                 GenerateDataCurriculum: GenerateDataCurriculum,
+                 GenerateDataCurriculum,
                  n_epochs: int = 100,
                  n : int = 100,
                  p : int = 5,
