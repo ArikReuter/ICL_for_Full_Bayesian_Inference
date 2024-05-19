@@ -36,17 +36,17 @@ class Curriculum():
         return f"Curriculum(max_iter={self.max_iter}, generation_params={self.generation_params})"
 
 
-    def linear_scheduler(self, min_value:float, max_value:float) -> callable:
+    def linear_scheduler(self, start_value:float, end_value:float) -> callable:
         """
-        A linear scheduler that linearly interpolates between min_value and max_value.
+        A linear scheduler that linearly interpolates between start_value and end_value.
         Args:
-            min_value: float: the minimum value
-            max_value: float: the maximum value
+            start_value: float: the start value
+            end_value: float: the end value
         Returns:
             callable: the schedule function
         """
         def schedule(iter:int) -> float:
-            return min_value + (max_value - min_value) * iter / self.max_iter
+            return start_value + (end_value - start_value) * iter / self.max_iter
 
         return schedule
     
@@ -63,60 +63,91 @@ class Curriculum():
 
         return schedule
     
-    def stepwise_scheduler(self, min_value:float, max_value:float, n_steps:int = 10) -> callable:
+    def stepwise_scheduler(self, start_value:float, end_value:float, n_steps:int = 10) -> callable:
         """
         A stepwise scheduler that changes the value every n_steps iterations.
         Args:
-            min_value: float: the minimum value
-            max_value: float: the maximum value
+            start_value: float: the start value
+            end_value: float: the end value
             n_steps: int: the number of steps
         Returns:
             callable: the schedule function
         """
         def schedule(iter:int) -> float:
-            return min_value + (max_value - min_value) * (iter // n_steps) / self.max_iter
+            return start_value + (end_value - start_value) * (iter // n_steps) / self.max_iter
 
         return schedule
     
-    def constant_than_linear_scheduler(self, min_value:float, max_value:float, fraction_constant:float = 0.3) -> callable:
+    def constant_than_linear_scheduler(self, start_value:float, end_value:float, fraction_constant:float = 0.3) -> callable:
         """
-        A scheduler that is constant for a fraction of the iterations and then linearly interpolates between min_value and max_value.
+        A scheduler that is constant for a fraction of the iterations and then linearly interpolates between start_value and end_value.
         Args:
-            min_value: float: the minimum value
-            max_value: float: the maximum value
+            start_value: float: the start value
+            end_value: float: the end value
             fraction_constant: float: the fraction of iterations that the value is constant
         Returns:
             callable: the schedule function
         """
         def schedule(iter:int) -> float:
             if iter < self.max_iter * fraction_constant:
-                return min_value
+                return start_value
             else:
-                return self.linear_scheduler(min_value, max_value)(iter - self.max_iter * fraction_constant)
+                return start_value + (end_value - start_value) * (iter - self.max_iter * fraction_constant) / (self.max_iter * (1 - fraction_constant))
         return schedule
     
-    def exponential_scheduler(self, min_value:float, max_value:float) -> callable:
+    def constant_than_linear_than_constant_scheduler(self, 
+                                                     start_value:float, 
+                                                     end_value:float, 
+                                                     fraction_constant_beginning:float = 0.2, 
+                                                     fraction_constant_end:float = 0.2) -> callable:
         """
-        An exponential scheduler that exponentially interpolates between min_value and max_value.
+        A scheduler that is constant for a fraction of the iterations, then linearly interpolates between start_value and end_value, and then is constant again.
         Args:
-            min_value: float: the minimum value
-            max_value: float: the maximum value
+            start_value: float: the start value
+            end_value: float: the end value
+            fraction_constant_beginning: float: the fraction of iterations that the value is constant at the beginning
+            fraction_constant_end: float: the fraction of iterations that the value is constant at the end
         Returns:
             callable: the schedule function
         """
         def schedule(iter:int) -> float:
-            return min_value + (max_value - min_value) * (1 - 2 ** (-iter / self.max_iter))
+            if iter < self.max_iter * fraction_constant_beginning:
+                return start_value
+            elif iter < self.max_iter * (1 - fraction_constant_end):
+                return start_value + (end_value - start_value) * (iter - self.max_iter * fraction_constant_beginning) / (self.max_iter * (1 - fraction_constant_beginning - fraction_constant_end))
+            else:
+                return end_value
+            
+        return schedule
+    
+    
+    def exponential_scheduler(self, start_value:float, end_value:float) -> callable:
+        """
+        An exponential scheduler that exponentially interpolates between start_value and end_value.
+        Args:
+            start_value: float: the start value
+            end_value: float: the end value
+        Returns:
+            callable: the schedule function
+        """
+        def schedule(iter:int) -> float:
+            return start_value + (end_value - start_value) * (1 - 2 ** (-iter / self.max_iter))
 
         return schedule
 
 
-    def plot_schedule(self, schedule:callable) -> None:
+    def plot_schedule(self, schedule:callable, steps_to_plot = 1000) -> None:
         """
         Plot the schedule
         Args:
             schedule: callable: the schedule function
+            steps_to_plot: int: the number of steps to plot
         """
-        values = [schedule(i) for i in range(self.max_iter)]
+
+        plot_range = range(0, self.max_iter, self.max_iter // steps_to_plot)
+
+
+        values = [schedule(i) for i in plot_range]
         plt.plot(values)
         plt.show()
 
@@ -139,16 +170,21 @@ class Curriculum():
         for name, schedule in lis:
             self.add_param(name, schedule)
 
-    def plot_all_schedules(self) -> None:
+    def plot_all_schedules(self, steps_to_plot = 1000) -> None:
         """
         Plot all schedules
+        Args: 
+            steps_to_plot: int: the number of steps to plot
         """
         fig, axs = plt.subplots(len(self.generation_params), 1)
         fig.set_figheight(5 * len(self.generation_params))
         for i, (name, schedule) in enumerate(self.generation_params.items()):
-            values = [schedule(i) for i in range(self.max_iter)]
+            values = [schedule(i) for i in range(0, self.max_iter, self.max_iter // steps_to_plot)]
             axs[i].plot(values)
             axs[i].set_title(name)
+            axs[i].x_values = range(0, self.max_iter, self.max_iter // steps_to_plot)
+            axs[i].set_xlabel("Iteration")
+
 
         plt.show()
 
@@ -164,3 +200,12 @@ class Curriculum():
             iter = self.max_iter - 1
 
         return {name: schedule(iter) for name, schedule in self.generation_params.items()}
+    
+    def __call__(self, iter:int) -> dict:
+        return self.get_params(iter)
+    
+    def __getitem__(self, iter:int) -> dict:
+        return self.get_params(iter)   
+    
+    def __len__(self) -> int:
+        return self.max_iter

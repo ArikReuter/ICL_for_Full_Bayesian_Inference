@@ -355,6 +355,7 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]]) -> None:
 
     return overall_agg_stats
 
+
 def make_dataloaders_static_data(
                             data: List[Dict[str, torch.tensor]], 
                             batch_size: int = 256,
