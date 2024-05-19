@@ -5,8 +5,11 @@ import os
 import matplotlib.pyplot as plt
 from typing import Tuple
 
+try:
+    from Trainer import batch_to_model_lm, visualize_training_results
 
-from Trainer import batch_to_model_lm, visualize_training_results
+except:
+    from PFNExperiments.Training.Trainer import batch_to_model_lm, visualize_training_results
 
 class TrainerCurriculum():
     """
