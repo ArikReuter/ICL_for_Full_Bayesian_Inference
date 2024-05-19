@@ -1,5 +1,8 @@
 import torch
-from GenerateDataCurriculum import GenerateDataCurriculum
+try:
+    from GenerateDataCurriculum import GenerateDataCurriculum
+except:
+    from PFNExperiments.LinearRegression.GenerativeModels.GenerateDataCurriculum import GenerateDataCurriculum
 from typing import Tuple
 
 

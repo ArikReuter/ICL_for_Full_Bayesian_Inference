@@ -3,16 +3,22 @@ import pyro
 from tqdm import tqdm
 from typing import List, Dict, Tuple
 import inspect
-from EpochLoader import EpochLoader
-from GenerateData import check_data, check_and_plot_data
+
 try:
     from LM_abstract import pprogram_linear_model_return_dict, return_only_y, pprogram_X
     from GenerateX import simulate_X_uniform
     from Curriculum import Curriculum
     from GenerateData import GenerateData
+    from EpochLoader import EpochLoader
+    from GenerateData import check_data, check_and_plot_data
 except:
     from PFNExperiments.LinearRegression.GenerativeModels.LM_abstract import pprogram_linear_model_return_dict, return_only_y, pprogram_X
     from PFNExperiments.LinearRegression.GenerativeModels.GenerateX import simulate_X_uniform
+    from PFNExperiments.LinearRegression.GenerativeModels.Curriculum import Curriculum
+    from PFNExperiments.LinearRegression.GenerativeModels.GenerateData import GenerateData
+    from PFNExperiments.LinearRegression.GenerativeModels.EpochLoader import EpochLoader
+    from PFNExperiments.LinearRegression.GenerativeModels.GenerateData import check_data, check_and_plot_data
+    
 
 
 def get_function_parameter_names(func):
