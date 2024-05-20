@@ -192,6 +192,7 @@ class TrainerCurriculum():
         all_results_time = []
         
         start_time_epoch = time.time()
+        overall_iter = 0
         for epoch in range(self.n_epochs):
             self.model.train()
             predictions = []
@@ -201,7 +202,7 @@ class TrainerCurriculum():
             valset_epoch = self.epoch_loader(epoch)[1]
 
             if self.verbose > 1: 
-                current_params = self.epoch_loader.GenerateDataCurriculum.curriculum.get_params(iter = epoch*len(trainset_epoch))
+                current_params = self.epoch_loader.GenerateDataCurriculum.curriculum.get_params(iter = overall_iter)
                 print(f"Curriculum parameters: {current_params}")
 
             for batch in tqdm(trainset_epoch):
@@ -224,6 +225,8 @@ class TrainerCurriculum():
 
                 predictions.append([elem.detach().cpu() for elem in pred])
                 targets.append(target.detach().cpu())
+
+                overall_iter += 1
 
         
             validation_results = self.validate()
