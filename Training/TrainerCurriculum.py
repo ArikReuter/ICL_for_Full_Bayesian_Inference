@@ -85,7 +85,7 @@ class TrainerCurriculum():
         if not os.path.exists(os.path.dirname(self.save_path)):
             os.makedirs(os.path.dirname(self.save_path))
 
-    def validate_loader(self, loader: torch.nn.utils.data.DataLoader) -> dict[str, float]:
+    def validate_loader(self, loader: torch.utils.data.DataLoader) -> dict[str, float]:
         """
         Validate the model
         Args:
