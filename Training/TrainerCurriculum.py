@@ -194,6 +194,7 @@ class TrainerCurriculum():
         start_time_epoch = time.time()
         overall_iter = 0
 
+        batch_size = 0
         for epoch in range(self.n_epochs):
             self.model.train()
             predictions = []
@@ -202,7 +203,7 @@ class TrainerCurriculum():
             trainset_epoch = self.epoch_loader(epoch)[0]
             valset_epoch = self.epoch_loader(epoch)[1]
 
-            batch_size = 0
+            
             if self.verbose > 1: 
                 current_params = self.epoch_loader.GenerateDataCurriculum.curriculum.get_params(iter = overall_iter * batch_size)
                 print(f"Curriculum parameters: {current_params} at iteration { overall_iter * batch_size}")
