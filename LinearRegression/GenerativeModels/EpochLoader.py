@@ -64,5 +64,8 @@ class EpochLoader():
     
     def __len__(self) -> int:
         return self.n_epochs
+    
+    def __call__(self, epoch:int) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
+        return self.__getitem__(epoch)
 
 
