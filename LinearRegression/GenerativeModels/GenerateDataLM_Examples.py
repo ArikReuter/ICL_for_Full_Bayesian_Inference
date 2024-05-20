@@ -79,6 +79,56 @@ def make_lm_program_gamma_gamma(
         return multivariate_lm_return_dict
 
 
+def make_lm_program_gamma_gamma_reduced_dimensionality(
+        a0:float = 5.0,
+        b0: float = 2.0,
+        a1: float = 5.0,
+        b1: float = 2.0,
+        dimensionality_factor: float = 1.0,
+        ) -> LM_abstract.pprogram_linear_model_return_dict:
+        """
+        Make a linear model probabilistic program with a gamma prior on sigma_squared and a gamma prior on beta_var.
+        The dimensionality of the parameters of the linear model is the fraction of covariates that have an effec that is not zero.
+        Args:
+                a0: float: the shape parameter of the gamma prior on beta_var
+                bo: float: the rate parameter of the gamma prior on beta_var
+                a1: float: the shape parameter of the gamma prior on sigma_squared
+                b1: float: the rate parameter of the gamma prior on sigma_squared
+                dimensionality_factor: float: the fraction of covariates that have an effect that is not zero
+        Returns:
+                LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
+        """
+
+        def multivariate_lm_return_dict(x: torch.tensor, y: torch.tensor = None) -> dict:
+            
+            beta_dist = pyro.distributions.Gamma(a0, b0)
+            beta_var = pyro.sample("beta_var", beta_dist)
+        
+            sigma_squared_dist = pyro.distributions.Gamma(a1, b1)
+            sigma_squared = pyro.sample("sigma_squared", sigma_squared_dist)
+
+            beta_cov = torch.eye(x.shape[1]) * beta_var # the covariance matrix of the parameters of the linear model
+            beta = pyro.sample("beta", pyro.distributions.MultivariateNormal(torch.zeros(x.shape[1]), beta_cov)) # the parameters of the linear model
+
+            n_beta_zero = int(x.shape[1] * (1 - dimensionality_factor))
+            beta[n_beta_zero:] = 0.0
+
+            mean = torch.matmul(x, beta)
+
+            with pyro.plate("data", x.shape[0]):
+                y = pyro.sample("obs", pyro.distributions.Normal(mean, sigma_squared), obs=y)
+
+            return {
+                        "x": x,
+                        "y": y,
+                        "sigma_squared": sigma_squared,
+                        "beta_var": beta_var,
+                        "beta": beta
+                }
+        
+        return multivariate_lm_return_dict
+
+
 def make_lm_program_gamma_gamma_augmented(
         a0:float = 5.0,
         b0: float = 2.0,
