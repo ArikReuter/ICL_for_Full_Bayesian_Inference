@@ -110,8 +110,8 @@ def make_lm_program_gamma_gamma_reduced_dimensionality(
             beta_cov = torch.eye(x.shape[1]) * beta_var # the covariance matrix of the parameters of the linear model
             beta = pyro.sample("beta", pyro.distributions.MultivariateNormal(torch.zeros(x.shape[1]), beta_cov)) # the parameters of the linear model
 
-            n_beta_zero = int(x.shape[1] * (1 - dimensionality_factor))
-            beta[n_beta_zero:] = 0.0
+            index_till_zero = int(x.shape[1] * dimensionality_factor)
+            beta[index_till_zero:] = 0
 
             mean = torch.matmul(x, beta)
 
