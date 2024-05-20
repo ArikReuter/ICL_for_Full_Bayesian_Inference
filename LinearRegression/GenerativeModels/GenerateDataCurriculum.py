@@ -18,7 +18,7 @@ except:
     from PFNExperiments.LinearRegression.GenerativeModels.GenerateData import GenerateData
     from PFNExperiments.LinearRegression.GenerativeModels.EpochLoader import EpochLoader
     from PFNExperiments.LinearRegression.GenerativeModels.GenerateData import check_data, check_and_plot_data
-    
+
 
 
 def get_function_parameter_names(func):
@@ -233,14 +233,14 @@ class GenerateDataCurriculum(GenerateData):
             EpochLoader: an epoch loader
         """
 
-        assert n_batch * n_epochs == self.curriculum.max_iter, "The number of batches times the number of epochs must be equal to the total number of iterations in the curriculum"
+        assert abs(n_batch * n_epochs * batch_size - self.curriculum.max_iter) < batch_size, f"The number of batches times the number of epochs must be equal to the total number of iterations in the curriculum. But got {n_batch * n_epochs * batch_size} and {self.curriculum.max_iter} respectively"
 
         epoch_loader = EpochLoader(
             GenerateDataCurriculum = self,
             n_epochs = self.curriculum.max_iter // n_batch,
             n = n,
             p = p,
-            n_batch = n_batch,
+            n_batch = n_batch*batch_size,
             batch_size = batch_size,
             train_frac = train_frac,
             val_frac = val_frac,
@@ -275,7 +275,7 @@ class SyntheticDataCurriculum(torch.utils.data.Dataset):
         Args:
             n: int: the number of observations per batch 
             p: int: the number of covariates
-            n_batch: int: the number of batches. Needs to be constant for all epochs
+            n_batch: int: the number of samples per epoch
             epoch: int: the epoch
             pprogram_maker: callable: a function that returns a probabilistic program
             curriculum: Curriculum: the curriculum that determines the way the samples are generated during training
@@ -296,7 +296,7 @@ class SyntheticDataCurriculum(torch.utils.data.Dataset):
         pyro.set_rng_seed(seed)
     
     def __len__(self) -> int:
-        return self.n_batch
+        return self.n_batch * self.epoch + self.n_batch 
 
     def __getitem__(self, idx) -> dict:
         total_iteration = self.epoch * self.n_batch + idx
