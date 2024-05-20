@@ -201,7 +201,7 @@ class TrainerCurriculum():
             valset_epoch = self.epoch_loader(epoch)[1]
 
             if self.verbose > 1: 
-                current_params = self.epoch_loader.GenerateDataCurriculum.curriculum.get_params(iter = epoch)
+                current_params = self.epoch_loader.GenerateDataCurriculum.curriculum.get_params(iter = epoch*len(trainset_epoch))
                 print(f"Curriculum parameters: {current_params}")
 
             for batch in tqdm(trainset_epoch):
