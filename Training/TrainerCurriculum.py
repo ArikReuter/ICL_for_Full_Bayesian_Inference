@@ -75,7 +75,7 @@ class TrainerCurriculum():
         self.verbose = verbose
 
         if self.valset is None:
-            self.valset = self.epoch_loader(0)[1]
+            self.valset = self.epoch_loader(n_epochs)[1]  #load the validation set for the last epoch from the epoch_loader
         
         if self.testset is None:
             self.testset = self.epoch_loader(self.n_epochs)[2]
