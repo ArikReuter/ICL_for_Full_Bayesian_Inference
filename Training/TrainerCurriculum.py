@@ -193,6 +193,7 @@ class TrainerCurriculum():
         
         start_time_epoch = time.time()
         overall_iter = 0
+
         for epoch in range(self.n_epochs):
             self.model.train()
             predictions = []
@@ -201,13 +202,17 @@ class TrainerCurriculum():
             trainset_epoch = self.epoch_loader(epoch)[0]
             valset_epoch = self.epoch_loader(epoch)[1]
 
+            batch_size = 0
             if self.verbose > 1: 
-                current_params = self.epoch_loader.GenerateDataCurriculum.curriculum.get_params(iter = overall_iter)
-                print(f"Curriculum parameters: {current_params}")
+                current_params = self.epoch_loader.GenerateDataCurriculum.curriculum.get_params(iter = overall_iter * batch_size)
+                print(f"Curriculum parameters: {current_params} at iteration { overall_iter * batch_size}")
 
             for batch in tqdm(trainset_epoch):
                 batch = {k: v.to(self.device) for k, v in batch.items()}
                 x = self.batch_to_model_function(batch)
+
+                batch_size = x.shape[0]
+
                 target = batch[self.target_key_in_batch]
                 pred = self.model(x)
 
