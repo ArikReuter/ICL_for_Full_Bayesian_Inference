@@ -170,20 +170,56 @@ class Curriculum():
         for name, schedule in lis:
             self.add_param(name, schedule)
 
-    def plot_all_schedules(self, steps_to_plot = 1000) -> None:
+    def plot_all_schedules(self, steps_to_plot:int = 100) -> None:
         """
         Plot all schedules
         Args: 
             steps_to_plot: int: the number of steps to plot
-        """
+        """ 
+        
         fig, axs = plt.subplots(len(self.generation_params), 1)
         fig.set_figheight(5 * len(self.generation_params))
         for i, (name, schedule) in enumerate(self.generation_params.items()):
-            values = [schedule(i) for i in range(0, self.max_iter, self.max_iter // steps_to_plot)]
-            axs[i].plot(values)
+            y_values = [schedule(i) for i in range(0, self.max_iter, self.max_iter // steps_to_plot)]
+            x_values = range(0, self.max_iter, self.max_iter // steps_to_plot)
+
+            axs[i].plot(x_values, y_values)
             axs[i].set_title(name)
-            axs[i].x_values = range(0, self.max_iter, self.max_iter // steps_to_plot)
             axs[i].set_xlabel("Iteration")
+
+    def plot_all_schedules_epochs(self, steps_to_plot:int = 100, n_epochs:int = 100, n_epochs_to_plot = 10) -> None:
+        """
+        Plot all schedules, indicating the epochs on the x-axis
+        Args: 
+            steps_to_plot: int: the number of steps to plot
+            n_epochs: int: the number of epochs
+            n_epochs_to_plot: int: the number of epochs to plot
+
+        """ 
+        
+        fig, axs = plt.subplots(len(self.generation_params), 1)
+        fig.set_figheight(5 * len(self.generation_params))
+        for i, (name, schedule) in enumerate(self.generation_params.items()):
+            x_values = range(0, self.max_iter, self.max_iter //  n_epochs)
+            
+            x_values = x_values[::(n_epochs // n_epochs_to_plot)]
+
+            y_values = [schedule(i) for i in x_values]
+
+           
+
+            x_epoch_labels = range(0, n_epochs, n_epochs // n_epochs_to_plot)
+
+
+            axs[i].plot(x_epoch_labels, y_values)
+            axs[i].set_title(name)
+            axs[i].set_xlabel("Epoch")
+
+
+
+
+
+            
 
 
         plt.show()

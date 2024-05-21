@@ -110,7 +110,7 @@ class GenerateDataCurriculum(GenerateData):
 
         return data, n_discarded
     
-    def check_model(self, p:int = 3, n:int = 100, n_batch:int = 1_000, epochs_to_check:List[int] = [0, 10]) -> List:
+    def check_model(self, p:int = 3, n:int = 100, n_batch:int = 1_000, epochs_to_check:List[int] = [0, 10], used_samples:int = 1000) -> List:
         """
         Check the model for a few batches
         Args: 
@@ -118,6 +118,7 @@ class GenerateDataCurriculum(GenerateData):
             n: int: the number of observations
             n_batch: int: the number of batches
             epochs_to_check: List[int]: the epochs to check
+            used_samples: int: the number of samples to use for checking
 
         Returns:
             List: a list of results
@@ -127,10 +128,17 @@ class GenerateDataCurriculum(GenerateData):
         for epoch in epochs_to_check:
             print("#"*100)
             print(f"Epoch {epoch}")
-            sample_data, discarded = self.simulate_data(n = n, p = p, n_batch = n_batch, epoch = epoch)
+            loader = self.make_dataloaders_for_epoch_dynamic(epoch = epoch, n = n, p = p, n_batch = n_batch, batch_size = n_batch, train_frac = 1, val_frac = 0, shuffle = False, use_seed = True)[0]
 
-            print(f"Discarded {discarded} samples")
-            r = check_and_plot_data(sample_data)
+            sample_data = []
+            for i in tqdm(list(range(used_samples))):
+                data = next(iter(loader))
+                if i >= used_samples:
+                    break
+                sample_data.append(data)
+
+
+            r = check_and_plot_data(sample_data, batched_input=True)
 
             results.append(r)
 
@@ -151,7 +159,8 @@ class GenerateDataCurriculum(GenerateData):
                                  batch_size:int = 256,
                                  train_frac = 0.7,
                                  val_frac = 0.15,
-                                 shuffle: bool = True
+                                 shuffle: bool = True,
+                                 use_seed: bool = False
                                  ) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         """
         Make a dataloader where the data is generated on the fly
@@ -164,6 +173,7 @@ class GenerateDataCurriculum(GenerateData):
             train_frac: float: the fraction of the data to use for training
             val_frac: float: the fraction of the data to use for validation
             shuffle: bool: whether to shuffle the data
+            use_seed: bool: whether to use the seed for the random number generator
         Returns:
             Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]: a tuple of dataloaders for the training, test and validation data
         """
@@ -171,6 +181,12 @@ class GenerateDataCurriculum(GenerateData):
         train_size = int(train_frac * n_batch)
         val_size = int(val_frac * n_batch)
         test_size = n_batch - train_size - val_size
+
+        if use_seed:
+            seed = self.seed
+        else:
+            seed = torch.randint(0, 100000, (1,)).item()
+
 
         dataset_train = SyntheticDataCurriculum(n = n, 
                                 p = p, 
@@ -233,7 +249,8 @@ class GenerateDataCurriculum(GenerateData):
             EpochLoader: an epoch loader
         """
 
-        assert abs(n_batch * n_epochs * batch_size - self.curriculum.max_iter) < batch_size, f"The number of batches times the number of epochs must be equal to the total number of iterations in the curriculum. But got {n_batch * n_epochs * batch_size} and {self.curriculum.max_iter} respectively"
+        if not abs(n_batch * n_epochs * batch_size - self.curriculum.max_iter) < batch_size:
+            print(f"The number of batches times the number of epochs must be equal to the total number of iterations in the curriculum. But got {n_batch * n_epochs * batch_size} and {self.curriculum.max_iter} respectively")
 
         epoch_loader = EpochLoader(
             GenerateDataCurriculum = self,
