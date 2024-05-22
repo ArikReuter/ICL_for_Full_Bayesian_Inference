@@ -389,112 +389,6 @@ class SyntheticDataCurriculum(torch.utils.data.Dataset):
 
         return lm_res
     
-
-class SyntheticDataCurriculumBatchedOld(SyntheticDataCurriculum):
-    """
-    A class to represent synthetic data that is generated on the fly
-    This class uses a curriculum to determine the way the samples are generated
-    Note that sampling is always random and the same seed is used for all batches
-    Here, we aim to speedup the generation by generating the covariates only once for a specified number of samples (e.g. a batch)
-    This means, a ppgroram needs to be supplied that can handle a batch of covariates
-    """
-
-    def __init__(
-                self,
-                n:int = 100,
-                p:int = 5,
-                n_samples_per_epoch:int = 10_000,
-                epoch:int = 0,
-                pprogram_maker:callable = None,
-                curriculum: Curriculum = None,
-                pprogram_covariates: pprogram_X = simulate_X_uniform,
-                seed:int = None,
-                check_data:bool = False,
-                n_samples_to_generate_at_once:int = 10_000
-                ):
-        """
-        a  torch.utils.data.Dataset that generates synthetic data on the fly
-        Args:
-            n: int: the number of observations per batch 
-            p: int: the number of covariates
-            n_samples_per_epoch: int: the number of SAMPLES per epoch
-            epoch: int: the epoch
-            pprogram_maker: callable: a function that returns a probabilistic program
-            curriculum: Curriculum: the curriculum that determines the way the samples are generated during training
-            pprogram: pprogram_linear_model_return_dict: a linear model probabilistic program
-            pprogram_covariates: pprogram_X: a probabilistic program that simulates covariates
-            seed: int: the seed for the random number generator
-            check_data: bool: whether to check the data for numerical issues
-            n_samples_to_generate_at_once: int: the number of samples to generate at once
-        """
-        super().__init__(
-            n = n,
-            p = p,
-            n_samples_per_epoch = n_samples_per_epoch,
-            epoch = epoch,
-            pprogram_maker = pprogram_maker,
-            curriculum = curriculum,
-            pprogram_covariates = pprogram_covariates,
-            seed = seed,
-            check_data = check_data
-        )
-        self.batch_size = n_samples_to_generate_at_once
-        self.n_samples_to_generate_at_once = n_samples_to_generate_at_once
-        self.stored_samples = None
-
-    def compute_samples_parallel(self, start_idx:int, end_idx:int) -> dict:
-        """
-        Compute the samples in parallel
-        Args:
-            start_idx: int: the start index
-            end_idx: int: the end index
-        Returns:
-            dict: the samples
-        """
-        pprogram = self.pprogram_maker(**self.curriculum(start_idx))
-        x = self.pprogram_covariates(self.n, self.p, end_idx - start_idx)
-
-        while True:
-            lm_res = pprogram(x)
-            # if anything is nan or inf, sample again
-            if self.check_data:
-                if all([torch.isfinite(lm_res[key]).all() for key in lm_res.keys()]):
-                    break
-            else:
-                break
-        
-        return lm_res
-    
-    def __len__(self) -> int:
-        return self.n_samples_per_epoch
-
-    def __getitem__(self, idx) -> dict:
-        total_iteration = self.epoch * self.n_samples_per_epoch + idx
-
-        if self.stored_samples is None:
-            self.stored_samples = {
-                "start_idx": total_iteration,
-                "end_idx": total_iteration + self.n_samples_to_generate_at_once,
-                "samples": self.compute_samples_parallel(total_iteration, total_iteration + self.n_samples_to_generate_at_once)}
-            
-        if total_iteration >= self.stored_samples["end_idx"] or total_iteration < self.stored_samples["start_idx"]:
-            self.stored_samples = {
-                "start_idx": total_iteration,
-                "end_idx": total_iteration + self.n_samples_to_generate_at_once,
-                "samples": self.compute_samples_parallel(total_iteration, total_iteration + self.n_samples_to_generate_at_once)}
-            
-        #res = {key: value[idx - self.stored_samples["start_idx"]] for key, value in self.stored_samples["samples"].items()}
-
-        res = {}
-
-        for key, value in self.stored_samples["samples"].items():
-            if value.shape == torch.Size([]):
-                res[key] = value
-            else:
-                res[key] = value[idx - self.stored_samples["start_idx"]]
-
-        return res
-    
 class SyntheticDataCurriculumBatched(SyntheticDataCurriculum):
     """
     A class to represent synthetic data that is generated on the fly
@@ -532,6 +426,9 @@ class SyntheticDataCurriculumBatched(SyntheticDataCurriculum):
             check_data: bool: whether to check the data for numerical issues
             n_samples_to_generate_at_once: int: the number of samples to generate at once
         """
+        if n_samples_to_generate_at_once > n_samples_per_epoch:
+            print(f"Warning: n_samples_to_generate_at_once should be smaller than n_samples_per_epoch, but got {n_samples_to_generate_at_once} and {n_samples_per_epoch} respectively. This most likely won't make sense")
+
         super().__init__(
             n = n,
             p = p,

@@ -3,8 +3,10 @@ import pyro
 import pyro.distributions as dist
 try:
         import LM_abstract
+        from Quantizer import Quantizer
 except:
       from PFNExperiments.LinearRegression.GenerativeModels import LM_abstract 
+      from PFNExperiments.LinearRegression.GenerativeModels.Quantizer import Quantizer
 
 def make_lm_program_plain(
         beta_var: float = 1.0,
@@ -148,6 +150,74 @@ def make_lm_program_gamma_gamma_batched(
 
         return multivariate_lm_return_dict
 
+
+def make_make_lm_program_gamma_gamma_batched_quantized(
+            quantizer: Quantizer
+        ):
+        def make_lm_program_gamma_gamma_batched_quantized(
+                a0: float = 5.0,
+                b0: float = 2.0,
+                a1: float = 5.0,
+                b1: float = 2.0,
+                log_n_bins: float = 1.0
+        ) -> LM_abstract.pprogram_linear_model_return_dict:
+                """
+                Make a linear model probabilistic program with a gamma prior on sigma_squared and a gamma prior on beta_var.
+                Args: 
+                        a0: float: the shape parameter of the gamma prior on beta_var
+                        b0: float: the rate parameter of the gamma prior on beta_var
+                        a1: float: the shape parameter of the gamma prior on sigma_squared
+                        b1: float: the rate parameter of the gamma prior on sigma_squared
+                Returns:
+                        LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
+                """
+                def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
+                        if x.dim() == 2:
+                                x = x.unsqueeze(0)  # Ensure x is 3D (batch_size, N, P)
+                        batch_size, N, P = x.shape
+
+                        # Define distributions for the global parameters
+                        beta_dist = dist.Gamma(a0, b0)
+                        sigma_squared_dist = dist.Gamma(a1, b1)
+
+                        with pyro.plate("batch", batch_size, dim=-1):
+                                # Sample global parameters per batch
+                                beta_var = pyro.sample("beta_var", beta_dist).squeeze() # Shape: (batch_size,)
+                                
+                                sigma_squared = pyro.sample("sigma_squared", sigma_squared_dist).squeeze() # Shape: (batch_size,)
+                                # Create beta covariance matrix based on the number of covariates P
+                                beta_cov = torch.eye(P) * beta_var.unsqueeze(-1).unsqueeze(-1)  # Expand beta_var to shape (batch_size, P, P)
+                                
+                                #print(beta_cov.shape)
+                                beta_dist = dist.MultivariateNormal(torch.zeros(P), beta_cov)
+                                #print(beta_dist.batch_shape, beta_dist.event_shape)
+                                beta = pyro.sample("beta", beta_dist)  # Shape: (batch_size, P)
+
+                        
+                                # Compute mean using matrix multiplication
+                                mean = torch.matmul(x, beta.unsqueeze(-1)).squeeze(-1)  # Shape: (batch_size, N)
+
+
+                                with pyro.plate("data", N):
+                                        noise = pyro.sample("noise", dist.Normal(0, sigma_squared))  # Shape: (batch_size, N)
+                                
+                                noise = noise.permute(1, 0)  # Shape: (N, batch_size)
+                                y = mean + noise  # Shape: (batch_size, N)
+                                
+                                log_n_bins = int(log_n_bins)
+                                beta = quantizer.quantize(beta, n_buckets=2**log_n_bins)
+
+                        return {
+                                        "x": x,
+                                        "y": y,
+                                        "sigma_squared": sigma_squared,
+                                        "beta_var": beta_var,
+                                        "beta": beta
+                                }
+
+                return multivariate_lm_return_dict
+        
+        return make_lm_program_gamma_gamma_batched_quantized
 
 
 
