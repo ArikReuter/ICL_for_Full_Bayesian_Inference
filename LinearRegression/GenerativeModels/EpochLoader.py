@@ -13,33 +13,36 @@ class EpochLoader():
                  n_epochs: int = 100,
                  n : int = 100,
                  p : int = 5,
-                 n_batch : int = 10_000,
+                 n_batches_per_epoch : int = 10_000,
                  batch_size : int = 256,
                  train_frac : float = 0.7,
                  val_frac : float = 0.15,
-                 shuffle : bool = True,):
+                 shuffle : bool = True,
+                 n_samples_to_generate_at_once : int = 10_000):
         """
         Args: 
             GenerateDataCurriculum: GenerateDataCurriculum: the data generator
             n_epochs: int: the number of epochs
             n: int: the number of observations per batch 
             p: int: the number of covariates
-            n_batch: int: the number of batches
+            n_batches_per_epoch: int: the number of batches per epoch
             batch_size: int: the batch size
             train_frac: float: the fraction of the data to use for training
             val_frac: float: the fraction of the data to use for validation
             shuffle: bool: whether to shuffle the data
+            n_samples_to_generate_at_once: int: the number of samples to generate at once
         """
 
         self.GenerateDataCurriculum = GenerateDataCurriculum
         self.n_epochs = n_epochs
         self.n = n
         self.p = p
-        self.n_batch = n_batch
+        self.n_batches_per_epoch = n_batches_per_epoch
         self.batch_size = batch_size
         self.train_frac = train_frac
         self.val_frac = val_frac
         self.shuffle = shuffle
+        self.n_samples_to_generate_at_once = n_samples_to_generate_at_once
 
     def __getitem__(self, epoch:int) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         """
@@ -51,14 +54,17 @@ class EpochLoader():
         """
         
         dataoaders = self.GenerateDataCurriculum.make_dataloaders_for_epoch_dynamic(
-                                    epoch = epoch,
-                                    n = self.n,
-                                    p = self.p,
-                                    n_batch = self.n_batch,
-                                    batch_size = self.batch_size,
-                                    train_frac = self.train_frac,
-                                    val_frac = self.val_frac,
-                                    shuffle = self.shuffle)
+                                epoch = epoch,
+                                n = self.n,
+                                p = self.p,
+                                n_samples_per_epoch = self.n_batches_per_epoch * self.batch_size,
+                                batch_size = self.batch_size,
+                                train_frac = self.train_frac,
+                                val_frac = self.val_frac,
+                                shuffle = self.shuffle,
+                                use_seed = True,
+                                n_samples_to_generate_at_once = self.n_samples_to_generate_at_once
+        )
                                 
         return dataoaders
     

@@ -31,8 +31,8 @@ class GenerateData:
         self.pprogram_covariates = pprogram_covariates
         self.seed = seed
         
-        torch.manual_seed(seed)
-        pyro.set_rng_seed(seed)
+        #torch.manual_seed(seed)
+        #pyro.set_rng_seed(seed)
 
 
     def simulate_data(self, 
@@ -190,7 +190,7 @@ class SyntheticData(torch.utils.data.Dataset):
                 n_batch:int = 10_000,
                 pprogram: pprogram_linear_model_return_dict = None,
                 pprogram_covariates: pprogram_X = simulate_X_uniform,
-                seed:int = 42
+                seed:int = None
                 ):
         """
         a  torch.utils.data.Dataset that generates synthetic data on the fly
@@ -207,10 +207,13 @@ class SyntheticData(torch.utils.data.Dataset):
         self.n_batch = n_batch
         self.pprogram = pprogram
         self.pprogram_covariates = pprogram_covariates
+
+        if seed is None:
+            self.seed = torch.randint(0, 100000, (1,)).item()
         self.seed = seed
 
-        torch.manual_seed(seed)
-        pyro.set_rng_seed(seed)
+        #torch.manual_seed(seed)
+        #pyro.set_rng_seed(seed)
     
     def __len__(self):
         return self.n_batch
@@ -227,24 +230,35 @@ class SyntheticData(torch.utils.data.Dataset):
 
         return lm_res
 
-def check_data(data: List[Dict[str, torch.tensor]]) -> dict:
+def check_data(data: List[Dict[str, torch.tensor]], batched_input:bool = False) -> dict:
     """
     Check statistics about the simulated data
     Args:
         data: List[Dict[str, torch.tensor]]: the simulated data in the form of a list of dictionaries where each element of the list is a dictionary containing the data for one batch
+        batched_input: bool: whether the input is batched
     
     Returns:
         dict: a dictionary containing the means and variances of the simulated data
     """
+    if not batched_input:
     # check for non-finite values
-    for i, d in enumerate(data):
-        for key in d.keys():
-            if torch.isfinite(d[key]).all():
+        for i, d in enumerate(data):
+            for key in d.keys():
+                if torch.isfinite(d[key]).all():
+                    pass
+                else:
+                    raise ValueError(f"Data point {i} has non-finite values for {key}")
+                
+        stacked_data = {key: torch.stack([d[key] for d in data]) for key in data[0].keys()}
+
+    else:
+        stacked_data = {key: torch.cat([d[key] for d in data]) for key in data[0].keys()}
+
+        for key in stacked_data.keys():
+            if torch.isfinite(stacked_data[key]).all():
                 pass
             else:
-                raise ValueError(f"Data point {i} has non-finite values for {key}")
-
-    stacked_data = {key: torch.stack([d[key] for d in data]) for key in data[0].keys()}
+                raise ValueError(f"Data has non-finite values for {key}")
 
     means = {key: torch.mean(stacked_data[key], dim=0) for key in stacked_data.keys()}
     variances = {key: torch.var(stacked_data[key], dim=0) for key in stacked_data.keys()}
@@ -258,20 +272,24 @@ def check_data(data: List[Dict[str, torch.tensor]]) -> dict:
         "maximums": maximums
     }
 
-def check_and_plot_data(data: List[Dict[str, torch.tensor]]) -> None:
+def check_and_plot_data(data: List[Dict[str, torch.tensor]], batched_input = False) -> None:
     """
     Check statistics about the simulated data and plot the data
     Args:
         data: List[Dict[str, torch.tensor]]: the simulated data in the form of a list of dictionaries where each element of the list is a dictionary containing the data for one batch
+        batched_input: bool: whether the input is batched
     """
     import matplotlib.pyplot as plt
     import seaborn as sns
 
     stats = check_data(data)
 
-    stacked_data = {key: torch.stack([d[key] for d in data]) for key in data[0].keys()} 
+    if not batched_input:
+        stacked_data = {key: torch.stack([d[key] for d in data]) for key in data[0].keys()} 
+    else:
+        stacked_data = {key: torch.cat([d[key] for d in data]) for key in data[0].keys()}
 
-    stats = check_data(data)
+    stats = check_data(data, batched_input=batched_input)
 
     X_overall_mean = stats["means"]["x"].mean()
     X_overall_variance = stats["variances"]["x"].mean()
