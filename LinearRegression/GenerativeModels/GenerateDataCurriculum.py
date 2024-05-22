@@ -280,7 +280,8 @@ class GenerateDataCurriculum(GenerateData):
             batch_size:int = 256,
             train_frac = 0.7,
             val_frac = 0.15,
-            shuffle: bool = True
+            shuffle: bool = False,
+            n_samples_to_generate_at_once:int = 10_000
             ) -> EpochLoader:
         """
         Make a loader where for each epoch the data is generated on the fly
@@ -310,7 +311,8 @@ class GenerateDataCurriculum(GenerateData):
             batch_size = batch_size,
             train_frac = train_frac,
             val_frac = val_frac,
-            shuffle = shuffle
+            shuffle = shuffle,
+            n_samples_to_generate_at_once = n_samples_to_generate_at_once
         )
         
         
