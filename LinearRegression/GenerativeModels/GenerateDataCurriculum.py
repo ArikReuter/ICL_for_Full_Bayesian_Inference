@@ -368,7 +368,7 @@ class SyntheticDataCurriculum(torch.utils.data.Dataset):
         #pyro.set_rng_seed(seed)
     
     def __len__(self) -> int:
-        return self.n_samples_per_epoch * (self.epoch + 1)
+        return self.n_samples_per_epoch 
 
     def __getitem__(self, idx) -> dict:
         total_iteration = self.epoch * self.n_samples_per_epoch + idx
@@ -462,6 +462,9 @@ class SyntheticDataCurriculumBatchedOld(SyntheticDataCurriculum):
                 break
         
         return lm_res
+    
+    def __len__(self) -> int:
+        return self.n_samples_per_epoch
 
     def __getitem__(self, idx) -> dict:
         total_iteration = self.epoch * self.n_samples_per_epoch + idx
