@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 from typing import Tuple
 from torch.utils.tensorboard import SummaryWriter
+from time import strftime
 
 try:
     from Trainer import batch_to_model_lm, visualize_training_results
@@ -89,7 +90,7 @@ class TrainerCurriculum():
         self.model = self.model.to(self.device)
 
         if make_new_folder:
-            time = time.strftime("%Y_%m_%d_%H_%M_%S")
+            time = strftime("%Y_%m_%d_%H_%M_%S")
             folder_name = f"experiment_{time}"
             self.save_path = f"{save_path}/{folder_name}"
         
