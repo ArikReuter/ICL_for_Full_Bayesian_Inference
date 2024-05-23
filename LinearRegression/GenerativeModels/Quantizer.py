@@ -32,11 +32,11 @@ class Quantizer():
         assert n_buckets in self.possible_bucket_numbers, f"n_buckets should be in {self.possible_bucket_numbers}"
 
         quantiles = self.quantiles[::(self.max_number_buckets // n_buckets)]
-        quantile_means = (quantiles[1:] + quantiles[:-1]) / 2  # use means of quantiles as the values to map to
+        quantile_means = (quantiles[1:] + quantiles[:-1]) / 2
         quantized = torch.zeros_like(x)
 
         for i in range(n_buckets):
-            quantized += (x >= quantiles[i]) & (x < quantiles[i + 1]) * quantile_means[i]
+            quantized += ((x >= quantiles[i]) & (x < quantiles[i + 1])) * quantile_means[i]
 
         return quantized
 
