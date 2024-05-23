@@ -4,6 +4,7 @@ import time
 import os
 import matplotlib.pyplot as plt
 from typing import Tuple
+from torch.utils.tensorboard import SummaryWriter
 
 try:
     from Trainer import batch_to_model_lm, visualize_training_results
@@ -30,9 +31,11 @@ class TrainerCurriculum():
                  evaluation_functions: dict[str, callable] = {},
                  device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu"),
                  n_epochs: int = 100,
-                 save_path: str = "../models/model.pth",
+                 save_path: str = "../experiments/",
+                 make_new_folder: bool = True,
                  early_stopping_patience: int = 10,
-                 verbose:int = 100
+                 verbose:int = 100,
+                 summary_writer_path: str = "runs/"
     ):
         """
         A custom class for training neural networks
@@ -51,8 +54,10 @@ class TrainerCurriculum():
             device: torch.device: the device
             n_epochs: int: the number of epochs
             save_path: str: the path to save the model
+            make_new_folder: bool: whether to make a new folder
             early_stopping_patience: int: the patience for early stopping
             verbose: int: how much to print
+            summary_writer_path: str: the path to save the summary writer
         """
 
         assert schedule_step_on in ["epoch", "batch"], "schedule_step_on must be either 'epoch' or 'batch'"
@@ -70,9 +75,10 @@ class TrainerCurriculum():
         self.target_key_in_batch = target_key_in_batch
         self.device = device
         self.n_epochs = n_epochs
-        self.save_path = save_path
+        
         self.early_stopping_patience = early_stopping_patience
         self.verbose = verbose
+        self.summary_writer_path = summary_writer_path
 
         if self.valset is None:
             self.valset = self.epoch_loader(n_epochs)[1]  #load the validation set for the last epoch from the epoch_loader
@@ -82,8 +88,53 @@ class TrainerCurriculum():
 
         self.model = self.model.to(self.device)
 
+        if make_new_folder:
+            time = time.strftime("%Y_%m_%d_%H_%M_%S")
+            folder_name = f"experiment_{time}"
+            self.save_path = f"{save_path}/{folder_name}"
+        
+        else:
+            self.save_path = save_path
+
         if not os.path.exists(os.path.dirname(self.save_path)):
             os.makedirs(os.path.dirname(self.save_path))
+
+
+        self.writer = SummaryWriter(self.summary_writer_path)
+
+        # write the model setup to the save_path 
+        self.model_save_path = f"{self.save_path}/model.pth"
+
+        self.setup_save_path = f"{self.save_path}/setup.txt"
+
+        self.tensorboard_save_path = f"{self.save_path}/tensorboard"
+
+        if not os.path.exists(os.path.dirname(self.tensorboard_save_path)):
+            os.makedirs(os.path.dirname(self.tensorboard_save_path))
+
+        self.second_writer = SummaryWriter(self.tensorboard_save_path)
+
+    def __repr__(self) -> str:
+        representation = f"""TrainerCurriculum(
+        model = {self.model},
+        optimizer = {self.optimizer},
+        loss_function = {self.loss_function},
+        epoch_loader = {self.epoch_loader},
+        valset = {self.valset},
+        testset = {self.testset},
+        scheduler = {self.scheduler},
+        schedule_step_on = {self.schedule_step_on},
+        batch_to_model_function = {self.batch_to_model_function},
+        evaluation_functions = {self.evaluation_functions},
+        target_key_in_batch = {self.target_key_in_batch},
+        device = {self.device},
+        n_epochs = {self.n_epochs},
+        save_path = {self.save_path},
+        early_stopping_patience = {self.early_stopping_patience},
+        verbose = {self.verbose},
+        summary_writer_path = {self.summary_writer_path}
+        )"""
+        return representation
 
     def validate_loader(self, loader: torch.utils.data.DataLoader) -> dict[str, float]:
         """
@@ -223,11 +274,17 @@ class TrainerCurriculum():
                 loss.backward()
                 self.optimizer.step()
 
+                self.writer.add_scalar("Loss/train", loss, overall_iter)
+                self.second_writer.add_scalar("Loss/train", loss, overall_iter)
+
                 if self.scheduler is not None and self.schedule_step_on == "batch":
                     try: 
                         self.scheduler.step()
                     except:
                         self.scheduler.step(loss)
+
+                    self.writer.add_scalar("Learning rate", self.scheduler.get_last_lr(), overall_iter)
+                    self.second_writer.add_scalar("Learning rate", self.scheduler.get_last_lr(), overall_iter)
 
                 predictions.append([elem.detach().cpu() for elem in pred])
                 targets.append(target.detach().cpu())
@@ -236,8 +293,12 @@ class TrainerCurriculum():
 
         
             validation_results = self.validate()
+            self.writer.add_scalar("Loss/validation", validation_results["loss"], epoch)
+            self.second_writer.add_scalar("Loss/validation", validation_results["loss"], epoch)
 
             validation_results_current_curriculum = self.validate_loader(valset_epoch)
+            self.writer.add_scalar("Loss/validation_curriculum", validation_results_current_curriculum["loss"], epoch)
+            self.second_writer.add_scalar("Loss/validation_curriculum", validation_results_current_curriculum["loss"], epoch)
 
             if self.scheduler is not None and self.schedule_step_on == "epoch":
                 try: 
@@ -277,7 +338,7 @@ class TrainerCurriculum():
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 print("Saving model")
-                torch.save(self.model.state_dict(), self.save_path)
+                torch.save(self.model.state_dict(), self.model_save_path)
                 patience = 0
             else:
                 patience += 1

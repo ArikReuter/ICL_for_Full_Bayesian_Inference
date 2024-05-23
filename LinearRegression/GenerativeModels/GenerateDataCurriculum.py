@@ -444,6 +444,21 @@ class SyntheticDataCurriculumBatched(SyntheticDataCurriculum):
         self.n_samples_to_generate_at_once = n_samples_to_generate_at_once
         self.stored_samples = None
 
+    def __repr__(self) -> str:
+        representation = f"""SyntheticDataCurriculumBatched(
+        n = {self.n},
+        p = {self.p},
+        n_samples_per_epoch = {self.n_samples_per_epoch},
+        epoch = {self.epoch},
+        pprogram_maker = {self.pprogram_maker},
+        curriculum = {self.curriculum},
+        pprogram_covariates = {self.pprogram_covariates},
+        seed = {self.seed},
+        check_data = {self.check_data},
+        n_samples_to_generate_at_once = {self.n_samples_to_generate_at_once}
+        )"""
+        return representation
+
     def compute_samples_parallel(self, start_idx:int, n_samples:int) -> dict:
         """
         Compute the samples in parallel

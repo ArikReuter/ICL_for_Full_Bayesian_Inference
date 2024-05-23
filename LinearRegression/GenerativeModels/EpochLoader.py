@@ -44,6 +44,21 @@ class EpochLoader():
         self.shuffle = shuffle
         self.n_samples_to_generate_at_once = n_samples_to_generate_at_once
 
+    def __repr__(self) -> str:
+        representation = f"""EpochLoader(
+        GenerateDataCurriculum = {self.GenerateDataCurriculum},
+        n_epochs = {self.n_epochs},
+        n = {self.n},
+        p = {self.p},
+        n_batches_per_epoch = {self.n_batches_per_epoch},
+        batch_size = {self.batch_size},
+        train_frac = {self.train_frac},
+        val_frac = {self.val_frac},
+        shuffle = {self.shuffle},
+        n_samples_to_generate_at_once = {self.n_samples_to_generate_at_once}
+        )"""
+        return representation
+
     def __getitem__(self, epoch:int) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         """
         Get the dataloaders for an epoch
