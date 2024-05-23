@@ -168,10 +168,13 @@ class PositionalEncoding(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Arguments:
-            x: Tensor, shape ``(seq_len, batch, features)``
+            x: Tensor, shape ``(batch_size, seq_len, features)``
         """
         x = x.permute(1, 0, 2)
         x = x + self.pe[:x.size(0)]
+
+        x = x.permute(1, 0, 2)
+        
         return self.dropout(x)
 
 
@@ -268,11 +271,14 @@ class Transformer(nn.Module):
     if self.transpose_input:
       x = x.transpose(1,2) # transpose the input tensor if necessary to have the shape (n_batch_size, n_features, seq_len)
 
-    if self.use_positional_encoding:
-      x = self.positional_encoding(x) # use positional encoding if necessary
+    
 
     x = self.mlp1(x)
-    x = self.act1(x)
+
+    if self.use_positional_encoding:
+      x = self.positional_encoding(x) # use positional encoding if necessary
+    else:
+      x = self.act1(x)
 
     x = self.encoder(x)
     x = self.mlp2(x)
