@@ -1,4 +1,5 @@
 import torch 
+import os
 
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel 
 from PFNExperiments.LinearRegression.Models.ModelToPosterior import ModelToPosterior
@@ -17,7 +18,8 @@ class CompareComparisonModels(ModelComparison):
                  comparison_model_1: PosteriorComparisonModel,
                  comparison_model_2: PosteriorComparisonModel,
                  n_samples_comparison_model_1: int = 500,
-                 n_samples_comparison_model_2: int = 500
+                 n_samples_comparison_model_2: int = 500,
+                 save_path: str = "."
                  ) -> None:
         """
         Args: 
@@ -25,6 +27,7 @@ class CompareComparisonModels(ModelComparison):
             comparison_model_2: PosteriorComparisonModel: the comparison model
             n_samples_comparison_model_1: int: the number of samples to draw from the comparison model
             n_samples_comparison_model_2: int: the number of samples to draw from the comparison model
+            save_path: str: the path to save the results
 
         """
         
@@ -33,6 +36,11 @@ class CompareComparisonModels(ModelComparison):
 
         self.n_samples_comparison_model_1 = n_samples_comparison_model_1
         self.n_samples_comparison_model_2 = n_samples_comparison_model_2
+
+        self.save_path =  save_path + "/CompareComparisonModels/"
+
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
 
 
 
@@ -149,6 +157,12 @@ class CompareComparisonModels(ModelComparison):
                     batch_metrics_std[key1] = torch.std(torch.tensor([metric[key1] for metric in batch_metrics]))
                 else:
                     batch_metrics_std[key1] = torch.std(torch.cat([metric[key1] for metric in batch_metrics]))
+
+        # save results
+        torch.save(batch_metrics, self.save_path + "batch_metrics.pt")
+        torch.save(batch_metrics_avg, self.save_path + "batch_metrics_avg.pt")
+        torch.save(batch_metrics_std, self.save_path + "batch_metrics_std.pt")
+
 
         return batch_metrics, batch_metrics_avg, batch_metrics_std
 

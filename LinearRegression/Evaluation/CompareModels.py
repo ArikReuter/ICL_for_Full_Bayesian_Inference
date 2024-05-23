@@ -1,4 +1,5 @@
 import torch 
+import os
 
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel 
 from PFNExperiments.LinearRegression.Models.ModelToPosterior import ModelToPosterior
@@ -14,7 +15,8 @@ class ModelComparison():
                  modelposterior: ModelToPosterior,
                  comparison_model: PosteriorComparisonModel,
                  batch_to_model_function_modelposterior: callable = batch_to_model_lm,
-                 n_samples_modelposterior: int = 500
+                 n_samples_modelposterior: int = 500,
+                 save_path: str = "."
                  ) -> None:
         
         """
@@ -23,6 +25,7 @@ class ModelComparison():
             comparison_model: PosteriorComparisonModel: the comparison model
             n_samples_modelposterior: int: the number of samples to draw from the model posterior
             n_samples_comparison_model: int: the number of samples to draw from the comparison model
+            save_path: str: the path to save the results
 
         """
         
@@ -33,6 +36,11 @@ class ModelComparison():
         self.batch_to_model_function_modelposterior = batch_to_model_function_modelposterior
 
         self.n_samples_modelposterior = n_samples_modelposterior
+
+        self.save_path =  save_path + "/ModelComparison/"
+
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
 
     
     def get_samples_modelposterior(self, X: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
@@ -192,5 +200,9 @@ class ModelComparison():
                     batch_metrics_std[key1] = torch.std(torch.tensor([metric[key1] for metric in batch_metrics]))
                 else:
                     batch_metrics_std[key1] = torch.std(torch.cat([metric[key1] for metric in batch_metrics]))
+
+        torch.save(batch_metrics, self.save_path + "batch_metrics.pt")
+        torch.save(batch_metrics_avg, self.save_path + "batch_metrics_avg.pt")
+        torch.save(batch_metrics_std, self.save_path + "batch_metrics_std.pt")
 
         return batch_metrics, batch_metrics_avg, batch_metrics_std
