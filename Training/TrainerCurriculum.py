@@ -373,7 +373,7 @@ class TrainerCurriculum():
         """
         Load the best model
         """
-        self.model.load_state_dict(torch.load(self.save_path))
+        self.model.load_state_dict(torch.load(self.model_save_path))
 
 def visualize_training_results(results: Tuple[list[dict[str, float]], list[dict[str, float]]], loglog = True):
     """
