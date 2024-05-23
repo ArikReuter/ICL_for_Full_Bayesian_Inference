@@ -159,10 +159,12 @@ class CompareComparisonModels(ModelComparison):
                     batch_metrics_std[key1] = torch.std(torch.cat([metric[key1] for metric in batch_metrics]))
 
         # save results
-        torch.save(batch_metrics, self.save_path + "batch_metrics.pt")
-        torch.save(batch_metrics_avg, self.save_path + "batch_metrics_avg.pt")
-        torch.save(batch_metrics_std, self.save_path + "batch_metrics_std.pt")
-
+        try:
+            torch.save(batch_metrics, self.save_path + "batch_metrics.pt")
+            torch.save(batch_metrics_avg, self.save_path + "batch_metrics_avg.pt")
+            torch.save(batch_metrics_std, self.save_path + "batch_metrics_std.pt")
+        except Exception as e:
+            print(f"Could not save the results due to the following error: {e}")
 
         return batch_metrics, batch_metrics_avg, batch_metrics_std
 
