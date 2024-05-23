@@ -1,6 +1,7 @@
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
+import math
 
 
 class One_Layer_MLP(torch.nn.Module):
@@ -143,7 +144,34 @@ class PositionwiseFeedForward(nn.Module):
         x = self.w_2(x)
         return x
     
-    
+
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
+        """
+        Sinusoidal positional encoding for transformer models.
+        Args:
+            d_model: int: the model dimension
+            dropout: float: the dropout rate
+            max_len: int: the maximum length of the sequence
+        """
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        position = torch.arange(max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        pe = torch.zeros(max_len, 1, d_model)
+        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Arguments:
+            x: Tensor, shape ``[seq_len, batch_size, embedding_dim]``
+        """
+        x = x + self.pe[:x.size(0)]
+        return self.dropout(x)
 
 
 
@@ -162,7 +190,8 @@ class Transformer(nn.Module):
                n_skip_layers_final_heads: int = 2,
                n_output_units_per_head = [5,5],
                projection_size_after_trafo = None,
-               transpose_input:int = False):
+               transpose_input:int = False,
+               use_positional_encoding: bool = False):
     
     """
     A simple transformer encoder model that takes as input a sequence of features of shape (n_batch_size, seq_len, n_features) and returns a list of output tensors of shape (n_batch_size, n_output_units_per_head[i]) for i in range(n_outputs).
@@ -179,6 +208,7 @@ class Transformer(nn.Module):
         n_output_units_per_head: list: the number of output units per head
         projection_size_after_trafo: int: the projection size after the transformer
         transpose_input: bool: whether to transpose the input tensor, i.e. to change the shape from (n_batch_size, seq_len, n_features) to (n_batch_size, n_features, seq_len)
+        use_positional_encoding: bool: whether to use positional encoding
     """
     
     super(Transformer, self).__init__()
@@ -194,9 +224,12 @@ class Transformer(nn.Module):
     self.n_skip_layers_final_heads = n_skip_layers_final_heads
     self.n_output_units_per_head = n_output_units_per_head
     self.transpose_input = transpose_input
+    self.use_positional_encoding = use_positional_encoding
 
     if projection_size_after_trafo is None:
       self.projection_size_after_trafo = d_model//4
+    
+
     
     else: 
         self.projection_size_after_trafo = projection_size_after_trafo
@@ -220,6 +253,8 @@ class Transformer(nn.Module):
                                                n_skip_layers = self.n_skip_layers_final_heads, 
                                                dropout_rate = dropout_rate) for i in range(self.n_outputs))  # use an individual mlp for each head
 
+    if self.use_positional_encoding:
+       self.positional_encoding = PositionalEncoding(d_model, dropout_rate, max_len = seq_len) # use positional encoding if the input tensor is transposed
 
   def forward(self, x: torch.tensor) -> torch.tensor:
     """
@@ -231,6 +266,9 @@ class Transformer(nn.Module):
 
     if self.transpose_input:
       x = x.transpose(1,2) # transpose the input tensor if necessary to have the shape (n_batch_size, n_features, seq_len)
+
+    if self.use_positional_encoding:
+      x = self.positional_encoding(x) # use positional encoding if necessary
 
     x = self.mlp1(x)
     x = self.act1(x)
