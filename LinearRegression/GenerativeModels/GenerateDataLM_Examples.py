@@ -198,10 +198,10 @@ def make_make_lm_program_gamma_gamma_batched_quantized(
                                 beta = pyro.sample("beta", beta_dist)  # Shape: (batch_size, P)
                                 
                                 
-                                beta = quantizer.quantize(beta, n_buckets=2**log_n_bins)
+                                beta_quant = quantizer.quantize(beta, n_buckets=2**log_n_bins)
                         
                                 # Compute mean using matrix multiplication
-                                mean = torch.matmul(x, beta.unsqueeze(-1)).squeeze(-1)  # Shape: (batch_size, N)
+                                mean = torch.matmul(x, beta_quant.unsqueeze(-1)).squeeze(-1)  # Shape: (batch_size, N)
 
 
                                 with pyro.plate("data", N):
@@ -217,7 +217,7 @@ def make_make_lm_program_gamma_gamma_batched_quantized(
                                         "y": y,
                                         "sigma_squared": sigma_squared,
                                         "beta_var": beta_var,
-                                        "beta": beta
+                                        "beta": beta_quant
                                 }
 
                 return multivariate_lm_return_dict
