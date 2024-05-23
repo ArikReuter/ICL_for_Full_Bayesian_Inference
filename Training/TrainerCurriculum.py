@@ -306,6 +306,8 @@ class TrainerCurriculum():
             self.writer.add_scalar("Loss/validation", validation_results["loss"], epoch)
             self.second_writer.add_scalar("Loss/validation", validation_results["loss"], epoch)
 
+        
+
             validation_results_current_curriculum = self.validate_loader(valset_epoch)
             self.writer.add_scalar("Loss/validation_curriculum", validation_results_current_curriculum["loss"], epoch)
             self.second_writer.add_scalar("Loss/validation_curriculum", validation_results_current_curriculum["loss"], epoch)
@@ -326,6 +328,14 @@ class TrainerCurriculum():
             all_results_validation.append(validation_results)
             all_results_validation_curriculum.append(validation_results_current_curriculum)
             all_results_time.append(time_epoch)
+
+            for name, result in training_results.items():
+                self.writer.add_scalar(f"{name}/train", result, epoch)
+                self.second_writer.add_scalar(f"{name}/train", result, epoch)
+
+            for name, result in validation_results.items():
+                self.writer.add_scalar(f"{name}/validation", result, epoch)
+                self.second_writer.add_scalar(f"{name}/validation", result, epoch)
 
             print(f"Epoch {epoch}:")
             print(f"Training: {training_results}")
