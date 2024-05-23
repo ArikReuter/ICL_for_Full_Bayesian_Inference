@@ -108,6 +108,9 @@ class TrainerCurriculum():
 
         self.setup_save_path = f"{self.save_path}/setup.txt"
 
+        if not os.path.exists(os.path.dirname(self.setup_save_path)):
+            os.makedirs(os.path.dirname(self.setup_save_path))
+            
         with open(self.setup_save_path, "w") as f:
             f.write(str(self))
 
@@ -288,7 +291,6 @@ class TrainerCurriculum():
                         self.scheduler.step(loss)
 
                     lr = self.scheduler.get_last_lr()
-                    print(lr)
                     lr = lr[0]
 
                     self.writer.add_scalar("Learning rate", lr, overall_iter)
