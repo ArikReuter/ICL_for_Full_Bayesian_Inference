@@ -168,9 +168,12 @@ def make_make_lm_program_gamma_gamma_batched_quantized(
                         b0: float: the rate parameter of the gamma prior on beta_var
                         a1: float: the shape parameter of the gamma prior on sigma_squared
                         b1: float: the rate parameter of the gamma prior on sigma_squared
+                        log_n_bins: float: the log of the number of bins to quantize the parameters of the linear model
+
                 Returns:
                         LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
                 """
+                log_n_bins = int(log_n_bins)
                 def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
                         if x.dim() == 2:
                                 x = x.unsqueeze(0)  # Ensure x is 3D (batch_size, N, P)
@@ -180,6 +183,7 @@ def make_make_lm_program_gamma_gamma_batched_quantized(
                         beta_dist = dist.Gamma(a0, b0)
                         sigma_squared_dist = dist.Gamma(a1, b1)
 
+                        
                         with pyro.plate("batch", batch_size, dim=-1):
                                 # Sample global parameters per batch
                                 beta_var = pyro.sample("beta_var", beta_dist).squeeze() # Shape: (batch_size,)
@@ -192,7 +196,9 @@ def make_make_lm_program_gamma_gamma_batched_quantized(
                                 beta_dist = dist.MultivariateNormal(torch.zeros(P), beta_cov)
                                 #print(beta_dist.batch_shape, beta_dist.event_shape)
                                 beta = pyro.sample("beta", beta_dist)  # Shape: (batch_size, P)
-
+                                
+                                
+                                beta = quantizer.quantize(beta, n_buckets=2**log_n_bins)
                         
                                 # Compute mean using matrix multiplication
                                 mean = torch.matmul(x, beta.unsqueeze(-1)).squeeze(-1)  # Shape: (batch_size, N)
@@ -204,8 +210,7 @@ def make_make_lm_program_gamma_gamma_batched_quantized(
                                 noise = noise.permute(1, 0)  # Shape: (N, batch_size)
                                 y = mean + noise  # Shape: (batch_size, N)
                                 
-                                log_n_bins = int(log_n_bins)
-                                beta = quantizer.quantize(beta, n_buckets=2**log_n_bins)
+                                
 
                         return {
                                         "x": x,
