@@ -18,6 +18,21 @@ def MSELoss_unsqueezed(input: list[torch.Tensor], target: torch.tensor) -> torch
 
     return mse
 
+def MSELoss_first_arg(input: list, target: torch.tensor) -> torch.tensor:
+    """
+    Compute the MSE loss between the first argument of the input and the target
+    Args:
+        input: list: the input list
+        target: torch.tensor: the target tensor
+    """
+    pred = input[0]
+
+    assert pred.shape == target.shape, f"pred shape {pred.shape} does not match target shape {target.shape}"
+
+    mse = torch.nn.MSELoss()(pred, target)
+
+    return mse
+
 
 def nll_loss_full_gaussian(pred, target):
   """
