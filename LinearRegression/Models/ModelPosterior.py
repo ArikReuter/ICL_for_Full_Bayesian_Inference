@@ -187,3 +187,29 @@ class ModelPosteriorFullGaussian(ModelPosterior):
         dist = self.pred2posterior(pred)
         samples = dist.sample((n_samples,))
         return samples
+    
+
+
+class ModelPosteriorFullGaussianExpDiag(ModelPosteriorFullGaussian):
+    """
+    A class that takes in a model and returns the posterior the model provides
+    It uses the exponential of the diagonal of the covariance matrix
+    """
+
+    def pred2posterior(self, pred) -> torch.distributions.distribution.Distribution:
+        """
+        A method that takes in the models prediction and returns the posterior distribution
+        Args:
+            pred: the models predicctions 
+        Returns:
+            torch.distributions.distribution.Distribution: the posterior distribution
+        """
+        mu, cov_factor, cov_diag = pred
+        cov_factor = cov_factor.reshape(mu.shape[0], mu.shape[1], -1)
+        cov_diag = torch.exp(cov_diag)  + self.cov_reg_factor
+        dist = torch.distributions.LowRankMultivariateNormal(
+            loc = mu,
+            cov_factor = cov_factor,
+            cov_diag = cov_diag
+            )
+        return dist
