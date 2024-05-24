@@ -195,7 +195,9 @@ class Transformer(nn.Module):
                n_output_units_per_head = [5,5],
                projection_size_after_trafo = None,
                transpose_input:int = False,
-               use_positional_encoding: bool = False):
+               use_positional_encoding: bool = False,
+               activation:str = "gelu",
+               norm_first: bool = True):
     
     """
     A simple transformer encoder model that takes as input a sequence of features of shape (n_batch_size, seq_len, n_features) and returns a list of output tensors of shape (n_batch_size, n_output_units_per_head[i]) for i in range(n_outputs).
@@ -213,6 +215,8 @@ class Transformer(nn.Module):
         projection_size_after_trafo: int: the projection size after the transformer
         transpose_input: bool: whether to transpose the input tensor, i.e. to change the shape from (n_batch_size, seq_len, n_features) to (n_batch_size, n_features, seq_len)
         use_positional_encoding: bool: whether to use positional encoding
+        activation: str: the activation function
+        norm_first: bool: whether to use normalization first in the transformer encoder layer
     """
     
     super(Transformer, self).__init__()
@@ -229,6 +233,9 @@ class Transformer(nn.Module):
     self.n_output_units_per_head = n_output_units_per_head
     self.transpose_input = transpose_input
     self.use_positional_encoding = use_positional_encoding
+    self.activation = activation
+    self.norm_first = norm_first
+
 
     if projection_size_after_trafo is None:
       self.projection_size_after_trafo = d_model//4
@@ -242,7 +249,7 @@ class Transformer(nn.Module):
     self.mlp1 = PositionwiseFeedForward(d_model_in = n_features, d_ff = (d_model + n_features)//2, d_model_out = d_model, dropout = dropout_rate) # use a position-wise feed forward network on the initial input to scale it to the model dimension
     self.act1 = torch.nn.LeakyReLU()
 
-    self.encoder_layer = nn.TransformerEncoderLayer(d_model, n_heads, dim_feedforward, dropout_rate, batch_first=True) # use a transformer encoder layer 
+    self.encoder_layer = nn.TransformerEncoderLayer(d_model, n_heads, dim_feedforward, dropout_rate, batch_first=True, activation=self.activation, norm_first  = self.norm_first) # use a transformer encoder layer 
     self.encoder = nn.TransformerEncoder(self.encoder_layer, n_layers) # use a transformer encoder based on the transformer encoder layer
 
     self.mlp2 = PositionwiseFeedForward(d_model, (d_model + self.projection_size_after_trafo)//2, self.projection_size_after_trafo, dropout_rate) # use a position-wise feed forward network to scale the output of the transformer to the projection size
