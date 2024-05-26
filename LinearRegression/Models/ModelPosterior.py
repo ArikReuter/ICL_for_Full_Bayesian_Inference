@@ -158,8 +158,9 @@ class ModelPosteriorFullGaussian(ModelPosterior):
             nll = - dist.log_prob(target)
 
         except RuntimeError as e:
-            if 'linalg.cholesky' in str(e):
+            if 'linalg.cholesky' in str(e) or "ValueError" in str(e):
                 print("Caught a _LinAlgError related to Cholesky decomposition: The input is not positive-definite.")
+                print("Error message: ", e)
             else:
                 raise
 
