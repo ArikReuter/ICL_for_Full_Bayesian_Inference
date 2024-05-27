@@ -202,7 +202,7 @@ class ModelPosteriorFullGaussian2(ModelPosteriorFullGaussian):
                  cov_reg_factor: float = 0.0,
                  loss_on_error: float = 1e10,
                  use_lowrank_normal: bool = False,
-                 diag_transform: callable = torch.exp):
+                 diag_transform: callable = lambda x: x**2):
         """
         Args:
             cov_reg_factor: float: the regularization factor for the covariance matrix
