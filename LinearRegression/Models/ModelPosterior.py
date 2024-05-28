@@ -375,3 +375,97 @@ class ModelPosteriorMultivariateStundentt(ModelPosterior):
         return samples
         
 
+
+class ModelPosteriorMultivariateStundentt2(ModelPosterior):
+    """
+    A class that takes in a model and returns the posterior the model provides
+    It uses the multivariate student t distribution
+    """
+
+    def __init__(self, loss_on_error: float = 1e10):
+        """
+        Args:
+            cov_reg_factor: float: the regularization factor for the covariance matrix
+            loss_on_error: float: the loss value to return if an error occurs
+        """
+        self.loss_on_error = loss_on_error
+
+    def pred2posterior(self, pred) -> torch.distributions.distribution.Distribution:
+        """
+        A method that takes in the models prediction and returns the posterior distribution
+        Args:
+            pred: the models predicctions 
+        Returns:
+            torch.distributions.distribution.Distribution: the posterior distribution
+        """
+        mu, triangular_lower, df_raw = pred
+
+        batch_size, n, p = mu.shape
+
+        tril_lower_mat = torch.zeros(batch_size, p, p)
+        tril_lower_mat[:, torch.tril_indices(p, 0)] = triangular_lower
+
+
+        df = df_raw ** 2 + 1e-5
+
+        dist = MultivariateStudentT(loc = mu, scale_tril = tril_lower_mat, df = df)
+
+        return dist
+    
+
+    def negative_log_likelihood(self, pred, target: torch.Tensor) -> torch.Tensor:
+        """
+        A method that takes in the models prediction and the target and returns the negative log likelihood
+        Args:
+            pred: torch.Tensor: the models prediction
+            target: torch.Tensor: the target
+        Returns:
+            torch.Tensor: the negative log likelihood
+        """
+
+        if type(target) == list:
+            assert len(target) == 1, "The target is a list but the length is not 1"
+            target = target[0]
+        
+        try: 
+            dist = self.pred2posterior(pred)
+
+            nll = - dist.log_prob(target)
+
+        except RuntimeError as e:
+            if 'linalg.cholesky' in str(e) or "ValueError" in str(e):
+                print("Caught a _LinAlgError related to Cholesky decomposition: The input is not positive-definite.")
+                print("Error message: ", e)
+            else:
+                raise
+
+            mu, cov_factor, cov_diag, df = pred
+
+            mu_fake = mu*0
+            cov_fake = cov_factor*0
+            cov_diag = cov_diag*0
+            df_fake = 1
+
+            pred_fake = (mu_fake, cov_fake, cov_diag, df_fake)
+            dist = self.pred2posterior(pred_fake)
+
+            nll = - dist.log_prob(target)
+
+
+        return nll.mean()
+    
+
+    def pred2posterior_samples(self, pred, n_samples: int) -> torch.Tensor:
+        """
+        A method that takes in the models prediction and returns samples from the posterior distribution
+        Args:
+            pred: torch.Tensor: the models prediction
+            n_samples: int: the number of samples
+        Returns:
+            torch.Tensor: the samples from the posterior distribution with shape (n_samples, ...) where ... denotes the shape of the samples
+        """
+        dist = self.pred2posterior(pred)
+        samples = dist.sample((n_samples,))
+        return samples
+        
+
