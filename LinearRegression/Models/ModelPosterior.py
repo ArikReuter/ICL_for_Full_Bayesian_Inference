@@ -312,6 +312,8 @@ class ModelPosteriorMultivariateStundentt(ModelPosterior):
 
         cov_tril = torch.cholesky(cov_mat)
 
+        df = df ** 2 + 1e-5
+
         dist = MultivariateStudentT(loc = mu, scale_tril = cov_tril, df = df)
 
         return dist
