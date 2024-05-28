@@ -400,7 +400,7 @@ class ModelPosteriorMultivariateStundentt2(ModelPosterior):
         """
         mu, triangular_lower, df_raw = pred
 
-        batch_size, n, p = mu.shape
+        batch_size, p = mu.shape
 
         tril_lower_mat = torch.zeros(batch_size, p, p)
         tril_lower_mat[:, torch.tril_indices(p, 0)] = triangular_lower
