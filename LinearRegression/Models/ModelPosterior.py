@@ -310,7 +310,7 @@ class ModelPosteriorMultivariateStundentt(ModelPosterior):
 
         cov_mat = cov_factor @ cov_factor.transpose(-1, -2) + torch.diag_embed(cov_diag)
 
-        cov_tril = torch.cholesky(cov_mat)
+        cov_tril = torch.linalg.cholesky(cov_mat)
 
         df = df ** 2 + 1e-5
 
