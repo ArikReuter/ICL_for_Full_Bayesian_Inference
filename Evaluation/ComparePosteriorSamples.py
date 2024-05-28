@@ -11,6 +11,7 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
 from PFNExperiments.Evaluation.ClassifcationBasedComparison import compare_samples_classifier_based
+from PFNExperiments.Evaluation.MMD import compare_samples_mmd
 
 
 def try_otherwise_return_nan(fun: callable) -> callable:
@@ -326,7 +327,7 @@ def compare_marginals(P: torch.Tensor,
 
         return results
 
-def compare_all_metrics(P: torch.tensor, Q: torch.tensor, methods: list[callable] = [compare_samples_classifier_based, compare_Wasserstein, compare_Wasserstein, compare_basic_statistics, compare_covariance, compare_marginals], 
+def compare_all_metrics(P: torch.tensor, Q: torch.tensor, methods: list[callable] = [compare_samples_classifier_based, compare_samples_mmd, compare_Wasserstein, compare_Wasserstein, compare_basic_statistics, compare_covariance, compare_marginals], 
                         fun_wrapper = try_otherwise_return_nan) -> dict:
     """
     A method that compares two sets of samples using a list of comparison methods.
