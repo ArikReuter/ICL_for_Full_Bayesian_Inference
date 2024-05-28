@@ -294,13 +294,13 @@ def compare_marginals_median(P: torch.Tensor, Q: torch.Tensor) -> dict:
     return {"median_P": torch.median(P).item(), "median_Q": torch.median(Q).item()}
 
 def compare_marginals(P: torch.Tensor, 
-                          Q: torch.Tensor, 
-                          methods: list[callable] = [compare_marginals_Wasserstein, 
+                      Q: torch.Tensor, 
+                      methods: list[callable] =     [compare_marginals_Wasserstein, 
                                                      compare_marginals_KL, 
                                                      compare_marginals_KS, 
-                                                    compare_marginals_mean,
-                                                    compare_marginals_std,
-                                                    compare_marginals_median]) -> dict:
+                                                     compare_marginals_mean,
+                                                     compare_marginals_std,
+                                                     compare_marginals_median]) -> dict:
         
         """
         A method that compares the marginals of two sets of samples using a list of comparison methods.
