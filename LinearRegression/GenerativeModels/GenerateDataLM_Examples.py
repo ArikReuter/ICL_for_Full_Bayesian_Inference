@@ -430,7 +430,7 @@ def make_lm_program_ig(
 
 def make_lm_program_spike_and_slap_batched(
               pi: float = 0.5, 
-              sigma_squared: float = 0.1,
+              sigma_squared_outer: float = 0.1,
               beta_var: float = 1.0
               ) -> 'LM_abstract.pprogram_linear_model_return_dict':
         """
@@ -450,7 +450,7 @@ def make_lm_program_spike_and_slap_batched(
 
                 # Define distributions for the global parameters
                 beta_dist = pyro.distributions.Normal(0, beta_var)
-                sigma_squared = torch.tensor(sigma_squared)
+                sigma_squared= torch.tensor(sigma_squared_outer)
 
                 with pyro.plate("batch", batch_size, dim=-1):
                         # Sample global parameters per batch
@@ -481,7 +481,7 @@ def make_lm_program_spike_and_slap_batched(
 
 def make_lm_program_spike_and_slap(
                   pi: float = 0.5, 
-                  sigma_squared: float = 0.1,
+                  sigma_squared_outer: float = 0.1,
                   beta_var: float = 1.0
                   ) -> 'LM_abstract.pprogram_linear_model_return_dict':
           """
@@ -497,7 +497,7 @@ def make_lm_program_spike_and_slap(
           def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
                     # Define distributions for the global parameters
                     beta_dist = pyro.distributions.Normal(0, beta_var)
-                    sigma_squared = torch.tensor(sigma_squared)
+                    sigma_squared = torch.tensor(sigma_squared_outer)
         
                     beta = pyro.sample("beta", beta_dist)  # Shape: (P,)
         
