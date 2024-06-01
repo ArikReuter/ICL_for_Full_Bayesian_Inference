@@ -449,16 +449,19 @@ def make_lm_program_spike_and_slap_batched(
                 batch_size, N, P = x.shape
 
                 # Define distributions for the global parameters
-                beta_dist = pyro.distributions.Normal(0, beta_var)
+
+                beta_cov = torch.eye(P) * beta_var  # the covariance matrix of the parameters of the linear model
+                beta_dist = pyro.distributions.MultivariateNormal(torch.zeros(P), beta_cov)
                 sigma_squared= torch.tensor(sigma_squared_outer)
+
+                include_beta = pyro.sample("include_beta", pyro.distributions.Bernoulli(pi).expand([batch_size, P]).to_event(1))                        
 
                 with pyro.plate("batch", batch_size, dim=-1):
                         # Sample global parameters per batch
                         beta = pyro.sample("beta", beta_dist)  # Shape: (batch_size, P)
 
-                        include_beta = pyro.sample("include_beta", pyro.distributions.Bernoulli(pi)).bool()  # Shape: (batch_size, P)
-
-                        beta = beta * include_beta  # Shape: (batch_size, P)
+                        
+                        beta = beta * include_beta # Shape: (batch_size, P)
 
                         # Compute mean using matrix multiplication
                         mean = torch.matmul(x, beta.unsqueeze(-1)).squeeze(-1)  # Shape: (batch_size, N)
@@ -484,40 +487,38 @@ def make_lm_program_spike_and_slap(
                   sigma_squared_outer: float = 0.1,
                   beta_var: float = 1.0
                   ) -> 'LM_abstract.pprogram_linear_model_return_dict':
-          """
-          Make a linear model probabilistic program with a spike and slab prior on beta.
-          Args:
-                    pi: float: the probability of the spike
+        """
+        Make a linear model probabilistic program with a spike and slab prior on beta.
+        Args:
+            pi: float: the probability of the spike
                     sigma_squared: float: the variance of the response variable
                     beta_var: float: the variance of the parameters of the linear model
-          Returns:
+        Returns:
                     LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
-          """
+        """
+        def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
+                # Define distributions for the global parameters
+                beta_cov = torch.eye(x.shape[1]) * beta_var
+                beta_dist = pyro.distributions.MultivariateNormal(torch.zeros(x.shape[1]), beta_cov)
+                sigma_squared= torch.tensor(sigma_squared_outer)
+
+                include_beta = pyro.sample("include_beta", pyro.distributions.Bernoulli(pi).expand([x.shape[1]]).to_event(1))
+
+                beta = pyro.sample("beta", beta_dist)  # the parameters of the linear model
+                beta = beta * include_beta
+
+                mean = torch.matmul(x, beta)
+
+                with pyro.plate("data", len(x)):
+                        y = pyro.sample("obs", pyro.distributions.Normal(mean, sigma_squared), obs=y)
+
+
+                return {
+                        "x": x,
+                        "y": y,
+                        "sigma_squared": sigma_squared,
+                        "beta": beta
+                }
         
-          def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
-                    # Define distributions for the global parameters
-                    beta_dist = pyro.distributions.Normal(0, beta_var)
-                    sigma_squared = torch.tensor(sigma_squared_outer)
-        
-                    beta = pyro.sample("beta", beta_dist)  # Shape: (P,)
-        
-                    include_beta = pyro.sample("include_beta", pyro.distributions.Bernoulli(pi)).bool()  # Shape: (P,)
-        
-                    beta = beta * include_beta  # Shape: (P,)
-        
-                    # Compute mean using matrix multiplication
-                    mean = torch.matmul(x, beta)
-        
-                    with pyro.plate("data", len(x)):
-                                noise = pyro.sample("noise", dist.Normal(0, sigma_squared))  # Shape: (N,)
-        
-                    y = mean + noise  # Shape: (N,)
-        
-                    return {
-                                "x": x,
-                                "y": y,
-                                "sigma_squared": sigma_squared,
-                                "beta": beta
-                    }
-        
-          return multivariate_lm_return_dict
+        return multivariate_lm_return_dict
+
