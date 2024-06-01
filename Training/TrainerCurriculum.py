@@ -142,6 +142,34 @@ class TrainerCurriculum():
         summary_writer_path = {self.summary_writer_path}
         )"""
         return representation
+    
+    def set_new_save_path(self, save_path: str) -> None:
+        """
+        Set a new save path
+        Args:
+            save_path: str: the new save path
+        """
+        self.save_path = save_path
+
+        if not os.path.exists(os.path.dirname(self.save_path)):
+            os.makedirs(os.path.dirname(self.save_path))
+
+        self.model_save_path = f"{self.save_path}/model.pth"
+
+        self.setup_save_path = f"{self.save_path}/setup.txt"
+
+        if not os.path.exists(os.path.dirname(self.setup_save_path)):
+            os.makedirs(os.path.dirname(self.setup_save_path))
+            
+        with open(self.setup_save_path, "w") as f:
+            f.write(str(self))
+
+        self.tensorboard_save_path = f"{self.save_path}/tensorboard"
+
+        if not os.path.exists(os.path.dirname(self.tensorboard_save_path)):
+            os.makedirs(os.path.dirname(self.tensorboard_save_path))
+
+        self.second_writer = SummaryWriter(self.tensorboard_save_path)
 
     def validate_loader(self, loader: torch.utils.data.DataLoader) -> dict[str, float]:
         """
