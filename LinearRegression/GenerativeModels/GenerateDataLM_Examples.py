@@ -476,6 +476,7 @@ def make_lm_program_spike_and_slap_batched(
                                 "x": x,
                                 "y": y,
                                 "sigma_squared": sigma_squared,
+                                "include_beta": include_beta,
                                 "beta": beta
                         }
         
@@ -517,6 +518,49 @@ def make_lm_program_spike_and_slap(
                         "x": x,
                         "y": y,
                         "sigma_squared": sigma_squared,
+                        "include_beta": include_beta,
+                        "beta": beta
+                }
+        
+        return multivariate_lm_return_dict
+
+
+def make_lm_program_spike_and_slap_continuos(
+                  sigma_squared_outer: float = 0.1,
+                  beta_var: float = 1.0,
+                  params_beta_dist: float = 1e-2
+                  ) -> 'LM_abstract.pprogram_linear_model_return_dict':
+        """
+        Make a linear model probabilistic program with a spike and slab prior on beta. For this version, use a continuous prior on wheather to include a covariate or not.
+        Args:
+            pi: float: the probability of the spike
+                    sigma_squared: float: the variance of the response variable
+                    beta_var: float: the variance of the parameters of the linear model
+        Returns:
+                    LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
+        """
+        def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
+                # Define distributions for the global parameters
+                beta_cov = torch.eye(x.shape[1]) * beta_var
+                beta_dist = pyro.distributions.MultivariateNormal(torch.zeros(x.shape[1]), beta_cov)
+                sigma_squared= torch.tensor(sigma_squared_outer)
+
+                include_beta = pyro.sample("include_beta", pyro.distributions.Beta(params_beta_dist, params_beta_dist).expand([x.shape[1]]).to_event(1))
+
+                beta = pyro.sample("beta", beta_dist)  # the parameters of the linear model
+                beta = beta * include_beta
+
+                mean = torch.matmul(x, beta)
+
+                with pyro.plate("data", len(x)):
+                        y = pyro.sample("obs", pyro.distributions.Normal(mean, sigma_squared), obs=y)
+
+
+                return {
+                        "x": x,
+                        "y": y,
+                        "sigma_squared": sigma_squared,
+                        "include_beta": include_beta,
                         "beta": beta
                 }
         
