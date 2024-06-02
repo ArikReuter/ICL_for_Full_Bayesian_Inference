@@ -57,7 +57,7 @@ class Variational_Inference(PosteriorComparisonModel):
 
     def __init__(self, 
                  pprogram: ppgram_linear_model_return_y,
-                 guide: pprogram_linear_model_return_dict,
+                 guide: pprogram_linear_model_return_dict = None,
                  n_steps:int = 2000,
                  n_samples:int = 200,
                  lr: float = 1e-3) -> None:
@@ -76,8 +76,24 @@ class Variational_Inference(PosteriorComparisonModel):
         self.n_samples = n_samples
         self.lr = lr
 
+
+        if self.guide is None:
+            self.generate_autoguide_normal()
+
+
         self.optimizer = pyro.optim.Adam({"lr": self.lr})
+
         self.svi = SVI(self.pprogram, self.guide, self.optimizer, loss=Trace_ELBO())
+
+
+
+    def generate_autoguide_normal(self):
+        """
+        If no guide is provided, generate an autoguide for the model
+        """
+
+        self.guide = pyro.infer.autoguide.AutoDiagonalNormal(self.pprogram)
+
 
     def do_inference(self,  
                 X: torch.Tensor,
