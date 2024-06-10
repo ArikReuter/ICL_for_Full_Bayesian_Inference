@@ -159,11 +159,6 @@ class GenerateDataCurriculum(GenerateData):
 
 
 
-
-        
-        
-    
-
     def make_dataloaders_for_epoch_dynamic(self,
                                  epoch:int = 0,
                                  n:int = 100,

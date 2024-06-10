@@ -61,8 +61,7 @@ class CFMLoss(torch.nn.Module):
             t: float: the time step
         """
 
-        assert 0 <= t <= 1, f"t should be between 0 and 1, got {t}"
-        assert z_0.shape == z_1.shape, f"z shape {z.shape} does not match z_1 shape {z_1.shape}"
+        assert z_0.shape == z_1.shape, f"z shape {z_0.shape} does not match z_1 shape {z_1.shape}"
 
         z_t = self.psi_t_conditional_fun(z_0, z_1, t)
 
@@ -85,7 +84,6 @@ class CFMLoss(torch.nn.Module):
             t: float: the time step
         """
 
-        assert 0 <= t <= 1, f"t should be between 0 and 1, got {t}"
         assert z_0.shape == z_1.shape, f"z shape {z_0.shape} does not match z_1 shape {z_1.shape}"
 
         ground_truth_vector_field = self.conditional_target_vf_fun(z_0, z_1, t)

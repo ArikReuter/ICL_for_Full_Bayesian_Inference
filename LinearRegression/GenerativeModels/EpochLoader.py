@@ -18,7 +18,8 @@ class EpochLoader():
                  train_frac : float = 0.7,
                  val_frac : float = 0.15,
                  shuffle : bool = True,
-                 n_samples_to_generate_at_once : int = 10_000):
+                 n_samples_to_generate_at_once : int = 10_000,
+                ):
         """
         Args: 
             GenerateDataCurriculum: GenerateDataCurriculum: the data generator

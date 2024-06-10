@@ -151,6 +151,68 @@ def make_lm_program_gamma_gamma_batched(
 
         return multivariate_lm_return_dict
 
+def make_lm_program_trivial_batched(
+        mu: float = 0.0,
+        sigma: float = 1.0
+    ) -> 'LM_abstract.pprogram_linear_model_return_dict':
+        """
+        Makes a trivial linear model where the beta distribution is a normal distribution with mean mu and standard deviation sigma that does not even depend on the input data.
+        Args: 
+                mu: float: the mean of the normal distribution for beta in each dimension
+                sigma: float: the standard deviation of the normal distribution for beta in each dimension
+        Returns:
+                LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
+        """
+        def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
+                if x.dim() == 2:
+                        x = x.unsqueeze(0)  # Ensure x is 3D (batch_size, N, P)
+                batch_size, N, P = x.shape
+
+                # Define distributions for the global parameters
+                
+
+                with pyro.plate("batch", batch_size, dim=-1):
+                        # Sample global parameters per batch
+                        beta = pyro.sample("beta", dist.Normal(mu, sigma).expand([P]).to_event(1) )  # Shape: (batch_size, P)   
+
+
+
+                return {
+                                "x": x,
+                                "y": y,
+                                "beta": beta
+                        }
+
+        return multivariate_lm_return_dict
+
+def make_lm_program_trivial(
+        mu: float = 0.0,
+        sigma: float = 1.0
+        ) -> 'LM_abstract.pprogram_linear_model_return_dict':
+        """
+        Makes a trivial linear model where the beta distribution is a normal distribution with mean mu and standard deviation sigma that does not even depend on the input data.
+        Args:
+                mu: float: the mean of the normal distribution for beta in each dimension
+                sigma: float: the standard deviation of the normal distribution for beta in each dimension
+        Returns:
+                LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
+        """
+        def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
+                # Define distributions for the global parameters
+                beta = pyro.sample("beta", dist.Normal(mu, sigma).expand([x.shape[1]]).to_event(1) )  # the parameters of the linear model
+
+                mean = torch.matmul(x, beta)
+
+                with pyro.plate("data", len(x)):
+                        y = pyro.sample("obs", dist.Normal(mean, 1), obs=y)
+
+                return {
+                        "x": x,
+                        "y": y,
+                        "beta": beta
+                }
+        
+        return multivariate_lm_return_dict
 
 def make_make_lm_program_gamma_gamma_batched_quantized(
             quantizer: Quantizer
