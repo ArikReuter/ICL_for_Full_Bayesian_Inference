@@ -398,12 +398,15 @@ class ModelPosteriorMultivariateStundentt2(ModelPosterior):
         Returns:
             torch.distributions.distribution.Distribution: the posterior distribution
         """
-        mu, triangular_lower, df_raw = pred
+        mu, triangular_lower, df_raw = pred   # triangular_lower is the lower triangular matrix of the covariance matrix, and is a vector of size p(p+1)/2
 
         batch_size, p = mu.shape
 
-        tril_lower_mat = torch.zeros(batch_size, p, p)
-        tril_lower_mat[:, torch.tril_indices(p, 0)] = triangular_lower
+        tril_lower_mat = torch.zeros(batch_size, p, p).to(mu.device)
+
+        row_indices, col_indices = torch.tril_indices(p, p, offset=0)
+
+        tril_lower_mat[:, row_indices, col_indices] = triangular_lower.view(batch_size, -1)
 
 
         df = df_raw ** 2 + 1e-5
