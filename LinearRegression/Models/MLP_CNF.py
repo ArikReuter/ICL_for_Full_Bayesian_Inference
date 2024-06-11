@@ -160,6 +160,10 @@ class MLP_CNF(nn.Module):
 
 
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 class ConditionalBatchNorm(nn.Module):
     def __init__(self, num_features, embedding_dim):
         super().__init__()
@@ -169,13 +173,10 @@ class ConditionalBatchNorm(nn.Module):
         self.bn = nn.BatchNorm1d(num_features, affine=False)
 
     def forward(self, x, y):
-        # y is the conditioning input, e.g., a time embedding
         gamma = self.gamma(y)
         beta = self.beta(y)
         x = self.bn(x)
-        # Apply conditional scaling and shifting
         return gamma * x + beta
-
 
 class MLP_CNF_BN(nn.Module):
     def __init__(self, n_data_inputs: int, n_parameter_inputs: int, layers: list):
