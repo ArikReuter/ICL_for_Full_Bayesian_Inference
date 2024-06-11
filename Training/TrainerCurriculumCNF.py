@@ -39,7 +39,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
                  early_stopping_patience: int = 10,
                  verbose:int = 100,
                  summary_writer_path: str = "runs/",
-                 use_same_timestep_per_batch: bool = True
+                 use_same_timestep_per_batch: bool = False
     ):
         """
         A custom class for training neural networks
@@ -225,6 +225,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         Returns
             dict[str, float]: the test results where the key is the name of the evaluation function and the value is the result of the evaluation function
         """
+        self.model.eval()
         
         return self.validate_loader(self.testset)
     
