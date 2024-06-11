@@ -167,6 +167,30 @@ import torch.nn.functional as F
 import torch.nn as nn
 import torch.nn.functional as F
 
+
+class ConditionalBatchNorm(nn.Module):
+    def __init__(self, num_features_in_feat, num_features_in_cond, num_features_out):
+        super().__init__()
+        self.num_features_in_feat = num_features_in_feat
+        self.num_features_in_cond = num_features_in_cond
+        self.num_features_out = num_features_out
+
+        self.bn = nn.BatchNorm1d(num_features_in_feat, affine=False)
+        self.linear_gamma = nn.Linear(num_features_in_cond, num_features_out)
+        self.linear_beta = nn.Linear(num_features_in_cond, num_features_out)
+
+    def forward(self, x, cond):
+        # Normalize the input
+        x = self.bn(x)
+
+        # Calculate the gamma and beta parameters
+        gamma = self.linear_gamma(cond)
+        beta = self.linear_beta(cond)
+
+        # Apply the conditional scaling and shifting
+        x = gamma * x + beta
+        return x
+
 class MLP_CNF_BN(nn.Module):
     def __init__(self, n_data_inputs: int, n_parameter_inputs: int, layers: list, n_time_embedding: int, dropout_rate: float = 0.1):
         super(MLP_CNF_BN, self).__init__()
