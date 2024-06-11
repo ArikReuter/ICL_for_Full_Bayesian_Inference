@@ -86,7 +86,9 @@ class CFMLoss(torch.nn.Module):
 
         assert z_0.shape == z_1.shape, f"z shape {z_0.shape} does not match z_1 shape {z_1.shape}"
 
-        ground_truth_vector_field = self.conditional_target_vf_fun(z_0, z_1, t)
+        z_t = self.psi_t_conditional_fun(z_0, z_1, t)
+
+        ground_truth_vector_field = self.conditional_target_vf_fun(z_t, z_1, t)
 
         assert ground_truth_vector_field.shape == z_0.shape, f"ground truth vector field shape {ground_truth_vector_field.shape} does not match z_0 shape {z_0.shape}"
 
