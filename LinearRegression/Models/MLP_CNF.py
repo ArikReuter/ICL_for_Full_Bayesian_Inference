@@ -164,31 +164,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class ConditionalBatchNorm(nn.Module):
-    def __init__(self, num_features_in_feat, num_features_in_cond, num_features_out):
-        super().__init__()
-        self.num_features_in_feat = num_features_in_feat
-        self.num_features_in_cond = num_features_in_cond
-        self.num_features_out = num_features_out
-
-        self.bn = nn.BatchNorm1d(num_features_in_feat, affine=False)
-        self.linear_gamma = nn.Linear(num_features_in_cond, num_features_out)
-        self.linear_beta = nn.Linear(num_features_in_cond, num_features_out)
-
-    def forward(self, x, cond):
-        # Normalize the input
-        x = self.bn(x)
-
-        # Calculate the gamma and beta parameters
-        gamma = self.linear_gamma(cond)
-        beta = self.linear_beta(cond)
-
-        # Apply the conditional scaling and shifting
-        x = gamma * x + beta
-        return x
+import torch.nn as nn
+import torch.nn.functional as F
 
 class MLP_CNF_BN(nn.Module):
-    def __init__(self, n_data_inputs: int, n_parameter_inputs: int, layers: list, n_time_embedding: int):
+    def __init__(self, n_data_inputs: int, n_parameter_inputs: int, layers: list, n_time_embedding: int, dropout_rate: float = 0.1):
         super(MLP_CNF_BN, self).__init__()
         
         self.time_embedding = nn.Linear(1, n_time_embedding)
@@ -196,15 +176,18 @@ class MLP_CNF_BN(nn.Module):
         # Create the layers of the MLP
         self.layers = nn.ModuleList()
         self.batch_norms = nn.ModuleList()
+        self.dropouts = nn.ModuleList()  # List to hold dropout layers
 
         # First layer specifically from input size to the first hidden layer size
         self.layers.append(nn.Linear(n_parameter_inputs, layers[0]))
         self.batch_norms.append(ConditionalBatchNorm(num_features_in_feat=layers[0], num_features_in_cond=n_time_embedding, num_features_out=layers[0]))
+        self.dropouts.append(nn.Dropout(dropout_rate))
 
         # Remaining layers
         for i in range(1, len(layers)):
             self.layers.append(nn.Linear(layers[i - 1], layers[i]))
             self.batch_norms.append(ConditionalBatchNorm(num_features_in_feat=layers[i], num_features_in_cond=layers[0], num_features_out=layers[i]))
+            self.dropouts.append(nn.Dropout(dropout_rate))
 
         # Output layer
         self.output_layer = nn.Linear(layers[-1], n_parameter_inputs)
@@ -214,9 +197,10 @@ class MLP_CNF_BN(nn.Module):
         t_emb = F.relu(self.time_embedding(t.view(-1, 1)))  # Ensure t is the correct shape
 
         # Process through all hidden layers
-        for layer, norm in zip(self.layers, self.batch_norms):
+        for layer, norm, dropout in zip(self.layers, self.batch_norms, self.dropouts):
             z = F.relu(layer(z))
             z = norm(z, t_emb)
+            z = dropout(z)  # Apply dropout
 
         # Output layer
         output = self.output_layer(z)
