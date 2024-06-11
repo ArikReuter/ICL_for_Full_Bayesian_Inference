@@ -312,7 +312,11 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             #    training_results[name] = fun(targets, predictions)
 
             avg_loss = torch.mean(torch.stack(loss_lis))
+            median_loss = torch.median(torch.stack(loss_lis))
+            std_loss = torch.std(torch.stack(loss_lis))
             training_results["loss"] = avg_loss.item()
+            training_results["median_loss"] = median_loss.item()
+            training_results["std_loss"] = std_loss.item()
 
             end_time_epoch = time.time()
             time_epoch = end_time_epoch - start_time_epoch
