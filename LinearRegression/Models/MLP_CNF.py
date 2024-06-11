@@ -178,49 +178,36 @@ class ConditionalBatchNorm(nn.Module):
 
 
 class MLP_CNF_BN(nn.Module):
-    def __init__(self, n_data_inputs: int, n_parameter_inputs: int, hidden_size: int):
+    def __init__(self, n_data_inputs: int, n_parameter_inputs: int, layers: list):
         super(MLP_CNF_BN, self).__init__()
-        self.hidden_size = hidden_size
         
-        # Time embedding layer
-        self.time_embedding = nn.Linear(1, hidden_size)
-        
-        # Layers of the MLP
-        self.fc1 = nn.Linear(n_parameter_inputs, hidden_size)
-        self.cbn1 = ConditionalBatchNorm(hidden_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.cbn2 = ConditionalBatchNorm(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, hidden_size)
-        self.cbn3 = ConditionalBatchNorm(hidden_size, hidden_size)
-        self.output_layer = nn.Linear(hidden_size, n_parameter_inputs)  # Output size same as input size
-    
-    def forward(self,
-                z: torch.Tensor,
-                x: torch.Tensor,
-                t: torch.Tensor,
-                ) -> torch.Tensor:
-      
-        """
-        Args: 
-            x: torch.Tensor: the data to condition on 
-            z: torch.Tensor: the parameters or latent variables of interest
-            t: torch.Tensor: the time
-        """
+        self.time_embedding = nn.Linear(1, layers[0])  # Assuming the time embedding size is the size of the first layer
+
+        # Create the layers of the MLP
+        self.layers = nn.ModuleList()
+        self.batch_norms = nn.ModuleList()
+
+        # First layer specifically from input size to the first hidden layer size
+        self.layers.append(nn.Linear(n_parameter_inputs, layers[0]))
+        self.batch_norms.append(ConditionalBatchNorm(layers[0], layers[0]))
+
+        # Remaining layers
+        for i in range(1, len(layers)):
+            self.layers.append(nn.Linear(layers[i - 1], layers[i]))
+            self.batch_norms.append(ConditionalBatchNorm(layers[i], layers[i]))
+
+        # Output layer
+        self.output_layer = nn.Linear(layers[-1], n_parameter_inputs)
+
+    def forward(self, z: torch.Tensor, x: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
         # Time conditioning
         t_emb = F.relu(self.time_embedding(t.view(-1, 1)))  # Ensure t is the correct shape
-        
-        # First layer processing
-        z = F.relu(self.fc1(z))
-        z = self.cbn1(z, t_emb)
-        
-        # Second layer
-        z = F.relu(self.fc2(z))
-        z = self.cbn2(z, t_emb)
-        
-        # Third layer
-        z = F.relu(self.fc3(z))
-        z = self.cbn3(z, t_emb)
-        
+
+        # Process through all hidden layers
+        for layer, norm in zip(self.layers, self.batch_norms):
+            z = F.relu(layer(z))
+            z = norm(z, t_emb)
+
         # Output layer
         output = self.output_layer(z)
         return output
