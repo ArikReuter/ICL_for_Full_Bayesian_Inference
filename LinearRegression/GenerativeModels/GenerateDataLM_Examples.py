@@ -175,7 +175,7 @@ def make_lm_program_trivial_batched(
                         # Sample global parameters per batch
                         beta = pyro.sample("beta", dist.Normal(mu, sigma).expand([P]).to_event(1) )  # Shape: (batch_size, P)   
 
-
+                        y = torch.ones(N)  # the response variable
 
                 return {
                                 "x": x,
@@ -201,10 +201,7 @@ def make_lm_program_trivial(
                 # Define distributions for the global parameters
                 beta = pyro.sample("beta", dist.Normal(mu, sigma).expand([x.shape[1]]).to_event(1) )  # the parameters of the linear model
 
-                mean = torch.matmul(x, beta)
-
-                with pyro.plate("data", len(x)):
-                        y = pyro.sample("obs", dist.Normal(mean, 1), obs=y)
+                y = torch.ones(x.shape[0])  # the response variable
 
                 return {
                         "x": x,

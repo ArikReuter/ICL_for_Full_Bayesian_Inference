@@ -194,7 +194,11 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         results = {}
         
         results_avg_loss = torch.mean(torch.stack(loss_lis))
+        result_median_loss = torch.median(torch.stack(loss_lis))
+        result_std_loss = torch.std(torch.stack(loss_lis))
         results["loss"] = results_avg_loss.item()
+        results["median_loss"] = result_median_loss.item()
+        results["std_loss"] = result_std_loss.item()
 
         
         return results

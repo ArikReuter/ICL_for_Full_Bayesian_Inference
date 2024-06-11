@@ -159,6 +159,7 @@ class GenerateDataCurriculum(GenerateData):
 
 
 
+
     def make_dataloaders_for_epoch_dynamic(self,
                                  epoch:int = 0,
                                  n:int = 100,
@@ -502,7 +503,7 @@ class SyntheticDataCurriculumBatched(SyntheticDataCurriculum):
 
     
         for key, value in self.stored_samples["samples"].items():
-            if value.shape == torch.Size([]):
+            if len(value.shape) == 1:
                 res[key] = value
             else:
                 res[key] = value[idx_to_acess_stored_samples]
