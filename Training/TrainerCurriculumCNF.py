@@ -38,7 +38,8 @@ class TrainerCurriculumCNF(TrainerCurriculum):
                  make_new_folder: bool = True,
                  early_stopping_patience: int = 10,
                  verbose:int = 100,
-                 summary_writer_path: str = "runs/"
+                 summary_writer_path: str = "runs/",
+                 use_same_timestep_per_batch: bool = True
     ):
         """
         A custom class for training neural networks
@@ -61,6 +62,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             early_stopping_patience: int: the patience for early stopping
             verbose: int: how much to print
             summary_writer_path: str: the path to save the summary writer
+            use_same_timestep_per_batch: bool: whether to use the same timestep for all elements in the batch
         """
 
         assert schedule_step_on in ["epoch", "batch"], "schedule_step_on must be either 'epoch' or 'batch'"
@@ -81,6 +83,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         self.early_stopping_patience = early_stopping_patience
         self.verbose = verbose
         self.summary_writer_path = summary_writer_path
+        self.use_same_timestep_per_batch = use_same_timestep_per_batch
 
         if self.valset is None:
             self.valset = self.epoch_loader(n_epochs)[1]  #load the validation set for the last epoch from the epoch_loader
@@ -163,6 +166,9 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         t = t.unsqueeze(-1) # add a dimension to the time tensor to give it shape (batch_size, 1)
 
         t = t.float()
+
+        if self.use_same_timestep_per_batch:
+            t = t[0] * torch.ones_like(t)
 
         zt = self.loss_function.psi_t_conditional_fun(z_0, z_1, t) # compute the sample from the probability path
         
