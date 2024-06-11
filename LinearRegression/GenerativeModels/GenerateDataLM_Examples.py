@@ -211,6 +211,68 @@ def make_lm_program_trivial(
         
         return multivariate_lm_return_dict
 
+
+def make_lm_program_trivial_batched_full_cov(
+        cov_matrix: torch.Tensor,
+        mu: torch.Tensor
+    ) -> 'LM_abstract.pprogram_linear_model_return_dict':
+        """
+        Makes a trivial linear model where the beta distribution is a multivariate normal distribution with mean mu and covariance matrix cov_matrix that does not even depend on the input data.
+        Args:
+                cov_matrix: torch.Tensor: the covariance matrix of the normal distribution for beta
+                mu: torch.Tensor: the mean of the normal distribution for beta
+        Returns:
+                LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
+        """
+        def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
+                if x.dim() == 2:
+                        x = x.unsqueeze(0)  # Ensure x is 3D (batch_size, N, P)
+                batch_size, N, P = x.shape
+
+                # Define distributions for the global parameters
+                
+
+                with pyro.plate("batch", batch_size, dim=-1):
+                        # Sample global parameters per batch
+                        beta = pyro.sample("beta", dist.MultivariateNormal(mu, cov_matrix))  # Shape: (batch_size, P)
+
+                        y = torch.ones(N)  # the response variable
+
+                return {
+                                "x": x,
+                                "y": y,
+                                "beta": beta
+                        }
+
+        return multivariate_lm_return_dict
+
+def make_lm_program_trivial_full_cov(
+        cov_matrix: torch.Tensor,
+        mu: torch.Tensor
+        ) -> 'LM_abstract.pprogram_linear_model_return_dict':
+        """
+        Makes a trivial linear model where the beta distribution is a multivariate normal distribution with mean mu and covariance matrix cov_matrix that does not even depend on the input data.
+        Args:
+                cov_matrix: torch.Tensor: the covariance matrix of the normal distribution for beta
+                mu: torch.Tensor: the mean of the normal distribution for beta
+        Returns:
+                LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
+        """
+        def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
+                # Define distributions for the global parameters
+                beta = pyro.sample("beta", dist.MultivariateNormal(mu, cov_matrix))  # the parameters of the linear model
+
+                y = torch.ones(x.shape[0])  # the response variable
+
+                return {
+                        "x": x,
+                        "y": y,
+                        "beta": beta
+                }
+        
+        return multivariate_lm_return_dict
+
+
 def make_make_lm_program_gamma_gamma_batched_quantized(
             quantizer: Quantizer
         ):
