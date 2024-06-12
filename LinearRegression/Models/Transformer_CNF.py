@@ -609,3 +609,26 @@ class TransformerConditional(nn.Module):
     
           return x_decoder
 
+
+class TransformerCNF(TransformerConditional):
+   """
+   Use the TransformerConditional as a model for the CNF
+   """
+
+   def forward(self, z:torch.Tensor, x: torch.tensor, t: torch.tensor):
+      """
+      Args:
+            z: torch.Tensor: the input latent variable of shape (BATCH_SIZE, 1, N_Latents)
+            x: torch.Tensor: the data to condition on of shape (BATCH_SIZE, SEQ_LEN, N_INPUT_FEATURES)
+            t: torch.Tensor: the time to condition on of shape (BATCH_SIZE, 1)
+      """
+
+      if not z.shape[1] == 1:
+            z = z.unsqueeze(1)
+      
+      if not t.shape[1] == 1:
+            t = t.unsqueeze(1)
+
+      res = super().forward(x, z, t)
+
+      return res
