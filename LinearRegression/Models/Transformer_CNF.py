@@ -219,7 +219,7 @@ class Rescale(nn.Module):
    """
    A class that rescales each element in the input sequence by a learnable paramter in each dimension.
    """
-   def __init__(self, d_model: int, n_condition_features: int):
+   def __init__(self, d_model: int, n_condition_features: int, initialize_with_zeros: bool = True):
         """
         Args:
             d_model: int: the model dimension
@@ -227,6 +227,10 @@ class Rescale(nn.Module):
         """
         super(Rescale, self).__init__()
         self.rescale = nn.Linear(n_condition_features, d_model)
+
+        if initialize_with_zeros:
+            nn.init.zeros_(self.rescale.weight)
+            nn.init.zeros_(self.rescale.bias)
 
    def forward(self, x: torch.tensor, condition: torch.tensor) -> torch.tensor:
         """
@@ -836,6 +840,7 @@ class TransformerCNF(TransformerConditional):
          d_final_processing: int = 256,
          n_final_layers: int = 2,
          dropout_final: float = 0.1,
+         treat_z_as_sequence: bool = False,
          **kwargs
     ):
         """
@@ -844,12 +849,15 @@ class TransformerCNF(TransformerConditional):
                 d_final_processing: int: the hidden dimension of the final processing MLP
                 n_final_layers: int: the number of layers in the final processing MLP
                 dropout_final: float: the dropout rate of the final processing MLP
+                treat_z_as_sequence: bool = False, whether to treat the latent variable z as a sequence. This transposes the latent variable z in the forward pass
         """
         super(TransformerCNF, self).__init__(**kwargs)
 
         d_model_decoder = self.transformer_decoder.d_model_decoder
     
         self.final_processing = MLP(d_model_decoder, output_dim, d_final_processing, n_final_layers, dropout_final)
+
+        self.treat_z_as_sequence = treat_z_as_sequence
 
    def forward(self, z:torch.Tensor, x: torch.tensor, t: torch.tensor):
       """
@@ -861,14 +869,22 @@ class TransformerCNF(TransformerConditional):
 
       if not len(z.shape) == 3:
             z = z.unsqueeze(1)
+
+      if self.treat_z_as_sequence:
+            z = z.permute(0, 2, 1)
       
       t = t.view(-1, 1)
 
       res_trafo = super().forward(x, z, t)
 
-      res_trafo = res_trafo.squeeze(1)
+      if not self.treat_z_as_sequence:
+            res_trafo = res_trafo.squeeze(1)
+      else:
+          res_trafo = torch.mean(res_trafo, dim=1)
 
       res = self.final_processing(res_trafo)
+
+      return res
 
 
 
@@ -881,8 +897,9 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
          self,
          output_dim: int,
          d_final_processing: int = 256,
-         n_final_layers: int = 2,
+         n_final_layers: int = 1,
          dropout_final: float = 0.1,
+         treat_z_as_sequence: bool = False,
          **kwargs
     ):
         """
@@ -891,10 +908,12 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
                 d_final_processing: int: the hidden dimension of the final processing MLP
                 n_final_layers: int: the number of layers in the final processing MLP
                 dropout_final: float: the dropout rate of the final processing MLP
+                treat_z_as_sequence: bool: whether to treat the latent variable z as a sequence. This transposes the latent variable z in the forward pass
         """
         super(TransformerCNFConditionalDecoder, self).__init__(**kwargs)
 
         d_model_decoder = self.transformer_decoder.d_model_decoder
+        self.treat_z_as_sequence = treat_z_as_sequence
     
         self.final_processing = MLP(d_model_decoder, output_dim, d_final_processing, n_final_layers, dropout_final)
 
@@ -908,12 +927,19 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
 
       if not len(z.shape) == 3:
             z = z.unsqueeze(1)
+
+      if self.treat_z_as_sequence:
+            z = z.permute(0, 2, 1)
       
       t = t.view(-1, 1)
 
       res_trafo = super().forward(x, z, t)
+      
+      if not self.treat_z_as_sequence:
+            res_trafo = res_trafo.squeeze(1)
+      else:
+          res_trafo = torch.mean(res_trafo, dim=1)
 
-      res_trafo = res_trafo.squeeze(1)
 
       res = self.final_processing(res_trafo)
 
