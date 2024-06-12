@@ -615,6 +615,27 @@ class TransformerCNF(TransformerConditional):
    Use the TransformerConditional as a model for the CNF
    """
 
+   def __init__(
+         self,
+         output_dim: int,
+         d_final_processing: int = 256,
+         n_final_layers: int = 2,
+         dropout_final: float = 0.1,
+         **kwargs
+    ):
+        """
+        Args:
+                output_dim: int: the output dimension
+                d_final_processing: int: the hidden dimension of the final processing MLP
+                n_final_layers: int: the number of layers in the final processing MLP
+                dropout_final: float: the dropout rate of the final processing MLP
+        """
+        super(TransformerCNF, self).__init__(**kwargs)
+
+        d_model_decoder = self.transformer_decoder.d_model_decoder
+    
+        self.final_processing = MLP(d_model_decoder, output_dim, d_final_processing, n_final_layers, dropout_final)
+
    def forward(self, z:torch.Tensor, x: torch.tensor, t: torch.tensor):
       """
       Args:
@@ -629,6 +650,10 @@ class TransformerCNF(TransformerConditional):
       if not t.shape[1] == 1:
             t = t.unsqueeze(1)
 
-      res = super().forward(x, z, t)
+      res_trafo = super().forward(x, z, t)
+
+      res_trafo = res_trafo.squeeze(1)
+
+      res = self.final_processing(res_trafo)
 
       return res
