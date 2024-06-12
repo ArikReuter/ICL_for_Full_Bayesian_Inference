@@ -384,7 +384,8 @@ class DecoderBlockConditional(nn.Module):
     n_heads: int,
     d_ff: int,
     dropout: float,
-    n_condition_features: int
+    n_condition_features: int,
+    use_self_attention: bool = True
     ):
       """
       Args:
@@ -393,12 +394,15 @@ class DecoderBlockConditional(nn.Module):
             d_ff: int: the hidden dimension of the position wise feed forward network
             dropout: float: the dropout rate
             n_condition_features: int: the number of features in the conditioning tensor
+            use_self_attention: bool: whether to use self attention
       """
       super(DecoderBlockConditional, self).__init__()
-
-      self.condition_layer_norm0 = ConditionalLayerNorm(d_model_decoder, n_condition_features)
-      self.multihead_attention = nn.MultiheadAttention(d_model_decoder, n_heads, dropout=dropout, batch_first=True)
-      self.rescale0 = Rescale(d_model_decoder, n_condition_features)
+      
+      self.use_self_attention = use_self_attention
+      if use_self_attention:
+        self.condition_layer_norm0 = ConditionalLayerNorm(d_model_decoder, n_condition_features)
+        self.multihead_attention = nn.MultiheadAttention(d_model_decoder, n_heads, dropout=dropout, batch_first=True)
+        self.rescale0 = Rescale(d_model_decoder, n_condition_features)
 
       self.condition_layer_norm1 = ConditionalLayerNorm(d_model_decoder, n_condition_features)
       self.multihead_cross_attention = nn.MultiheadAttention(
@@ -426,10 +430,11 @@ class DecoderBlockConditional(nn.Module):
         Returns:
             torch.tensor: the output tensor of shape (n, seq_len, d_model)
         """
-        x = self.condition_layer_norm0(x, condition) # adaptive layer norm
-        x_att, _ = self.multihead_attention(x, x, x)  # multihead attention
-        x_att = self.rescale0(x_att, condition) # rescale 
-        x = x + x_att # apply residual connection 
+        if self.use_self_attention:
+            x = self.condition_layer_norm0(x, condition) # adaptive layer norm
+            x_att, _ = self.multihead_attention(x, x, x)  # multihead attention
+            x_att = self.rescale0(x_att, condition) # rescale 
+            x = x + x_att # apply residual connection 
 
         x = self.condition_layer_norm1(x, condition) # apply layer norm
         x_cross_att, _ = self.multihead_cross_attention(x, x_encoder, x_encoder)
@@ -461,7 +466,8 @@ class TransformerDecoderConditional(nn.Module):
     dropout: float = 0.1,
     n_condition_features: int = 256,
     n_layers: int = 6,
-    use_positional_encoding: bool = False
+    use_positional_encoding: bool = False,
+    use_self_attention: bool = True
     ):
       """
       Args:
@@ -473,6 +479,7 @@ class TransformerDecoderConditional(nn.Module):
             n_condition_features: int: the number of features in the conditioning tensor
             n_layers: int: the number of encoder blocks,
             use_positional_encoding: bool: whether to use positional encoding
+            use_self_attention: bool: whether to use self attention
       """
       super(TransformerDecoderConditional, self).__init__()
 
@@ -485,13 +492,14 @@ class TransformerDecoderConditional(nn.Module):
       self.n_condition_features = n_condition_features
       self.n_layers = n_layers    
       self.use_positional_encoding = use_positional_encoding
+      self.use_self_attention = use_self_attention
 
       self.embedding_layer = nn.Linear(n_input_features, d_model_decoder)
 
       if use_positional_encoding:
             self.positional_encoding = PositionalEncoding(d_model_decoder, dropout)
 
-      self.decoder_blocks = nn.ModuleList([DecoderBlockConditional(d_model_decoder, d_model_encoder, n_heads, d_ff, dropout, n_condition_features) for _ in range(n_layers)])
+      self.decoder_blocks = nn.ModuleList([DecoderBlockConditional(d_model_decoder, d_model_encoder, n_heads, d_ff, dropout, n_condition_features, use_self_attention=use_self_attention) for _ in range(n_layers)])
 
 
    def forward(self, x: torch.tensor, x_encoder: torch.tensor, condition: torch.tensor) -> torch.tensor:
@@ -539,7 +547,8 @@ class TransformerConditional(nn.Module):
             n_layers_encoder: int = 6,
             n_layers_decoder: int = 4,
             use_positional_encoding_encoder: bool = False,
-            use_positional_encoding_decoder: bool = False
+            use_positional_encoding_decoder: bool = False,
+            use_self_attention_decoder: bool = True
     ):
       """
       Args:
@@ -558,6 +567,7 @@ class TransformerConditional(nn.Module):
             n_layers_decoder: int: the number of decoder blocks of the decoder
             use_positional_encodign_encoder: bool: whether to use positional encoding in the encoder
             use_positional_encodign_decoder: bool: whether to use positional encoding in the decoder
+            use_self_attention_decoder: bool: whether to use self attention in the decoder
       """
       super(TransformerConditional, self).__init__()
 
@@ -589,6 +599,7 @@ class TransformerConditional(nn.Module):
                 n_condition_features=n_condition_features,
                 n_layers=n_layers_decoder,
                 use_positional_encoding=use_positional_encoding_decoder
+                use_self_attention=use_self_attention_decoder
       )
 
    def forward(self, x_encoder: torch.tensor, x_decoder: torch.tensor, condition: torch.tensor) -> torch.tensor:
