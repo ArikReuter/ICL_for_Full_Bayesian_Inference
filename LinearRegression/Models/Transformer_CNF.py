@@ -240,6 +240,115 @@ class Rescale(nn.Module):
         rescale = self.rescale(condition)
         x = x * rescale.unsqueeze(1)
         return x
+   
+class EncoderBlock(nn.Module):
+   """
+   A plain transformer encoder block
+   """
+   
+   def __init__(
+    self,
+    d_model: int,
+    n_heads: int,
+    d_ff: int,
+    dropout: float
+    ):
+      """
+      Args:
+            d_model: int: the model dimension
+            n_heads: int: the number of heads in the multihead attention
+            d_ff: int: the hidden dimension of the position wise feed forward network
+            dropout: float: the dropout rate
+      """
+      super(EncoderBlock, self).__init__()
+
+      self.layer_norm0 = nn.LayerNorm(d_model)
+      self.multihead_attention = nn.MultiheadAttention(d_model, n_heads, dropout=dropout, batch_first=True)
+
+      self.layer_norm1 = nn.LayerNorm(d_model)
+      self.positionwise_feedforward = PositionwiseFeedForward(d_model, d_ff, d_model, dropout)
+
+
+   def forward(self, x: torch.tensor) -> torch.tensor:
+        """
+        Forward pass for the encoder block.
+        Args:
+            x: torch.tensor: the input tensor of shape (n, seq_len, d_model)
+        Returns:
+            torch.tensor: the output tensor of shape (n, seq_len, d_model)
+        """
+        x = self.layer_norm0(x) # apply layer norm
+        x_att, _ = self.multihead_attention(x, x, x)  # multihead attention
+        x = x + x_att # apply residual connection 
+
+        x = self.layer_norm1(x) # apply layer norm
+        x_ff = self.positionwise_feedforward(x) # apply position wise feed forward network
+        x = x + x_ff
+
+        # apply residual connection and layer norm
+        
+        return x
+   
+class TransformerEncoder(nn.Module):
+    """
+    A transformer encoder
+    """
+    
+    def __init__(
+     self,
+     n_input_features: int,
+     d_model: int = 256,
+     n_heads: int = 8,
+     d_ff: int = 512,
+     dropout: float = 0.1,
+     n_layers: int = 6,
+     use_positional_encoding: bool = False
+     ):
+        """
+        Args:
+                d_model: int: the model dimension
+                n_heads: int: the number of heads in the multihead attention
+                d_ff: int: the hidden dimension of the position wise feed forward network
+                dropout: float: the dropout rate
+                n_layers: int: the number of encoder blocks,
+                use_positional_encoding: bool: whether to use positional encoding
+        """
+        super(TransformerEncoder, self).__init__()
+    
+        self.n_input_features = n_input_features
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.d_ff = d_ff
+        self.dropout = dropout
+        self.n_layers = n_layers    
+        self.use_positional_encoding = use_positional_encoding
+    
+        self.embedding_layer = nn.Linear(n_input_features, d_model)
+    
+        if use_positional_encoding:
+                self.positional_encoding = PositionalEncoding(d_model, dropout)
+    
+        self.encoder_blocks = nn.ModuleList([EncoderBlock(d_model, n_heads, d_ff, dropout) for _ in range(n_layers)])
+    
+    
+    def forward(self, x: torch.tensor) -> torch.tensor:
+          """
+          Forward pass for the encoder.
+          Args:
+                x: torch.tensor: the input tensor of shape (n, seq_len, d_model)
+          Returns:
+                torch.tensor: the output tensor of shape (n, seq_len, d_model)
+          """
+          x = self.embedding_layer(x)
+    
+          if self.use_positional_encoding:
+                x = self.positional_encoding(x)
+    
+    
+          for encoder_block in self.encoder_blocks:
+                x = encoder_block(x)
+    
+          return x
 
 class EncoderBlockConditional(nn.Module):
    """  
@@ -621,6 +730,101 @@ class TransformerConditional(nn.Module):
           return x_decoder
 
 
+class TransformerConditionalDecoder(nn.Module):
+   """
+   Uses an unconditional encoder and a conditional decoder
+   """
+
+   def __init__(
+         self,
+            n_input_features_encoder: int,
+            n_input_features_decoder: int,
+            d_model_encoder: int = 256,
+            d_model_decoder: int = 256,
+            n_heads_encoder: int = 8,
+            n_heads_decoder: int = 8,
+            d_ff_encoder: int = 512,
+            d_ff_decoder: int = 512,
+            dropout_encoder: float = 0.1,
+            dropout_decoder: float = 0.1,
+            n_conditional_input_features: int =  1,
+            n_condition_features: int = 256,
+            n_layers_condition_embedding: int = 1,
+            n_layers_encoder: int = 6,
+            n_layers_decoder: int = 4,
+            use_positional_encoding_encoder: bool = False,
+            use_positional_encoding_decoder: bool = False,
+            use_self_attention_decoder: bool = True
+    ):
+      """
+      Args:
+            d_model_encoder: int: the model dimension of the encoder
+            d_model_decoder: int: the model dimension of the decoder
+            n_heads_encoder: int: the number of heads in the multihead attention of the encoder
+            n_heads_decoder: int: the number of heads in the multihead attention of the decoder
+            d_ff_encoder: int: the hidden dimension of the position wise feed forward network of the encoder
+            d_ff_decoder: int: the hidden dimension of the position wise feed forward network of the decoder
+            dropout_encoder: float: the dropout rate of the encoder
+            dropout_decoder: float: the dropout rate of the decoder
+            n_conditional_input_features_encoder: int: the number of features in the input tensor of the encoder
+            n_condition_features: int: the number of features in the conditioning tensor
+            n_layers_condition_embedding_encoder: int: the number of layers in the MLP that embeds the condition tensor of the encoder
+            n_layers_encoder: int: the number of encoder blocks of the encoder
+            n_layers_decoder: int: the number of decoder blocks of the decoder
+            use_positional_encodign_encoder: bool: whether to use positional encoding in the encoder
+            use_positional_encodign_decoder: bool: whether to use positional encoding in the decoder
+            use_self_attention_decoder: bool: whether to use self attention in the decoder
+      """
+      super(TransformerConditionalDecoder, self).__init__()
+
+      self.n_conditional_input_features = n_conditional_input_features
+
+      self.condition_embedding_layer = MLP(n_conditional_input_features, n_condition_features, n_condition_features, n_layers_condition_embedding, dropout_encoder)
+
+
+
+      self.transformer_encoder = TransformerEncoder(
+            n_input_features=n_input_features_encoder,
+                d_model=d_model_encoder,
+                n_heads=n_heads_encoder,
+                d_ff=d_ff_encoder,
+                dropout=dropout_encoder,
+                n_layers=n_layers_encoder,
+                use_positional_encoding=use_positional_encoding_encoder
+            )
+      
+
+      self.transformer_decoder = TransformerDecoderConditional(
+            n_input_features=n_input_features_decoder,
+                d_model_decoder=d_model_decoder,
+                d_model_encoder=d_model_encoder,
+                n_heads=n_heads_decoder,
+                d_ff=d_ff_decoder,
+                dropout=dropout_decoder,
+                n_condition_features=n_condition_features,
+                n_layers=n_layers_decoder,
+                use_positional_encoding=use_positional_encoding_decoder,
+                use_self_attention=use_self_attention_decoder
+      )
+
+   def forward(self, x_encoder: torch.tensor, x_decoder: torch.tensor, condition: torch.tensor) -> torch.tensor:
+          """
+          Forward pass for the encoder.
+          Args:
+                x_encoder: torch.tensor: the input tensor of shape (n, seq_len_encoder, d_model_encoder)
+                x_decoder: torch.tensor: the input tensor of shape (n, seq_len_decoder, d_model_decoder)
+                condition: torch.tensor: the condition tensor of shape (n, n_condition_features). Now, the condition tensor is assumed to be already embedded
+    
+          Returns:
+                torch.tensor: the output tensor of shape (n, seq_len_decoder, d_model_decoder)
+          """
+          condition = self.condition_embedding_layer(condition)
+
+          x_encoder = self.transformer_encoder(x_encoder)
+          x_decoder = self.transformer_decoder(x_decoder, x_encoder, condition)
+    
+          return x_decoder
+
 class TransformerCNF(TransformerConditional):
    """
    Use the TransformerConditional as a model for the CNF
@@ -642,6 +846,53 @@ class TransformerCNF(TransformerConditional):
                 dropout_final: float: the dropout rate of the final processing MLP
         """
         super(TransformerCNF, self).__init__(**kwargs)
+
+        d_model_decoder = self.transformer_decoder.d_model_decoder
+    
+        self.final_processing = MLP(d_model_decoder, output_dim, d_final_processing, n_final_layers, dropout_final)
+
+   def forward(self, z:torch.Tensor, x: torch.tensor, t: torch.tensor):
+      """
+      Args:
+            z: torch.Tensor: the input latent variable of shape (BATCH_SIZE, 1, N_Latents)
+            x: torch.Tensor: the data to condition on of shape (BATCH_SIZE, SEQ_LEN, N_INPUT_FEATURES)
+            t: torch.Tensor: the time to condition on of shape (BATCH_SIZE, 1)
+      """
+
+      if not len(z.shape) == 3:
+            z = z.unsqueeze(1)
+      
+      t = t.view(-1, 1)
+
+      res_trafo = super().forward(x, z, t)
+
+      res_trafo = res_trafo.squeeze(1)
+
+      res = self.final_processing(res_trafo)
+
+
+
+class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
+   """
+   Use the TransformerConditional as a model for the CNF
+   """
+
+   def __init__(
+         self,
+         output_dim: int,
+         d_final_processing: int = 256,
+         n_final_layers: int = 2,
+         dropout_final: float = 0.1,
+         **kwargs
+    ):
+        """
+        Args:
+                output_dim: int: the output dimension
+                d_final_processing: int: the hidden dimension of the final processing MLP
+                n_final_layers: int: the number of layers in the final processing MLP
+                dropout_final: float: the dropout rate of the final processing MLP
+        """
+        super(TransformerCNFConditionalDecoder, self).__init__(**kwargs)
 
         d_model_decoder = self.transformer_decoder.d_model_decoder
     
