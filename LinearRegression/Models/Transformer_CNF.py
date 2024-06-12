@@ -1,0 +1,611 @@
+import torch 
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+import torch 
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+
+
+class One_Layer_MLP(torch.nn.Module):
+  def __init__(self,  n_input_units):
+
+    super(One_Layer_MLP, self).__init__()
+
+    self.n_input_units = n_input_units
+    self.fc1 = torch.nn.Linear(n_input_units, 1)
+
+  def forward(self, x):
+
+    x = self.fc1(x)
+    return x
+
+
+class Linear_skip_block(nn.Module):
+  """
+  Block of linear layer + softplus + skip connection +  dropout  + batchnorm
+  """
+  def __init__(self, n_input, dropout_rate):
+    super(Linear_skip_block, self).__init__()
+
+    self.fc = nn.Linear(n_input, n_input)
+    self.act = torch.nn.LeakyReLU()
+
+    self.bn = nn.BatchNorm1d(n_input, affine = True)
+    self.drop = nn.Dropout(dropout_rate)
+
+  def forward(self, x):
+    x0 = x
+    x = self.fc(x)
+    x = self.act(x)
+    x = x0 + x
+    x = self.drop(x)
+    x = self.bn(x)
+
+    return x
+
+class Linear_block(nn.Module):
+  """
+  Block of linear layer dropout  + batchnorm
+  """
+  def __init__(self, n_input, n_output, dropout_rate):
+    super(Linear_block, self).__init__()
+
+    self.fc = nn.Linear(n_input, n_output)
+    self.act = torch.nn.LeakyReLU()
+    self.bn = nn.BatchNorm1d(n_output, affine = True)
+    self.drop = nn.Dropout(dropout_rate)
+
+  def forward(self, x):
+    x = self.fc(x)
+    x = self.act(x)
+    x = self.drop(x)
+    x = self.bn(x)
+
+    return x
+
+class MLP(nn.Module):
+  def __init__(self, n_input_units, n_output_units, n_hidden_units, n_skip_layers, dropout_rate):
+
+    super(MLP, self).__init__()
+    self.n_input_units = n_input_units
+    self.n_hidden_units = n_hidden_units
+    self.n_skip_layers = n_skip_layers
+    self.dropout_rate = dropout_rate
+    self.n_output_units = n_output_units
+
+    self.linear1 = Linear_block(n_input_units, n_hidden_units, dropout_rate)    # initial linear layer
+    self.hidden_layers = torch.nn.Sequential(*[Linear_skip_block(n_hidden_units, dropout_rate) for _ in range(n_skip_layers)])  #hidden skip-layers
+
+    self.linear_final =  torch.nn.Linear(n_hidden_units, n_output_units)
+
+  def forward(self, x):
+    x = self.linear1(x)
+    x = self.hidden_layers(x)
+    x = self.linear_final(x)
+
+    return(x)
+
+class MLP_multi_head(nn.Module):
+
+  def __init__(self, base_mlp, n_heads, n_output_units_per_head = [5,5]):
+    """
+    use the same base_mlp for n_heads, but with different output layers
+    """
+    super(MLP_multi_head, self).__init__()
+
+    self.base_mlp = base_mlp
+    self.n_heads = n_heads
+    self.n_output_units_per_head = n_output_units_per_head
+
+    self.heads = [torch.nn.Linear(base_mlp.n_output_units, n_output_units_per_head[i]) for i in range(n_heads)]
+
+    self.heads = torch.nn.ModuleList(self.heads)
+
+    self.act = torch.nn.LeakyReLU()
+
+  def forward(self, x):
+    x = self.base_mlp(x)
+    x = self.act(x) # use activation function after the last hidden layer
+    x = [head(x) for head in self.heads]
+
+    return x
+  
+
+
+class PositionwiseFeedForward(nn.Module):
+    "Implements a position-wise feed-forward network."
+    def __init__(self, 
+                 d_model_in:int, 
+                 d_ff:int, 
+                 d_model_out:int, 
+                 dropout: float =0.1):
+        """
+        Args:
+            d_model_in: int: the input dimension of the position wise feed forward network
+            d_ff: int: the hidden dimension of the position wise feed forward network
+            d_model_out: int: the output dimension of the position wise feed forward network
+            dropout: float: the dropout rate
+        """
+        super(PositionwiseFeedForward, self).__init__()
+        self.w_1 = nn.Linear(d_model_in, d_ff)
+        self.w_2 = nn.Linear(d_ff, d_model_out)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x:torch.tensor) -> torch.tensor:
+        """
+        Takes an input tensor and returns the output tensor after applying the position wise feed forward network.
+        The input tensor has shape (n, seq_len, d_model_in) and the output tensor has shape (n, seq_len, d_model_out).
+        Args:
+            x: torch.tensor: the input tensor of shape (n, seq_len, d_model_in)
+        Returns:
+            torch.tensor: the output tensor of shape (n, seq_len, d_model_out)
+        """
+        x = self.w_1(x)
+        x = F.relu(x)
+        x = self.dropout(x)
+        x = self.w_2(x)
+        return x
+    
+
+class PositionalEncoding(nn.Module):
+
+    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
+        """
+        Sinusoidal positional encoding for transformer models.
+        Args:
+            d_model: int: the model dimension
+            dropout: float: the dropout rate
+            max_len: int: the maximum length of the sequence
+        """
+        super().__init__()
+        self.dropout = nn.Dropout(p=dropout)
+
+        position = torch.arange(max_len).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        pe = torch.zeros(max_len, 1, d_model)
+        pe[:, 0, 0::2] = torch.sin(position * div_term)
+        pe[:, 0, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('pe', pe)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Arguments:
+            x: Tensor, shape ``(batch_size, seq_len, features)``
+        """
+        x = x.permute(1, 0, 2)
+        x = x + self.pe[:x.size(0)]
+
+        x = x.permute(1, 0, 2)
+        
+        return self.dropout(x)
+
+
+class ConditionalLayerNorm(nn.Module):
+    """
+    Conditional Layer Normalization
+    """
+    def __init__(self, d_model: int, n_condition_features: int):
+        """
+        Args:
+            d_model: int: the model dimension
+            n_condition_features: int: the number of features in the conditioning tensor
+        """
+        super(ConditionalLayerNorm, self).__init__()
+        self.layer_norm = nn.LayerNorm(d_model, elementwise_affine=False)
+        self.gamma_layer = nn.Linear(n_condition_features, d_model)
+        self.beta_layer = nn.Linear(n_condition_features, d_model)
+
+    def forward(self, x: torch.tensor, condition: torch.tensor) -> torch.tensor:
+        """
+        Applies conditional layer normalization to the input tensor x given the condition tensor.
+        Args:
+            x: torch.tensor: the input tensor of shape (n, seq_len, d_model)
+            condition: torch.tensor: the condition tensor of shape (n, n_condition_features)
+        Returns:
+            torch.tensor: the output tensor of shape (n, seq_len, d_model)
+        """
+   
+        gamma, beta = self.gamma_layer(condition), self.beta_layer(condition)
+
+        # apply layer norm
+        x = self.layer_norm(x)
+        x = gamma.unsqueeze(1) * x + beta.unsqueeze(1)
+        return x
+    
+class Rescale(nn.Module):
+   """
+   A class that rescales each element in the input sequence by a learnable paramter in each dimension.
+   """
+   def __init__(self, d_model: int, n_condition_features: int):
+        """
+        Args:
+            d_model: int: the model dimension
+            n_condition_features: int: the number of features in the conditioning tensor
+        """
+        super(Rescale, self).__init__()
+        self.rescale = nn.Linear(n_condition_features, d_model)
+
+   def forward(self, x: torch.tensor, condition: torch.tensor) -> torch.tensor:
+        """
+        Rescales the input tensor x by a learnable parameter in each dimension given the condition tensor.
+        Args:
+            x: torch.tensor: the input tensor of shape (n, seq_len, d_model)
+            condition: torch.tensor: the condition tensor of shape (n, n_condition_features)
+        Returns:
+            torch.tensor: the output tensor of shape (n, seq_len, d_model)
+        """
+        rescale = self.rescale(condition)
+        x = x * rescale.unsqueeze(1)
+        return x
+
+class EncoderBlockConditional(nn.Module):
+   """  
+   A transformer encoder block where after the layer norm the output is conditioned on an input tensor.
+   Also after the multihead attention layer and the position
+   """
+
+   def __init__(
+    self,
+    d_model: int,
+    n_heads: int,
+    d_ff: int,
+    dropout: float,
+    n_condition_features: int
+    ):
+      """
+      Args:
+            d_model: int: the model dimension
+            n_heads: int: the number of heads in the multihead attention
+            d_ff: int: the hidden dimension of the position wise feed forward network
+            dropout: float: the dropout rate
+            n_condition_features: int: the number of features in the conditioning tensor
+      """
+      super(EncoderBlockConditional, self).__init__()
+
+      self.condition_layer_norm0 = ConditionalLayerNorm(d_model, n_condition_features)
+      self.multihead_attention = nn.MultiheadAttention(d_model, n_heads, dropout=dropout, batch_first=True)
+      self.rescale0 = Rescale(d_model, n_condition_features)
+
+      self.condition_layer_norm1 = ConditionalLayerNorm(d_model, n_condition_features)
+      self.positionwise_feedforward = PositionwiseFeedForward(d_model, d_ff, d_model, dropout)
+      self.rescale1 = Rescale(d_model, n_condition_features)
+
+
+   def forward(self, x: torch.tensor, condition: torch.tensor) -> torch.tensor:
+        """
+        Forward pass for the encoder block.
+        Args:
+            x: torch.tensor: the input tensor of shape (n, seq_len, d_model)
+            condition: torch.tensor: the condition tensor of shape (n, n_condition_features)
+        Returns:
+            torch.tensor: the output tensor of shape (n, seq_len, d_model)
+        """
+        x = self.condition_layer_norm0(x, condition) # adaptive layer norm
+
+        x_att, _ = self.multihead_attention(x, x, x)  # multihead attention
+
+        x_att = self.rescale0(x_att, condition) # rescale 
+
+        x = x + x_att # apply residual connection 
+
+        x = self.condition_layer_norm1(x, condition) # apply layer norm
+
+        x_ff = self.positionwise_feedforward(x) # apply position wise feed forward network
+
+        x_ff = self.rescale1(x_ff, condition) # rescale
+
+        x = x + x_ff
+
+        # apply residual connection and layer norm
+        
+        return x
+   
+   
+class TransformerEncoderConditional(nn.Module):
+   """
+   A transformer encoder where the conditional EncoderBlock is used.
+   """
+
+   def __init__(
+    self,
+    n_input_features: int,
+    d_model: int = 256,
+    n_heads: int = 8,
+    d_ff: int = 512,
+    dropout: float = 0.1,
+    n_condition_features: int = 256,
+    n_layers: int = 6,
+    use_positional_encoding: bool = False
+    ):
+      """
+      Args:
+            d_model: int: the model dimension
+            n_heads: int: the number of heads in the multihead attention
+            d_ff: int: the hidden dimension of the position wise feed forward network
+            dropout: float: the dropout rate
+            n_condition_features: int: the number of features in the conditioning tensor
+            n_layers: int: the number of encoder blocks,
+            use_positional_encoding: bool: whether to use positional encoding
+      """
+      super(TransformerEncoderConditional, self).__init__()
+
+      self.n_input_features = n_input_features
+      self.d_model = d_model
+      self.n_heads = n_heads
+      self.d_ff = d_ff
+      self.dropout = dropout
+      self.n_condition_features = n_condition_features
+      self.n_layers = n_layers    
+      self.use_positional_encoding = use_positional_encoding
+
+      self.embedding_layer = nn.Linear(n_input_features, d_model)
+
+      if use_positional_encoding:
+            self.positional_encoding = PositionalEncoding(d_model, dropout)
+
+      self.encoder_blocks = nn.ModuleList([EncoderBlockConditional(d_model, n_heads, d_ff, dropout, n_condition_features) for _ in range(n_layers)])
+
+
+   def forward(self, x: torch.tensor, condition: torch.tensor) -> torch.tensor:
+        """
+        Forward pass for the encoder.
+        Args:
+            x: torch.tensor: the input tensor of shape (n, seq_len, d_model)
+            condition: torch.tensor: the condition tensor of shape (n, n_condition_features)
+        Returns:
+            torch.tensor: the output tensor of shape (n, seq_len, d_model)
+        """
+        x = self.embedding_layer(x)
+
+        if self.use_positional_encoding:
+            x = self.positional_encoding(x)
+
+
+        for encoder_block in self.encoder_blocks:
+            x = encoder_block(x, condition)
+
+        return x
+   
+
+
+class DecoderBlockConditional(nn.Module):
+   """  
+   A transformer decoder block where after the layer norm the output is conditioned on an input tensor.
+   Also after the multihead attention layer and the position
+   """
+
+   def __init__(
+    self,
+    d_model_decoder: int,
+    d_model_encoder: int,
+    n_heads: int,
+    d_ff: int,
+    dropout: float,
+    n_condition_features: int
+    ):
+      """
+      Args:
+            d_model: int: the model dimension
+            n_heads: int: the number of heads in the multihead attention
+            d_ff: int: the hidden dimension of the position wise feed forward network
+            dropout: float: the dropout rate
+            n_condition_features: int: the number of features in the conditioning tensor
+      """
+      super(DecoderBlockConditional, self).__init__()
+
+      self.condition_layer_norm0 = ConditionalLayerNorm(d_model_decoder, n_condition_features)
+      self.multihead_attention = nn.MultiheadAttention(d_model_decoder, n_heads, dropout=dropout, batch_first=True)
+      self.rescale0 = Rescale(d_model_decoder, n_condition_features)
+
+      self.condition_layer_norm1 = ConditionalLayerNorm(d_model_decoder, n_condition_features)
+      self.multihead_cross_attention = nn.MultiheadAttention(
+         embed_dim=d_model_decoder,
+         num_heads=n_heads,
+            dropout=dropout,
+            batch_first=True,
+            kdim=d_model_encoder,
+            vdim=d_model_encoder
+      )
+      self.rescale_cross = Rescale(d_model_decoder, n_condition_features)
+
+      self.condition_layer_norm2 = ConditionalLayerNorm(d_model_decoder, n_condition_features)
+      self.positionwise_feedforward = PositionwiseFeedForward(d_model_decoder, d_ff, d_model_decoder, dropout)
+      self.rescale1 = Rescale(d_model_decoder, n_condition_features)
+
+
+   def forward(self, x: torch.tensor, x_encoder: torch.tensor, condition: torch.tensor) -> torch.tensor:
+        """
+        Forward pass for the encoder block.
+        Args:
+            x: torch.tensor: the input tensor of shape (n, seq_len, d_model)
+            x_encoder: torch.tensor: the output tensor of the encoder block of shape (n, seq_len, d_model)
+            condition: torch.tensor: the condition tensor of shape (n, n_condition_features)
+        Returns:
+            torch.tensor: the output tensor of shape (n, seq_len, d_model)
+        """
+        x = self.condition_layer_norm0(x, condition) # adaptive layer norm
+        x_att, _ = self.multihead_attention(x, x, x)  # multihead attention
+        x_att = self.rescale0(x_att, condition) # rescale 
+        x = x + x_att # apply residual connection 
+
+        x = self.condition_layer_norm1(x, condition) # apply layer norm
+        x_cross_att, _ = self.multihead_cross_attention(x, x_encoder, x_encoder)
+        x_cross_att = self.rescale_cross(x_cross_att, condition)
+        x = x + x_cross_att
+
+        x = self.condition_layer_norm2(x, condition) # apply layer norm
+        x_ff = self.positionwise_feedforward(x) # apply position wise feed forward network
+        x_ff = self.rescale1(x_ff, condition) # rescale
+        x = x + x_ff
+
+        # apply residual connection and layer norm
+        
+        return x
+   
+
+class TransformerDecoderConditional(nn.Module):
+   """
+   A transformer decoder where the conditional DecoderBlock is used.
+   """
+
+   def __init__(
+    self,
+    n_input_features: int,
+    d_model_decoder: int = 256,
+    d_model_encoder: int = 256,
+    n_heads: int = 8,
+    d_ff: int = 512,
+    dropout: float = 0.1,
+    n_condition_features: int = 256,
+    n_layers: int = 6,
+    use_positional_encoding: bool = False
+    ):
+      """
+      Args:
+            d_model_decoder: int: the model dimension of the decoder
+            d_model_encoder: int: the model dimension of the encoder
+            n_heads: int: the number of heads in the multihead attention
+            d_ff: int: the hidden dimension of the position wise feed forward network
+            dropout: float: the dropout rate
+            n_condition_features: int: the number of features in the conditioning tensor
+            n_layers: int: the number of encoder blocks,
+            use_positional_encoding: bool: whether to use positional encoding
+      """
+      super(TransformerDecoderConditional, self).__init__()
+
+      self.n_input_features = n_input_features
+      self.d_model_decoder = d_model_decoder
+      self.d_model_encoder = d_model_encoder
+      self.n_heads = n_heads
+      self.d_ff = d_ff
+      self.dropout = dropout
+      self.n_condition_features = n_condition_features
+      self.n_layers = n_layers    
+      self.use_positional_encoding = use_positional_encoding
+
+      self.embedding_layer = nn.Linear(n_input_features, d_model_decoder)
+
+      if use_positional_encoding:
+            self.positional_encoding = PositionalEncoding(d_model_decoder, dropout)
+
+      self.decoder_blocks = nn.ModuleList([DecoderBlockConditional(d_model_decoder, d_model_encoder, n_heads, d_ff, dropout, n_condition_features) for _ in range(n_layers)])
+
+
+   def forward(self, x: torch.tensor, x_encoder: torch.tensor, condition: torch.tensor) -> torch.tensor:
+        """
+        Forward pass for the encoder.
+        Args:
+            x: torch.tensor: the input tensor of shape (n, seq_len, d_model)
+            x_encoder: torch.tensor: the output tensor of the encoder block of shape (n, seq_len, d_model)
+            condition: torch.tensor: the condition tensor of shape (n, n_condition_features). Now, the condition tensor is assumed to be already embedded
+
+        Returns:
+            torch.tensor: the output tensor of shape (n, seq_len, d_model)
+        """
+        x = self.embedding_layer(x)
+
+        if self.use_positional_encoding:
+            x = self.positional_encoding(x)
+
+
+        for decoder_block in self.decoder_blocks:
+            x = decoder_block(x, x_encoder, condition)
+
+        return x
+   
+class TransformerConditional(nn.Module):
+   """
+   Combines the TransformerEncoderConditional and TransformerDecoderConditional
+   """
+
+   def __init__(
+         self,
+            n_input_features_encoder: int,
+            n_input_features_decoder: int,
+            d_model_encoder: int = 256,
+            d_model_decoder: int = 256,
+            n_heads_encoder: int = 8,
+            n_heads_decoder: int = 8,
+            d_ff_encoder: int = 512,
+            d_ff_decoder: int = 512,
+            dropout_encoder: float = 0.1,
+            dropout_decoder: float = 0.1,
+            n_conditional_input_features: int =  1,
+            n_condition_features: int = 256,
+            n_layers_condition_embedding: int = 1,
+            n_layers_encoder: int = 6,
+            n_layers_decoder: int = 4,
+            use_positional_encoding_encoder: bool = False,
+            use_positional_encoding_decoder: bool = False
+    ):
+      """
+      Args:
+            d_model_encoder: int: the model dimension of the encoder
+            d_model_decoder: int: the model dimension of the decoder
+            n_heads_encoder: int: the number of heads in the multihead attention of the encoder
+            n_heads_decoder: int: the number of heads in the multihead attention of the decoder
+            d_ff_encoder: int: the hidden dimension of the position wise feed forward network of the encoder
+            d_ff_decoder: int: the hidden dimension of the position wise feed forward network of the decoder
+            dropout_encoder: float: the dropout rate of the encoder
+            dropout_decoder: float: the dropout rate of the decoder
+            n_conditional_input_features_encoder: int: the number of features in the input tensor of the encoder
+            n_condition_features: int: the number of features in the conditioning tensor
+            n_layers_condition_embedding_encoder: int: the number of layers in the MLP that embeds the condition tensor of the encoder
+            n_layers_encoder: int: the number of encoder blocks of the encoder
+            n_layers_decoder: int: the number of decoder blocks of the decoder
+            use_positional_encodign_encoder: bool: whether to use positional encoding in the encoder
+            use_positional_encodign_decoder: bool: whether to use positional encoding in the decoder
+      """
+      super(TransformerConditional, self).__init__()
+
+      self.n_conditional_input_features = n_conditional_input_features
+
+      self.condition_embedding_layer = MLP(n_conditional_input_features, n_condition_features, n_condition_features, n_layers_condition_embedding, dropout_encoder)
+
+
+
+      self.transformer_encoder = TransformerEncoderConditional(
+         n_input_features=n_input_features_encoder,
+            d_model=d_model_encoder,
+            n_heads=n_heads_encoder,
+            d_ff=d_ff_encoder,
+            dropout=dropout_encoder,
+            n_condition_features=n_condition_features,
+            n_layers=n_layers_encoder,
+            use_positional_encoding=use_positional_encoding_encoder
+        )
+      
+
+      self.transformer_decoder = TransformerDecoderConditional(
+            n_input_features=n_input_features_decoder,
+                d_model_decoder=d_model_decoder,
+                d_model_encoder=d_model_encoder,
+                n_heads=n_heads_decoder,
+                d_ff=d_ff_decoder,
+                dropout=dropout_decoder,
+                n_condition_features=n_condition_features,
+                n_layers=n_layers_decoder,
+                use_positional_encoding=use_positional_encoding_decoder
+      )
+
+   def forward(self, x_encoder: torch.tensor, x_decoder: torch.tensor, condition: torch.tensor) -> torch.tensor:
+          """
+          Forward pass for the encoder.
+          Args:
+                x_encoder: torch.tensor: the input tensor of shape (n, seq_len_encoder, d_model_encoder)
+                x_decoder: torch.tensor: the input tensor of shape (n, seq_len_decoder, d_model_decoder)
+                condition: torch.tensor: the condition tensor of shape (n, n_condition_features). Now, the condition tensor is assumed to be already embedded
+    
+          Returns:
+                torch.tensor: the output tensor of shape (n, seq_len_decoder, d_model_decoder)
+          """
+          condition = self.condition_embedding_layer(condition)
+
+          x_encoder = self.transformer_encoder(x_encoder, condition)
+          x_decoder = self.transformer_decoder(x_decoder, x_encoder, condition)
+    
+          return x_decoder
+
