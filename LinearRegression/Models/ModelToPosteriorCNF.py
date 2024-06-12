@@ -1,5 +1,5 @@
 import torch 
-import torchdiffeq
+from tqdm import tqdm
 
 from torchdiffeq import odeint
 
@@ -70,6 +70,10 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
                 self.x = x
 
             def forward(self, t, z):
+                if len(t.shape) == 0:
+                    t = t.unsqueeze(0)
+                    t = t.repeat(z.shape[0], 1)
+
                 return self.model(z, self.x, t)
             
         return VectorFieldFunction(self.model, x)
@@ -83,7 +87,12 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
             n_samples: int: the number of samples to generate
         """
 
+
+        # duplicate the input x to match the number of samples
+        x = x.unsqueeze(0).repeat(n_samples, 1, 1)
+
         z_0 = self.base_dist_sample_function((n_samples, *self.sample_shape))
+
         z_0 = z_0.to(x.device)
 
         vector_field_function = self.generate_vector_field_function_cond_x(x)
@@ -103,7 +112,7 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
         n_batches = int(n_samples / self.batch_size)
         res = []
 
-        for i in range(n_batches):
+        for i in tqdm(list(range(n_batches))):
             x = X[i * self.batch_size: (i + 1) * self.batch_size]
             res.append(self.sample_posterior_x_batch(x, self.batch_size))
 

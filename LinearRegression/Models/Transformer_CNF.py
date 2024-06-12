@@ -655,11 +655,10 @@ class TransformerCNF(TransformerConditional):
             t: torch.Tensor: the time to condition on of shape (BATCH_SIZE, 1)
       """
 
-      if not z.shape[1] == 1:
+      if not len(z.shape) == 3:
             z = z.unsqueeze(1)
       
-      if not t.shape[1] == 1:
-            t = t.unsqueeze(1)
+      t = t.view(-1, 1)
 
       res_trafo = super().forward(x, z, t)
 
