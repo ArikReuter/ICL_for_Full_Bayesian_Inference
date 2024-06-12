@@ -598,7 +598,7 @@ class TransformerConditional(nn.Module):
                 dropout=dropout_decoder,
                 n_condition_features=n_condition_features,
                 n_layers=n_layers_decoder,
-                use_positional_encoding=use_positional_encoding_decoder
+                use_positional_encoding=use_positional_encoding_decoder,
                 use_self_attention=use_self_attention_decoder
       )
 
