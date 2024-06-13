@@ -888,7 +888,7 @@ class TransformerCNF(TransformerConditional):
 
 
 
-class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
+class TransformerCNFConditionalDecoderNoTime(TransformerConditionalDecoder):
    """
    Use the TransformerConditional as a model for the CNF
    """
@@ -910,7 +910,7 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
                 dropout_final: float: the dropout rate of the final processing MLP
                 treat_z_as_sequence: bool: whether to treat the latent variable z as a sequence. This transposes the latent variable z in the forward pass
         """
-        super(TransformerCNFConditionalDecoder, self).__init__(**kwargs)
+        super(TransformerCNFConditionalDecoderNoTime, self).__init__(**kwargs)
 
         d_model_decoder = self.transformer_decoder.d_model_decoder
         self.treat_z_as_sequence = treat_z_as_sequence
@@ -932,6 +932,8 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
             z = z.permute(0, 2, 1)
       
       t = t.view(-1, 1)
+      
+      t = torch.zeros_like(t)
 
       res_trafo = super().forward(x, z, t)
       
