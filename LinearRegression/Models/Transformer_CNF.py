@@ -887,6 +887,63 @@ class TransformerCNF(TransformerConditional):
       return res
 
 
+class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
+   """
+   Use the TransformerConditional as a model for the CNF
+   """
+
+   def __init__(
+         self,
+         output_dim: int,
+         d_final_processing: int = 256,
+         n_final_layers: int = 1,
+         dropout_final: float = 0.1,
+         treat_z_as_sequence: bool = False,
+         **kwargs
+    ):
+        """
+        Args:
+                output_dim: int: the output dimension
+                d_final_processing: int: the hidden dimension of the final processing MLP
+                n_final_layers: int: the number of layers in the final processing MLP
+                dropout_final: float: the dropout rate of the final processing MLP
+                treat_z_as_sequence: bool: whether to treat the latent variable z as a sequence. This transposes the latent variable z in the forward pass
+        """
+        super(TransformerCNFConditionalDecoder, self).__init__(**kwargs)
+
+        d_model_decoder = self.transformer_decoder.d_model_decoder
+        self.treat_z_as_sequence = treat_z_as_sequence
+    
+        self.final_processing = MLP(d_model_decoder, output_dim, d_final_processing, n_final_layers, dropout_final)
+
+   def forward(self, z:torch.Tensor, x: torch.tensor, t: torch.tensor):
+      """
+      Args:
+            z: torch.Tensor: the input latent variable of shape (BATCH_SIZE, 1, N_Latents)
+            x: torch.Tensor: the data to condition on of shape (BATCH_SIZE, SEQ_LEN, N_INPUT_FEATURES)
+            t: torch.Tensor: the time to condition on of shape (BATCH_SIZE, 1)
+      """
+
+      if not len(z.shape) == 3:
+            z = z.unsqueeze(1)
+
+      if self.treat_z_as_sequence:
+            z = z.permute(0, 2, 1)
+      
+      t = t.view(-1, 1)
+
+      res_trafo = super().forward(x, z, t)
+      
+      if not self.treat_z_as_sequence:
+            res_trafo = res_trafo.squeeze(1)
+      else:
+          res_trafo = torch.mean(res_trafo, dim=1)
+
+
+      res = self.final_processing(res_trafo)
+
+      return res
+
 
 class TransformerCNFConditionalDecoderNoTime(TransformerConditionalDecoder):
    """
@@ -932,8 +989,13 @@ class TransformerCNFConditionalDecoderNoTime(TransformerConditionalDecoder):
             z = z.permute(0, 2, 1)
       
       t = t.view(-1, 1)
+
       
+      
+      #print(f"Time in forward pass: {t} with shape {t.shape}")
       t = torch.zeros_like(t)
+
+      
 
       res_trafo = super().forward(x, z, t)
       
