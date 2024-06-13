@@ -16,6 +16,8 @@ except:
 
 from PFNExperiments.Training.TrainerCurriculum import TrainerCurriculum
 
+from PFNExperiments.Training.FlowMatching.Couplings import MiniBatchOTCoupling
+
 class TrainerCurriculumCNF(TrainerCurriculum):
     """
     A custom class for training neural networks
@@ -39,7 +41,8 @@ class TrainerCurriculumCNF(TrainerCurriculum):
                  early_stopping_patience: int = 10,
                  verbose:int = 100,
                  summary_writer_path: str = "runs/",
-                 use_same_timestep_per_batch: bool = False
+                 use_same_timestep_per_batch: bool = False,
+                 coupling: MiniBatchOTCoupling = MiniBatchOTCoupling(),
     ):
         """
         A custom class for training neural networks
@@ -63,6 +66,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             verbose: int: how much to print
             summary_writer_path: str: the path to save the summary writer
             use_same_timestep_per_batch: bool: whether to use the same timestep for all elements in the batch
+            coupling: MiniBatchOTCoupling: the coupling to use to align z_0 and z_t. Can be None
         """
 
         assert schedule_step_on in ["epoch", "batch"], "schedule_step_on must be either 'epoch' or 'batch'"
@@ -84,6 +88,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         self.verbose = verbose
         self.summary_writer_path = summary_writer_path
         self.use_same_timestep_per_batch = use_same_timestep_per_batch
+        self.coupling = coupling
 
         if self.valset is None:
             self.valset = self.epoch_loader(n_epochs)[1]  #load the validation set for the last epoch from the epoch_loader
@@ -171,6 +176,9 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             t = t[0] * torch.ones_like(t)
 
         zt = self.loss_function.psi_t_conditional_fun(z_0, z_1, t) # compute the sample from the probability path
+
+        if self.coupling is not None:
+            zt = self.coupling.couple(z_0, zt)  # align the samples from the base distribution and the probability path using the coupling
         
         vt_model = self.model(zt, X_y, t)  # compute the vector field prediction by the model
 
