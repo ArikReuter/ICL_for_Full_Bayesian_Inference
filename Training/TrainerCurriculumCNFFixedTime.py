@@ -18,7 +18,7 @@ from PFNExperiments.Training.TrainerCurriculum import TrainerCurriculum
 
 from PFNExperiments.Training.FlowMatching.Couplings import MiniBatchOTCoupling
 
-class TrainerCurriculumCNF(TrainerCurriculum):
+class TrainerCurriculumCNFFixedTime(TrainerCurriculum):
     """
     A custom class for training neural networks
     """
