@@ -10,7 +10,7 @@ class MiniBatchOTCoupling:
             self,
             solver:str = "sinkhorn",
             solver_params: dict = {
-                "reg": 1e-2,
+                "reg": 1e-10,
                 "numItermax": 1000
                 }
     ):
