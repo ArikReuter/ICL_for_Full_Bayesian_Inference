@@ -23,7 +23,6 @@ class CFMLossOT2(torch.nn.Module):
         """
         assert z.shape == z_1.shape, f"z shape {z.shape} does not match z_1 shape {z_1.shape}"
 
-        print(f"t in function psi_t_conditional_fun: {t} with shape {t.shape}")
 
         z_t = (1 - (1 - self.sigma_min)*t)*z + t*z_1
 
