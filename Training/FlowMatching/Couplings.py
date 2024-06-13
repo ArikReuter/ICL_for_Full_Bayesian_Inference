@@ -53,7 +53,7 @@ class MiniBatchOTCoupling:
         sim_mat = self.compute_similarity_mat(z_0, z_t)
 
         a = torch.ones(z_0.shape[0])/z_0.shape[0] #uniform weights on samples from z_0 and z_t
-
+        a = a.to(z_0.device)
         if self.solver == "sinkhorn":
             coupling = ot.sinkhorn(a, a, sim_mat, **self.solver_params)
         elif self.solver == "emd":
