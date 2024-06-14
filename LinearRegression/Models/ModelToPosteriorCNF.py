@@ -32,6 +32,7 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
                  solver: str = 'dopri5',
                  atol: float = 1e-5,
                  rtol: float = 1e-5,
+                 device: str = torch.device("cpu") if torch.cuda.is_available() else torch.device("cuda"),
                  ) -> None:
         """
         Args:
@@ -45,13 +46,14 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
             rtol: float: the relative tolerance for the ODE solver
             adjoint: bool: whether to use the adjoint method for the ODE solver
         """
-        self.model = model
+        self.model = model.to(device)
         self.sample_shape = sample_shape
         self.sample_name = sample_name
         self.base_dist_sample_function = base_dist_sample_function
         self.solver = solver
         self.atol = atol
         self.rtol = rtol
+        self.device = device
 
         self.n_samples = n_samples
         self.batch_size = batch_size
@@ -93,11 +95,16 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
 
         z_0 = self.base_dist_sample_function((n_samples, *self.sample_shape))
 
-        z_0 = z_0.to(x.device)
+        z_0 = z_0.to(self.device)
+        x = x.to(self.device)
+
+        timepoints = torch.tensor([0., 1.]).to(self.device)
+
+
 
         vector_field_function = self.generate_vector_field_function_cond_x(x)
         vector_field_function = vector_field_function.to(x.device)
-        samples = odeint(vector_field_function, z_0, torch.tensor([0., 1.]), atol=self.atol, rtol=self.rtol, method=self.solver)
+        samples = odeint(vector_field_function, z_0, timepoints, atol=self.atol, rtol=self.rtol, method=self.solver)
 
         return samples[-1]
 
