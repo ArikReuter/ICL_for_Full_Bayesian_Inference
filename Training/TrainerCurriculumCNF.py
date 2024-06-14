@@ -87,6 +87,10 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         self.early_stopping_patience = early_stopping_patience
         self.verbose = verbose
         self.summary_writer_path = summary_writer_path
+
+        if coupling is not None and use_same_timestep_per_batch is False:
+            raise ValueError("Coupling only makes sense if use_same_timestep_per_batch = True")
+
         self.use_same_timestep_per_batch = use_same_timestep_per_batch
         self.coupling = coupling
 
@@ -154,7 +158,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
 
     def batch_to_loss(self, batch: dict[str, torch.Tensor]) -> torch.Tensor:
         """
-        Get the loss from a batch
+        Get the loss from a batch       
         Args:
             batch: dict[str, torch.Tensor]: the batch
         Returns:
@@ -175,10 +179,10 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         if self.use_same_timestep_per_batch:
             t = t[0] * torch.ones_like(t)
 
-        zt = self.loss_function.psi_t_conditional_fun(z_0, z_1, t) # compute the sample from the probability path
-
         if self.coupling is not None:
-            zt = self.coupling.couple(z_0, zt)  # align the samples from the base distribution and the probability path using the coupling
+            z_0 = self.coupling.couple(z_1, z_0)  # align the samples from the base distribution and the probability path using the coupling
+
+        zt = self.loss_function.psi_t_conditional_fun(z_0, z_1, t) # compute the sample from the probability path
         
         vt_model = self.model(zt, X_y, t)  # compute the vector field prediction by the model
 
