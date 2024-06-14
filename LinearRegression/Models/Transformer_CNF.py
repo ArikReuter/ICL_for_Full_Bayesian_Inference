@@ -27,13 +27,13 @@ class Linear_skip_block(nn.Module):
   """
   Block of linear layer + softplus + skip connection +  dropout  + batchnorm
   """
-  def __init__(self, n_input, dropout_rate):
+  def __init__(self, n_input, dropout_rate, affine = True):
     super(Linear_skip_block, self).__init__()
 
     self.fc = nn.Linear(n_input, n_input)
     self.act = torch.nn.LeakyReLU()
 
-    self.bn = nn.BatchNorm1d(n_input, affine = True)
+    self.bn = nn.BatchNorm1d(n_input, affine = affine)
     self.drop = nn.Dropout(dropout_rate)
 
   def forward(self, x):
@@ -50,12 +50,12 @@ class Linear_block(nn.Module):
   """
   Block of linear layer dropout  + batchnorm
   """
-  def __init__(self, n_input, n_output, dropout_rate):
+  def __init__(self, n_input, n_output, dropout_rate, affine = True):
     super(Linear_block, self).__init__()
 
     self.fc = nn.Linear(n_input, n_output)
     self.act = torch.nn.LeakyReLU()
-    self.bn = nn.BatchNorm1d(n_output, affine = True)
+    self.bn = nn.BatchNorm1d(n_output, affine = affine)
     self.drop = nn.Dropout(dropout_rate)
 
   def forward(self, x):
@@ -87,6 +87,68 @@ class MLP(nn.Module):
     x = self.linear_final(x)
 
     return(x)
+  
+  
+
+class ConditionalBatchNorm(nn.Module):
+    def __init__(self, num_features_in_feat, num_features_in_cond, num_features_out):
+        super().__init__()
+        self.num_features_in_feat = num_features_in_feat
+        self.num_features_in_cond = num_features_in_cond
+        self.num_features_out = num_features_out
+
+        self.bn = nn.BatchNorm1d(num_features_in_feat, affine=False)
+        self.linear_gamma = nn.Linear(num_features_in_cond, num_features_out)
+        self.linear_beta = nn.Linear(num_features_in_cond, num_features_out)
+
+    def forward(self, x, cond):
+        # Normalize the input
+        x = self.bn(x)
+
+        # Calculate the gamma and beta parameters
+        gamma = self.linear_gamma(cond)
+        beta = self.linear_beta(cond)
+
+        # Apply the conditional scaling and shifting
+        x = gamma * x + beta
+        return x
+    
+class MLPConditional(nn.Module):
+    """"
+    An MLP where after each skip layer a conditional batch norm layer is applied
+    """
+
+    def __init__(self, n_input_units, n_output_units, n_hidden_units, n_skip_layers, dropout_rate, n_condition_features):
+
+        super(MLPConditional, self).__init__()
+        self.n_input_units = n_input_units
+        self.n_hidden_units = n_hidden_units
+        self.n_skip_layers = n_skip_layers
+        self.dropout_rate = dropout_rate
+        self.n_output_units = n_output_units
+        self.n_condition_features = n_condition_features
+
+        self.linear1 = Linear_block(n_input_units, n_hidden_units, dropout_rate)    # initial linear layer
+        self.conditional_bn1 = ConditionalBatchNorm(n_hidden_units, n_condition_features, n_hidden_units)
+
+        self.hidden_bn_layers = torch.nn.ModuleList([ConditionalBatchNorm(n_hidden_units, n_condition_features, n_hidden_units) for _ in range(n_skip_layers)]) 
+        self.hidden_layers = torch.nn.ModuleList([Linear_skip_block(n_hidden_units, dropout_rate) for _ in range(n_skip_layers)])
+
+        self.linear_final =  torch.nn.Linear(n_hidden_units, n_output_units)
+        self.conditional_bn_final = ConditionalBatchNorm(n_output_units, n_condition_features, n_output_units)
+
+    def forward(self, x, condition):
+        x = self.linear1(x)
+        x = self.conditional_bn1(x, condition)
+        
+        for hidden_layer, hidden_bn_layer in zip(self.hidden_layers, self.hidden_bn_layers):
+            x = hidden_layer(x)
+            x = hidden_bn_layer(x, condition)
+
+        x = self.linear_final(x)
+        x  = self.conditional_bn_final(x, condition)
+
+        return(x)
 
 class MLP_multi_head(nn.Module):
 
@@ -725,13 +787,14 @@ class TransformerConditional(nn.Module):
     
           Returns:
                 torch.tensor: the output tensor of shape (n, seq_len_decoder, d_model_decoder)
+                torch.tensor: the output tensor of shape (n, n_condition_features)
           """
           condition = self.condition_embedding_layer(condition)
 
           x_encoder = self.transformer_encoder(x_encoder, condition)
           x_decoder = self.transformer_decoder(x_decoder, x_encoder, condition)
     
-          return x_decoder
+          return x_decoder, condition
 
 
 class TransformerConditionalDecoder(nn.Module):
@@ -821,13 +884,14 @@ class TransformerConditionalDecoder(nn.Module):
     
           Returns:
                 torch.tensor: the output tensor of shape (n, seq_len_decoder, d_model_decoder)
+                torch.tensor: the output tensor of shape (n, n_condition_features)
           """
           condition = self.condition_embedding_layer(condition)
 
           x_encoder = self.transformer_encoder(x_encoder)
           x_decoder = self.transformer_decoder(x_decoder, x_encoder, condition)
     
-          return x_decoder
+          return x_decoder, condition
 
 class TransformerCNF(TransformerConditional):
    """
@@ -855,7 +919,14 @@ class TransformerCNF(TransformerConditional):
 
         d_model_decoder = self.transformer_decoder.d_model_decoder
     
-        self.final_processing = MLP(d_model_decoder, output_dim, d_final_processing, n_final_layers, dropout_final)
+        self.final_processing = MLPConditional(
+            n_input_units=d_model_decoder,
+            n_output_units=output_dim,
+            n_hidden_units=d_final_processing,
+            n_skip_layers=n_final_layers,
+            dropout_rate=dropout_final,
+            n_condition_features=self.transformer_decoder.n_condition_features
+        )
 
         self.treat_z_as_sequence = treat_z_as_sequence
 
@@ -875,14 +946,14 @@ class TransformerCNF(TransformerConditional):
       
       t = t.view(-1, 1)
 
-      res_trafo = super().forward(x, z, t)
+      res_trafo, condition = super().forward(x, z, t)
 
       if not self.treat_z_as_sequence:
             res_trafo = res_trafo.squeeze(1)
       else:
           res_trafo = torch.mean(res_trafo, dim=1)
 
-      res = self.final_processing(res_trafo)
+      res = self.final_processing(res_trafo, condition)
 
       return res
 
@@ -914,7 +985,14 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
         d_model_decoder = self.transformer_decoder.d_model_decoder
         self.treat_z_as_sequence = treat_z_as_sequence
     
-        self.final_processing = MLP(d_model_decoder, output_dim, d_final_processing, n_final_layers, dropout_final)
+        self.final_processing = MLPConditional(
+            n_input_units=d_model_decoder,
+            n_output_units=output_dim,
+            n_hidden_units=d_final_processing,
+            n_skip_layers=n_final_layers,
+            dropout_rate=dropout_final,
+            n_condition_features=self.transformer_decoder.n_condition_features
+        )
 
    def forward(self, z:torch.Tensor, x: torch.tensor, t: torch.tensor):
       """
@@ -932,7 +1010,7 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
       
       t = t.view(-1, 1)
 
-      res_trafo = super().forward(x, z, t)
+      res_trafo, condition = super().forward(x, z, t)
       
       if not self.treat_z_as_sequence:
             res_trafo = res_trafo.squeeze(1)
@@ -940,11 +1018,12 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
           res_trafo = torch.mean(res_trafo, dim=1)
 
 
-      res = self.final_processing(res_trafo)
+      res = self.final_processing(res_trafo, condition)
 
       return res
 
 
+'''
 class TransformerCNFConditionalDecoderNoTime(TransformerConditionalDecoder):
    """
    Use the TransformerConditional as a model for the CNF
@@ -1008,3 +1087,5 @@ class TransformerCNFConditionalDecoderNoTime(TransformerConditionalDecoder):
       res = self.final_processing(res_trafo)
 
       return res
+
+'''
