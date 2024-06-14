@@ -88,8 +88,6 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         self.verbose = verbose
         self.summary_writer_path = summary_writer_path
 
-        if coupling is not None and use_same_timestep_per_batch is False:
-            raise ValueError("Coupling only makes sense if use_same_timestep_per_batch = True")
 
         self.use_same_timestep_per_batch = use_same_timestep_per_batch
         self.coupling = coupling
