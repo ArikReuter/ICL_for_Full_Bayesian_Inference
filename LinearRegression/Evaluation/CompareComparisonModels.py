@@ -7,6 +7,9 @@ from PFNExperiments.Training.Trainer import batch_to_model_lm
 from PFNExperiments.Evaluation.ComparePosteriorSamples import compare_all_metrics, plot
 
 from PFNExperiments.LinearRegression.Evaluation.CompareModels import ModelComparison 
+import pandas as pd
+
+
 
 
 class CompareComparisonModels(ModelComparison):
@@ -165,6 +168,11 @@ class CompareComparisonModels(ModelComparison):
             torch.save(batch_metrics_std, self.save_path + "batch_metrics_std.pt")
         except Exception as e:
             print(f"Could not save the results due to the following error: {e}")
+
+        # add "avg" to all keys in batch_metrics_avg
+        batch_metrics_avg = {f"{key}_avg": value for key, value in batch_metrics_avg.items()}
+        batch_metrics_std = {f"{key}_std": value for key, value in batch_metrics_std.items()}
+   
 
         return batch_metrics, batch_metrics_avg, batch_metrics_std
 

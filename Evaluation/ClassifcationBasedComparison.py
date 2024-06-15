@@ -47,6 +47,7 @@ def compare_samples_classifier_based(P: torch.tensor,
         roc_auc_scores.append(sklearn.metrics.roc_auc_score(y_test, y_pred))
         accuracy_scores.append(sklearn.metrics.accuracy_score(y_test, y_pred))
 
-    return {"CST": {"accuracy": torch.tensor(accuracy_scores).mean().item(), "roc_auc_score": torch.tensor(roc_auc_scores).mean().item()}}
+    return {"CST_accuracy": torch.tensor(accuracy_scores).mean().item(), "CST_roc_auc_score": torch.tensor(roc_auc_scores).mean().item()}
+
 
 
