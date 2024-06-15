@@ -32,7 +32,7 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
                  solver: str = 'dopri5',
                  atol: float = 1e-5,
                  rtol: float = 1e-5,
-                 device: str = torch.device("cpu") if torch.cuda.is_available() else torch.device("cuda"),
+                 device: str = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
                  target_device: str = torch.device("cpu")
                  ) -> None:
         """
