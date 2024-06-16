@@ -43,6 +43,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
                  summary_writer_path: str = "runs/",
                  use_same_timestep_per_batch: bool = False,
                  coupling: MiniBatchOTCoupling = MiniBatchOTCoupling(),
+                 use_train_mode_during_validation: bool = False
     ):
         """
         A custom class for training neural networks
@@ -67,6 +68,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             summary_writer_path: str: the path to save the summary writer
             use_same_timestep_per_batch: bool: whether to use the same timestep for all elements in the batch
             coupling: MiniBatchOTCoupling: the coupling to use to align z_0 and z_t. Can be None
+            use_train_mode_during_validation: bool: whether to use the train mode during validation
         """
 
         assert schedule_step_on in ["epoch", "batch"], "schedule_step_on must be either 'epoch' or 'batch'"
@@ -87,6 +89,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         self.early_stopping_patience = early_stopping_patience
         self.verbose = verbose
         self.summary_writer_path = summary_writer_path
+        self.use_train_mode_during_validation = use_train_mode_during_validation
 
 
         self.use_same_timestep_per_batch = use_same_timestep_per_batch
@@ -198,6 +201,9 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         """
         self.model.eval()
 
+        if self.use_train_mode_during_validation:
+            self.model.train()
+
         loss_lis = []
 
         with torch.no_grad():
@@ -227,6 +233,9 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         """
         self.model.eval()
 
+        if self.use_train_mode_during_validation:
+            self.model.train()
+
         return self.validate_loader(self.valset)
     
     def test(self) -> dict[str, float]:
@@ -235,7 +244,11 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         Returns
             dict[str, float]: the test results where the key is the name of the evaluation function and the value is the result of the evaluation function
         """
+
         self.model.eval()
+
+        if self.use_train_mode_during_validation:
+            self.model.train()
         
         return self.validate_loader(self.testset)
     
