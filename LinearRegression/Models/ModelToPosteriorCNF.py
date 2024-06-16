@@ -2,6 +2,7 @@ import torch
 from tqdm import tqdm
 
 from torchdiffeq import odeint
+from torchdiffeq import odeint_adjoint
 
 from PFNExperiments.LinearRegression.Evaluation.CompareComparisonModels import PosteriorComparisonModel
 
@@ -33,7 +34,8 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
                  atol: float = 1e-5,
                  rtol: float = 1e-5,
                  device: str = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
-                 target_device: str = torch.device("cpu")
+                 target_device: str = torch.device("cpu"),
+                 solve_adjoint: bool = False
                  ) -> None:
         """
         Args:
@@ -61,6 +63,7 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
 
         self.n_samples = n_samples
         self.batch_size = batch_size
+        self.solve_adjoint = solve_adjoint
 
     def generate_vector_field_function_cond_x(self, x: torch.tensor) -> torch.nn.Module:
         """
@@ -108,7 +111,13 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
 
         vector_field_function = self.generate_vector_field_function_cond_x(x)
         vector_field_function = vector_field_function.to(x.device)
-        samples = odeint(vector_field_function, z_0, timepoints, atol=self.atol, rtol=self.rtol, method=self.solver)
+
+        if not self.solve_adjoint:
+            samples = odeint(vector_field_function, z_0, timepoints, atol=self.atol, rtol=self.rtol, method=self.solver)
+
+        else:
+            samples = odeint_adjoint(vector_field_function, z_0, timepoints, atol=self.atol, rtol=self.rtol, method=self.solver)
+
 
         samples = samples.to(self.target_device)
 
