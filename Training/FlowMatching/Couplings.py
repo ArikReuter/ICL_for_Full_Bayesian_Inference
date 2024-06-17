@@ -63,9 +63,9 @@ class MiniBatchOTCoupling:
         
         return coupling
     
-    def get_assignment_from_coupling(self, coupling: torch.tensor) -> torch.tensor:
+    def get_assignment_from_coupling_argmax(self, coupling: torch.tensor) -> torch.tensor:
         """
-        Get the assignment from the coupling
+        Get the assignment from the coupling by just assigning each element to the best match
         Args:
             coupling: torch.tensor: the coupling between z_0 and z_t of shape (batch_size, batch_size)
 
@@ -76,6 +76,19 @@ class MiniBatchOTCoupling:
 
         # check for duplicates
         assert len(assignment) == len(set(assignment)), "Duplicates in the assignment"
+
+        return assignment
+    
+    def get_assignment_from_coupling_sampling(self, coupling: torch.tensor, replace: bool = False) -> torch.tensor:
+        """
+        Get the assignment from the coupling
+        Args:
+            coupling: torch.tensor: the coupling between z_0 and z_t of shape (batch_size, batch_size)
+
+        Returns:
+            assignment: torch.tensor: the assignment from the coupling of shape (batch_size,)
+        """
+        assignment = torch.multinomial(coupling, 1, replacement=replace).squeeze()
 
         return assignment
     
@@ -91,7 +104,7 @@ class MiniBatchOTCoupling:
         """
         coupling = self.compute_coupling(z_0, z_t)
 
-        assignment = self.get_assignment_from_coupling(coupling)
+        assignment = self.get_assignment_from_coupling_sampling(coupling)
 
         z_t_coupled = z_t[assignment]
 
