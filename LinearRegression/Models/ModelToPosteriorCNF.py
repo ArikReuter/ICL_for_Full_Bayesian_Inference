@@ -31,8 +31,8 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
                  batch_size: int = 256,
                  base_dist_sample_function: callable = sample_from_base_distribution_standard_normal,
                  solver: str = 'dopri5',
-                 atol: float = 1e-5,
-                 rtol: float = 1e-5,
+                 atol: float = 1e-7,
+                 rtol: float = 1e-7,
                  device: str = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
                  target_device: str = torch.device("cpu"),
                  solve_adjoint: bool = False

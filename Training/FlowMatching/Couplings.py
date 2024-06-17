@@ -13,7 +13,7 @@ class MiniBatchOTCoupling:
                 #"reg": 1e-10,
                 #"numItermax": 1000
                 },
-            sample_with_replacement: bool = False
+            sample_with_replacement: bool = True
     ):
         """
         Args:
