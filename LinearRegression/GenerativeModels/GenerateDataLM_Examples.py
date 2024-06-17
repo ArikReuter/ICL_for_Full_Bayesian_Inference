@@ -494,7 +494,9 @@ def make_lm_program_ig_batched(
                         noise = noise.permute(1, 0)  # Shape: (N, batch_size)
                         y = mean + noise  # Shape: (batch_size, N)
 
+                
 
+                sigma_squared = sigma_squared.unsqueeze(-1)
 
                 return {
                                 "x": x,
