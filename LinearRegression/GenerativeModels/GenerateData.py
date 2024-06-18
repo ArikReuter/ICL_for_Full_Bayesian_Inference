@@ -353,11 +353,12 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]], batched_input = Fal
     plt.show()
 
     # also plot all other keys in the dictionary
+
     for key in stacked_data.keys():
         if key not in ["x", "y", "beta"]:
             data = stacked_data[key]
 
-            if len(data.shape) == 1:
+            if len(data.shape) == 1 or (len(data.shape) == 2 and data.shape[1] == 1):
                 fig, ax = plt.subplots(1, 1, figsize=(5, 5))
                 sns.histplot(data, ax=ax)
                 ax.set_title(f"Histogram of {key}")
@@ -366,10 +367,11 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]], batched_input = Fal
                 p = data.shape[1]
                 fig, ax = plt.subplots(1, p, figsize=(15, 5))
                 for i in range(p):
-                    print(data[:, i])
                     sns.histplot(data[:, i], ax=ax[i])
                     ax[i].set_title(f"Histogram of {key}_{i}")
                 plt.show()
+
+    
 
     return overall_agg_stats
 
