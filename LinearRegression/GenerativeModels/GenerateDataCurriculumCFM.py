@@ -4,9 +4,6 @@ from PFNExperiments.LinearRegression.GenerativeModels.GenerateDataCurriculum imp
 from PFNExperiments.LinearRegression.GenerativeModels.EpochLoader import EpochLoader
 from typing import Tuple
 
-from PFNExperiments.Training.FlowMatching.Couplings import MiniBatchOTCoupling
-from torch.utils.data.dataloader import default_collate
-
 
 """
 Functions and classes to generate data for conditional flow matching
@@ -37,40 +34,17 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
                  time_sampling: callable = sample_uniform_time,
                  base_distribution_sampling: callable = standard_normal_sample,
                  relevant_parameter: str = "beta",
-                 coupling: MiniBatchOTCoupling = MiniBatchOTCoupling(),
                  **kwargs,
                 ):
         """
         Args:
-            time_sampling: callable: the function that samples the time
-            base_distribution_sampling: callable: the function that samples from the base distribution
-            relevant_parameter: str: the relevant parameter for the base distribution
-            coupling: MiniBatchOTCoupling: the coupling to use for the flow matching to align the base distribution with the target distribution
+            dataset_modifiers: list[callable]: the dataset modifiers
         """
         super(GenerateDataCurriculumCFM, self).__init__(**kwargs)
         self.time_sampling = time_sampling
         self.base_distribution_sampling = base_distribution_sampling
         self.relevant_parameter = relevant_parameter
-        self.coupling = coupling
 
-    def collate_coupling(self, batch: dict) -> dict: 
-        """
-        use the coupling in a collate function
-        Args:
-            batch: dict: the batch
-        Returns:
-            dict: the collated batch
-        """
-        batch = default_collate(batch)
-
-        base_dist_sample = batch[f"base_sample_{self.relevant_parameter}"]
-        ground_truth_sample = batch[self.relevant_parameter]
-
-        base_dist_sample = self.coupling.couple(ground_truth_sample, base_dist_sample)
-
-        batch[f"base_sample_{self.relevant_parameter}"] = base_dist_sample
-
-        return batch
        
 
 
@@ -85,7 +59,7 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
                                  val_frac = 0.15,
                                  shuffle: bool = True,
                                  use_seed: bool = False,
-                                 n_samples_to_generate_at_once:int = 10_000,
+                                 n_samples_to_generate_at_once:int = 10_000
                                  ) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         """
         Make a dataloader where the data is generated on the fly
@@ -157,16 +131,12 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
                                 base_distribution_sampling = self.base_distribution_sampling,
                                 relevant_parameter = self.relevant_parameter)
         
-        if self.coupling is not None:
-            collate_fn = self.collate_coupling
-
-        else:
-            collate_fn = default_collate
+        
 
         
-        dataloader_train = torch.utils.data.DataLoader(dataset_train, batch_size = batch_size, shuffle = shuffle, collate_fn = collate_fn)
-        dataloader_val = torch.utils.data.DataLoader(dataset_val, batch_size = batch_size, shuffle = shuffle, collate_fn = collate_fn)
-        dataloader_test = torch.utils.data.DataLoader(dataset_test, batch_size = batch_size, shuffle = shuffle, collate_fn = collate_fn)
+        dataloader_train = torch.utils.data.DataLoader(dataset_train, batch_size = batch_size, shuffle = shuffle)
+        dataloader_val = torch.utils.data.DataLoader(dataset_val, batch_size = batch_size, shuffle = shuffle)
+        dataloader_test = torch.utils.data.DataLoader(dataset_test, batch_size = batch_size, shuffle = shuffle)
 
         return dataloader_train, dataloader_val, dataloader_test
     
