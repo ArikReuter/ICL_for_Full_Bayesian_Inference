@@ -2,7 +2,6 @@ import torch
 
 from typing import Tuple
 
-from PFNExperiments.Training.FlowMatching.Couplings import MiniBatchOTCoupling
 
 class EpochLoader():
     """
@@ -20,7 +19,6 @@ class EpochLoader():
                  val_frac : float = 0.15,
                  shuffle : bool = True,
                  n_samples_to_generate_at_once : int = 10_000,
-                 coupling: MiniBatchOTCoupling = MiniBatchOTCoupling()
                 ):
         """
         Args: 
@@ -34,7 +32,6 @@ class EpochLoader():
             val_frac: float: the fraction of the data to use for validation
             shuffle: bool: whether to shuffle the data
             n_samples_to_generate_at_once: int: the number of samples to generate at once
-            coupling: MiniBatchOTCoupling: the coupling to use for the data generation
         """
 
         self.GenerateDataCurriculum = GenerateDataCurriculum
@@ -47,8 +44,6 @@ class EpochLoader():
         self.val_frac = val_frac
         self.shuffle = shuffle
         self.n_samples_to_generate_at_once = n_samples_to_generate_at_once
-        self.coupling = coupling
-
 
     def __repr__(self) -> str:
         representation = f"""EpochLoader(
@@ -84,8 +79,7 @@ class EpochLoader():
                                 val_frac = self.val_frac,
                                 shuffle = self.shuffle,
                                 use_seed = True,
-                                n_samples_to_generate_at_once = self.n_samples_to_generate_at_once,
-                                coupling = self.coupling
+                                n_samples_to_generate_at_once = self.n_samples_to_generate_at_once
         )
                                 
         return dataoaders

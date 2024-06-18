@@ -42,6 +42,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
                  verbose:int = 100,
                  summary_writer_path: str = "runs/",
                  use_same_timestep_per_batch: bool = False,
+                 coupling: MiniBatchOTCoupling = MiniBatchOTCoupling(),
                  use_train_mode_during_validation: bool = False
     ):
         """
@@ -66,6 +67,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             verbose: int: how much to print
             summary_writer_path: str: the path to save the summary writer
             use_same_timestep_per_batch: bool: whether to use the same timestep for all elements in the batch
+            coupling: MiniBatchOTCoupling: the coupling to use to align z_0 and z_t. Can be None
             use_train_mode_during_validation: bool: whether to use the train mode during validation
         """
 
@@ -91,6 +93,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
 
 
         self.use_same_timestep_per_batch = use_same_timestep_per_batch
+        self.coupling = coupling
 
         if self.valset is None:
             self.valset = self.epoch_loader(n_epochs)[1]  #load the validation set for the last epoch from the epoch_loader
@@ -177,9 +180,8 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         if self.use_same_timestep_per_batch:
             t = t[0] * torch.ones_like(t)
 
-
-        #if self.coupling is not None:
-        #    z_0 = self.coupling.couple(z_1, z_0)  # align the samples from the base distribution and the probability path using the coupling
+        if self.coupling is not None:
+            z_0 = self.coupling.couple(z_1, z_0)  # align the samples from the base distribution and the probability path using the coupling
 
         zt = self.loss_function.psi_t_conditional_fun(z_0, z_1, t) # compute the sample from the probability path
         

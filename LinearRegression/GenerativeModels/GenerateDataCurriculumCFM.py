@@ -4,9 +4,6 @@ from PFNExperiments.LinearRegression.GenerativeModels.GenerateDataCurriculum imp
 from PFNExperiments.LinearRegression.GenerativeModels.EpochLoader import EpochLoader
 from typing import Tuple
 
-from PFNExperiments.Training.FlowMatching.Couplings import MiniBatchOTCoupling
-
-
 
 """
 Functions and classes to generate data for conditional flow matching
@@ -62,8 +59,7 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
                                  val_frac = 0.15,
                                  shuffle: bool = True,
                                  use_seed: bool = False,
-                                 n_samples_to_generate_at_once:int = 10_000,
-                                 coupling: MiniBatchOTCoupling = MiniBatchOTCoupling()
+                                 n_samples_to_generate_at_once:int = 10_000
                                  ) -> Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:
         """
         Make a dataloader where the data is generated on the fly
@@ -78,7 +74,6 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
             shuffle: bool: whether to shuffle the data
             use_seed: bool: whether to use the seed for the random number generator
             n_samples_to_generate_at_once: int: the number of samples to generate at once
-            coupling: MiniBatchOTCoupling: the coupling used to couple z_1 and z_0
         Returns:
             Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]: a tuple of dataloaders for the training, test and validation data
         """
@@ -107,8 +102,7 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
                                 n_samples_to_generate_at_once = n_samples_to_generate_at_once,
                                 time_sampling = self.time_sampling,
                                 base_distribution_sampling = self.base_distribution_sampling,
-                                relevant_parameter = self.relevant_parameter,
-                                coupling = coupling)
+                                relevant_parameter = self.relevant_parameter)
         
         
         dataset_val = SyntheticDataCurriculumBatchedCFM(n = n,
@@ -122,8 +116,7 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
                                 n_samples_to_generate_at_once = n_samples_to_generate_at_once,
                                 time_sampling = self.time_sampling,
                                 base_distribution_sampling = self.base_distribution_sampling,
-                                relevant_parameter = self.relevant_parameter, 
-                                coupling = coupling)
+                                relevant_parameter = self.relevant_parameter)
         
         dataset_test = SyntheticDataCurriculumBatchedCFM(n = n,
                                 p = p,
@@ -136,8 +129,7 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
                                 n_samples_to_generate_at_once = n_samples_to_generate_at_once,
                                 time_sampling = self.time_sampling,
                                 base_distribution_sampling = self.base_distribution_sampling,
-                                relevant_parameter = self.relevant_parameter,
-                                coupling = coupling)
+                                relevant_parameter = self.relevant_parameter)
         
         
 
@@ -159,8 +151,7 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
             train_frac = 0.7,
             val_frac = 0.15,
             shuffle: bool = False,
-            n_samples_to_generate_at_once:int = 10_000,
-            coupling: MiniBatchOTCoupling = MiniBatchOTCoupling()
+            n_samples_to_generate_at_once:int = 10_000
             ) -> EpochLoader:
         """
         Make a loader where for each epoch the data is generated on the fly
@@ -191,8 +182,7 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
             train_frac = train_frac,
             val_frac = val_frac,
             shuffle = shuffle,
-            n_samples_to_generate_at_once = n_samples_to_generate_at_once,
-            coupling = coupling
+            n_samples_to_generate_at_once = n_samples_to_generate_at_once
         )
         
         
@@ -213,21 +203,18 @@ class SyntheticDataCurriculumBatchedCFM(SyntheticDataCurriculumBatched):
                 time_sampling: callable = sample_uniform_time,
                 base_distribution_sampling: callable = standard_normal_sample,
                 relevant_parameter: str = "beta",
-                coupling: MiniBatchOTCoupling = MiniBatchOTCoupling(),
                 **kwargs):
         """
         Args:
             time_sampling: callable: the function that samples the time
             base_distribution_sampling: callable: the function that samples from the base distribution
             relevant_parameter: str: the relevant parameter for the base distribution
-            coupling: MiniBatchOTCoupling: the coupling used to couple z_1 and z_0
         """
 
         super(SyntheticDataCurriculumBatchedCFM, self).__init__(**kwargs)
         self.time_sampling = time_sampling
         self.base_distribution_sampling = base_distribution_sampling
         self.relevant_parameter = relevant_parameter
-        self.coupling = coupling
 
     def __getitem__(self, index):
         """
@@ -240,11 +227,6 @@ class SyntheticDataCurriculumBatchedCFM(SyntheticDataCurriculumBatched):
         data = super(SyntheticDataCurriculumBatchedCFM, self).__getitem__(index)
         time = self.time_sampling()
         base_sample = self.base_distribution_sampling(data[self.relevant_parameter].shape)
-
-        if self.coupling is not None:
-            data_sample = data[self.relevant_parameter]
-            base_sample = self.coupling.couple(data_sample, base_sample)
-
         data["time"] = time
         data[f"base_sample_{self.relevant_parameter}"] = base_sample
         return data
