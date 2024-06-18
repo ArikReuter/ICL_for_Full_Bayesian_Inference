@@ -1357,13 +1357,6 @@ class TransformerConditionalDecoderDouble(nn.Module):
             x_encoder_processed= torch.mean(x_encoder, dim=1)  # has shape (n, d_model_encoder)
             x_encoder_processed = self.MLP_representation_transformer_encoder(x_encoder_processed)  # has shape (n, d_final_representation_transformer_encoder)
 
-            print(f"""
-                  x_encoder: {x_encoder.shape},
-                  x_decoder: {x_decoder.shape},
-                  x_encoder_processed: {x_encoder_processed.shape}
-                  condition_a: {condition_a.shape}
-                  """)
-
             x_decoder = self.transformer_decoder(
                  x = x_decoder,
                  x_encoder = x_encoder,
@@ -1510,7 +1503,7 @@ class TransformerCNFConditionalDecoderDouble(TransformerConditionalDecoderDouble
          self,
          output_dim: int,
          d_final_processing: int = 256,
-         n_final_layers: int = 1,
+         n_final_layers: int = 3,
          dropout_final: float = 0.1,
         
          **kwargs
