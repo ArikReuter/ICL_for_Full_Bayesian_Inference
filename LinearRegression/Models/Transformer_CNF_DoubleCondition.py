@@ -459,7 +459,7 @@ class TransformerConditionalDecoderDouble(nn.Module):
 
         self.MLP_representation_transformer_encoder = MLP(
             n_input_units=d_model_encoder,
-            n_output_units=d_final_representation_transformer_encoder,
+            n_output_units=n_condition_features_b,
             n_hidden_units=d_final_representation_transformer_encoder,
             n_skip_layers=n_final_layers_representation_transformer_encoder,
             dropout_rate=dropout_encoder
@@ -502,7 +502,7 @@ class TransformerConditionalDecoderDouble(nn.Module):
             x_decoder = self.transformer_decoder(
                  x = x_decoder,
                  x_encoder = x_encoder,
-                 condition_a = x_encoder_processed,
+                 condition_a = condition_a,
                  condition_b = x_encoder_processed
             )
         
@@ -565,8 +565,7 @@ class TransformerCNFConditionalDecoderDouble(TransformerConditionalDecoderDouble
 
       res_trafo, condition, x_encoder = super().forward(x, z, t)
       
-    
-      res_trafo = torch.mean(res_trafo, dim=1)
+      res_trafo = res_trafo.squeeze(1)
 
 
       res = self.final_processing(res_trafo, condition, x_encoder)
