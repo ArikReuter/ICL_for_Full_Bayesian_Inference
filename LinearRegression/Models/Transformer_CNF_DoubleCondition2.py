@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-from PFNExperiments.LinearRegression.Models.Transformer_CNF import Linear_block, Linear_skip_block, PositionwiseFeedForward, PositionalEncoding, TransformerEncoder, MLP, ConditionalLayerNorm, Rescale, EncoderBlockConditional
+from PFNExperiments.LinearRegression.Models.Transformer_CNF import Linear_block, Linear_skip_block, PositionwiseFeedForward, PositionalEncoding, TransformerEncoder, MLP, ConditionalLayerNorm, Rescale, EncoderBlockConditional, ConditionalBatchNorm
 
 class ConditionalBatchNormDouble_parallel(nn.Module):
     def __init__(self, num_features_in_feat, num_features_in_cond_a, num_features_in_cond_b, num_features_out):
@@ -18,15 +18,14 @@ class ConditionalBatchNormDouble_parallel(nn.Module):
         self.num_features_in_cond_b = num_features_in_cond_b
         self.num_features_out = num_features_out
 
-        self.bn = nn.BatchNorm1d(num_features_in_feat, affine=False)
-        self.linear_gamma = nn.Linear(num_features_in_cond_a + num_features_in_cond_b, num_features_out)
-        self.linear_beta = nn.Linear(num_features_in_cond_a + num_features_in_cond_b, num_features_out)
+        self.bn = ConditionalBatchNorm(num_features_in_feat=num_features_in_feat, num_features_in_cond=num_features_in_cond_a + num_features_in_cond_b, num_features_out=num_features_out)
 
     def forward(self, x, condition_a, condition_b):
-        x = self.bn(x)
-        gamma = self.linear_gamma(torch.cat([condition_a, condition_b], dim=1))
-        beta = self.linear_beta(torch.cat([condition_a, condition_b], dim=1))
-        return x * gamma.unsqueeze(1) + beta.unsqueeze(1)
+        # x has shape (n, num_features_in_feat)
+        # condition has shape (n, num_features_in_cond)
+        # output has shape (n, num_features_out)
+        return self.bn(x, torch.cat([condition_a, condition_b], dim=1))
+    
 
 
 class MLPConditionalDouble_parallel(nn.Module):
