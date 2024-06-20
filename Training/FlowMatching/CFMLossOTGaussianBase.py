@@ -27,7 +27,9 @@ class CFMLossOTGaussianBase(torch.nn.Module):
         Returns:
             z_t: torch.Tensor: the output tensor of the conditional flow, has shape (batch_size, n_features)
         """
-        if z_0_b is None:
+
+        got_z_0_b = z_0_b is not None
+        if not got_z_0_b:
             z_0_b = torch.randn_like(z_0_a)
 
         assert z_0_a.shape == z_0_b.shape, f"z_0_a shape {z_0_a.shape} does not match z_0_b shape {z_0_b.shape}"
@@ -37,7 +39,7 @@ class CFMLossOTGaussianBase(torch.nn.Module):
         z_t = (1-t)*z_0_a + t * self.sigma_min * z_0_b + z_1
 
 
-        if z_0_b is None:
+        if not got_z_0_b:
             return z_t, z_0_b
         else:
             return z_t
