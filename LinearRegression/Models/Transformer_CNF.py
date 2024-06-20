@@ -163,16 +163,15 @@ class MLPConditional(nn.Module):
         self.linear_final =  torch.nn.Linear(n_hidden_units, n_output_units)
         self.conditional_bn_final = ConditionalBatchNorm(n_output_units, n_condition_features, n_output_units)
 
-    def forward(self, x, condition_a, condition_b):
+    def forward(self, x, condition):
         x = self.linear1(x)
-        x = self.conditional_bn1(x, condition_a, condition_b)
-        
-        for hidden_layer, hidden_bn_layer in zip(self.hidden_layers, self.hidden_bn_layers):
-            x = hidden_layer(x)
-            x = hidden_bn_layer(x, condition_a, condition_b)
+        x = self.conditional_bn1(x, condition)
+        for i in range(self.n_skip_layers):
+            x = self.hidden_layers[i](x)
+            x = self.hidden_bn_layers[i](x, condition)
 
         x = self.linear_final(x)
-        x  = self.conditional_bn_final(x, condition_a, condition_b)
+        x = self.conditional_bn_final(x, condition)
 
         return(x)
     
