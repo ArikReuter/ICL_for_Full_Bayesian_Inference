@@ -43,7 +43,8 @@ class TrainerCurriculumCNF(TrainerCurriculum):
                  summary_writer_path: str = "runs/",
                  use_same_timestep_per_batch: bool = False,
                  coupling: MiniBatchOTCoupling = MiniBatchOTCoupling(),
-                 use_train_mode_during_validation: bool = False
+                 use_train_mode_during_validation: bool = False,
+                 using_OTLossGaussianBase: bool = False
     ):
         """
         A custom class for training neural networks
@@ -69,6 +70,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             use_same_timestep_per_batch: bool: whether to use the same timestep for all elements in the batch
             coupling: MiniBatchOTCoupling: the coupling to use to align z_0 and z_t. Can be None
             use_train_mode_during_validation: bool: whether to use the train mode during validation
+            using_OTLossGaussianBase: bool: whether to use the OT loss with a Gaussian base distribution
         """
 
         assert schedule_step_on in ["epoch", "batch"], "schedule_step_on must be either 'epoch' or 'batch'"
@@ -94,6 +96,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
 
         self.use_same_timestep_per_batch = use_same_timestep_per_batch
         self.coupling = coupling
+        self.using_OTLossGaussianBase = using_OTLossGaussianBase
 
         if self.valset is None:
             self.valset = self.epoch_loader(n_epochs)[1]  #load the validation set for the last epoch from the epoch_loader
@@ -183,11 +186,30 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         if self.coupling is not None:
             z_0 = self.coupling.couple(z_1, z_0)  # align the samples from the base distribution and the probability path using the coupling
 
-        zt = self.loss_function.psi_t_conditional_fun(z_0, z_1, t) # compute the sample from the probability path
+        if not self.using_OTLossGaussianBase:
+            zt = self.loss_function.psi_t_conditional_fun(z_0, z_1, t) # compute the sample from the probability path
+
+        else:
+            zt, z_0_b = self.loss_function.psi_t_conditional_fun(
+            z_0_a = z_0,
+            z_1 = z_1,
+            t = t,
+            z_0_b = None
+        )
         
         vt_model = self.model(zt, X_y, t)  # compute the vector field prediction by the model
 
-        loss = self.loss_function(vector_field_prediction = vt_model, z_0 = z_0, z_1 = z_1, t = t)  # compute the loss by comparing the model prediction to the target vector field
+        if not self.using_OTLossGaussianBase:
+            loss = self.loss_function(vector_field_prediction = vt_model, z_0 = z_0, z_1 = z_1, t = t)  # compute the loss by comparing the model prediction to the target vector field
+        
+        else:
+            loss = self.loss_function(
+                 vector_field_prediction = vt_model,
+                 z_0_a = z_0,
+                 z_0_b = z_0_b,
+                 z_1 = z_1,
+                 t = t
+            )
         
         return loss
     
