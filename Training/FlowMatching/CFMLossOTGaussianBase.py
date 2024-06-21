@@ -36,7 +36,7 @@ class CFMLossOTGaussianBase(torch.nn.Module):
         assert z_1.shape == z_0_a.shape, f"z_1 shape {z_1.shape} does not match z_0_a shape {z_0_a.shape}"
 
 
-        z_t = (1-t)*z_0_a + t * self.sigma_min * z_0_b + z_1
+        z_t = (1-t)*z_0_a + t * self.sigma_min * z_0_b + t*z_1
 
 
         if not got_z_0_b:
