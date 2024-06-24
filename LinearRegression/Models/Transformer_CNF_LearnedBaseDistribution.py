@@ -1,7 +1,7 @@
 import torch 
 
 from PFNExperiments.LinearRegression.Models.Transformer import Transformer
-from PFNExperiments.LinearRegression.Models.Transformer_CNF_DoubleCondition2 import TransformerDecoderConditionalDouble_parallel
+from PFNExperiments.LinearRegression.Models.Transformer_CNF_DoubleCondition2 import TransformerDecoderConditionalDouble_parallel, MLPConditionalDouble_parallel
 from PFNExperiments.LinearRegression.Models.ModelPosterior import ModelPosterior
 
 
@@ -61,7 +61,7 @@ class TransformerCNFConditionalDecoderDouble_parallel_learnedBaseDistribution(to
                  mlp_to_process_encoder_output: torch.nn.Module,
                  mlp_to_process_time_conditioning: torch.nn.Module,
                  decoder: TransformerDecoderConditionalDouble_parallel,
-                 mlp_to_process_decoder_output: torch.nn.Module,
+                 mlp_to_process_decoder_output: MLPConditionalDouble_parallel,
                  freeze_encoder: bool = True
                  ):
         """
@@ -101,7 +101,7 @@ class TransformerCNFConditionalDecoderDouble_parallel_learnedBaseDistribution(to
 
         return x_encoder
 
-    def get_base_distribution_samples(self, encoder_prediction: torch.tensor, n_samples: int) -> torch.tensor:
+    def get_base_distribution_samples(self, encoder_prediction: torch.tensor) -> torch.tensor:
         """
         Get samples from the base distribution
         Args:
@@ -112,10 +112,11 @@ class TransformerCNFConditionalDecoderDouble_parallel_learnedBaseDistribution(to
         """
         if self.freeze_encoder:
             with torch.no_grad():
-                samples = self.model_posterior.pred2posterior_samples(encoder_prediction, n_samples)
+                samples = self.model_posterior.pred2posterior_samples(encoder_prediction, n_samples=1)
         else:
-            samples = self.model_posterior.pred2posterior_samples(encoder_prediction, n_samples)
+            samples = self.model_posterior.pred2posterior_samples(encoder_prediction, n_samples=1)
 
+        samples = samples.squeeze(0)  # remove the first dimension of the samples
         return samples
     
     def forward_decoder(self, z: torch.tensor, x_encoder: torch.tensor, condition_time: torch.tensor) -> torch.tensor:
@@ -134,6 +135,9 @@ class TransformerCNFConditionalDecoderDouble_parallel_learnedBaseDistribution(to
             x_encoder_processed = self.mlp_to_process_encoder_output(x_encoder_processed) # process the output of the encoder with an MLP
 
             condition_time = self.mlp_to_process_time_conditioning(condition_time)
+            
+            if len(z.shape) == 2:
+                z = z.unsqueeze(1)  # add sequence length dimension to the input tensor
 
             decoder_output = self.decoder(
                 x = z,
@@ -142,6 +146,12 @@ class TransformerCNFConditionalDecoderDouble_parallel_learnedBaseDistribution(to
                 condition_b = condition_time
             )
 
-            decoder_output = self.mlp_to_process_decoder_output(decoder_output) # process the output of the decoder with an MLP
+            decoder_output = decoder_output.squeeze(1) # remove the second dimension of the output
+
+            decoder_output = self.mlp_to_process_decoder_output(
+                x = decoder_output,
+                condition_a = x_encoder_processed,
+                condition_b = condition_time
+            )
 
             return decoder_output
