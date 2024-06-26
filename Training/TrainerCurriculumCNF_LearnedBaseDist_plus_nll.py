@@ -2,7 +2,7 @@ from PFNExperiments.Training.TrainerCurriculumCNF import TrainerCurriculumCNF
 import torch
 
 
-class TrainerCurriculumCNF_LearnedBaseDist(TrainerCurriculumCNF):
+class TrainerCurriculumCNF_LearnedBaseDist_plus_nll(TrainerCurriculumCNF):
 
 
     def batch_to_loss(self, batch: dict[str, torch.Tensor]) -> torch.Tensor:

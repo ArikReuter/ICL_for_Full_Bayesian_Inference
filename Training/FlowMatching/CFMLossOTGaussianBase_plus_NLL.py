@@ -3,7 +3,7 @@ import torch
 from PFNExperiments.Training.FlowMatching.CFMLossOTGaussianBase import CFMLossOTGaussianBase
 from PFNExperiments.LinearRegression.Models.ModelPosterior import ModelPosterior
 
-class CFMLossOTGaussianBase(CFMLossOTGaussianBase):
+class CFMLossOTGaussianBase_plus_NLL(CFMLossOTGaussianBase):
     """
     Implementation of the conditional flow matching loss with the optimal transport probability paths and an arbitrary Gaussian base distribution
     """
