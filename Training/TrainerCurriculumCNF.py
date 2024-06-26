@@ -44,7 +44,13 @@ class TrainerCurriculumCNF(TrainerCurriculum):
                  use_same_timestep_per_batch: bool = False,
                  coupling: MiniBatchOTCoupling = MiniBatchOTCoupling(),
                  use_train_mode_during_validation: bool = False,
-                 using_OTLossGaussianBase: bool = False
+                 using_OTLossGaussianBase: bool = False,
+                 loss_aggregation_functions: dict = {
+                     "mean": torch.mean,
+                     "median": torch.median,
+                     "std": torch.std
+                 },
+                 sub_losses_names = []
     ):
         """
         A custom class for training neural networks
@@ -71,6 +77,8 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             coupling: MiniBatchOTCoupling: the coupling to use to align z_0 and z_t. Can be None
             use_train_mode_during_validation: bool: whether to use the train mode during validation
             using_OTLossGaussianBase: bool: whether to use the OT loss with a Gaussian base distribution
+            loss_aggregation_functions: dict: a dictionary containing the loss aggregation functions
+            sub_losses_names: list: a list containing the names of the sub losses
         """
 
         assert schedule_step_on in ["epoch", "batch"], "schedule_step_on must be either 'epoch' or 'batch'"
@@ -97,6 +105,8 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         self.use_same_timestep_per_batch = use_same_timestep_per_batch
         self.coupling = coupling
         self.using_OTLossGaussianBase = using_OTLossGaussianBase
+        self.loss_aggregation_functions = loss_aggregation_functions
+        self.sub_losses_names = sub_losses_names
 
         if self.valset is None:
             self.valset = self.epoch_loader(n_epochs)[1]  #load the validation set for the last epoch from the epoch_loader
@@ -227,24 +237,39 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             self.model.train()
 
         loss_lis = []
+        sub_losses_lis = []
 
         with torch.no_grad():
             for batch in tqdm(loader):
                 batch = {k: v.to(self.device) for k, v in batch.items()}
-                loss = self.batch_to_loss(batch)
+                loss_total = self.batch_to_loss(batch)
 
+                if self.sub_losses_names:
+                    loss = loss_total[0]
+                    sub_losses = loss_total[1:]
+
+                    sub_losses = [l.detach().cpu() for l in sub_losses]
+
+                    sub_losses_lis.append(sub_losses)
+
+                else:
+                    loss = loss_total
+
+                
                 loss_lis.append(loss.detach().cpu())
 
-        results = {}
-        
-        results_avg_loss = torch.mean(torch.stack(loss_lis))
-        result_median_loss = torch.median(torch.stack(loss_lis))
-        result_std_loss = torch.std(torch.stack(loss_lis))
-        results["loss"] = results_avg_loss.item()
-        results["median_loss"] = result_median_loss.item()
-        results["std_loss"] = result_std_loss.item()
 
-        
+
+        results = {}
+
+        for agg_name, agg_fun in self.loss_aggregation_functions.items():
+            results[f"loss_{agg_name}"] = agg_fun(torch.stack(loss_lis)).item()
+
+        if self.sub_losses_names:
+            for i, name in enumerate(self.sub_losses_names):
+                for agg_name, agg_fun in self.loss_aggregation_functions.items():
+                    results[f"{name}_{agg_name}"] = agg_fun(torch.stack([l[i] for l in sub_losses_lis])).item()
+
         return results
 
     def validate(self) -> dict[str, float]:
@@ -301,6 +326,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             #targets = []
 
             loss_lis = []
+            sub_losses_lis = []
 
             trainset_epoch = self.epoch_loader(epoch)[0]
             valset_epoch = self.epoch_loader(epoch)[1]
@@ -315,7 +341,13 @@ class TrainerCurriculumCNF(TrainerCurriculum):
                 
                 batch_size = batch["x"].shape[0]
 
+
                 loss = self.batch_to_loss(batch)
+
+                if self.sub_losses_names:
+                    sub_losses = loss[1:]
+                    loss = loss[0]
+                    
 
                 self.optimizer.zero_grad()
                 loss.backward()
@@ -323,8 +355,19 @@ class TrainerCurriculumCNF(TrainerCurriculum):
 
                 loss_lis.append(loss.detach().cpu())
 
+                if self.sub_losses_names:
+                    sub_losses = [l.detach().cpu() for l in sub_losses]
+                    sub_losses_lis.append(sub_losses)
+
+                
+
                 self.writer.add_scalar("Loss/train", loss, overall_iter)
                 self.second_writer.add_scalar("Loss/train", loss, overall_iter)
+
+                if self.sub_losses_names:
+                    for i, name in enumerate(self.sub_losses_names):
+                        self.writer.add_scalar(f"{name}/train", sub_losses[i], overall_iter)
+                        self.second_writer.add_scalar(f"{name}/train", sub_losses[i], overall_iter)
 
                 if self.scheduler is not None and self.schedule_step_on == "batch":
                     try: 
@@ -345,30 +388,33 @@ class TrainerCurriculumCNF(TrainerCurriculum):
 
         
             validation_results = self.validate()
-            self.writer.add_scalar("Loss/validation", validation_results["loss"], epoch)
-            self.second_writer.add_scalar("Loss/validation", validation_results["loss"], epoch)
 
-        
+            for name, result in validation_results.items():
+                self.writer.add_scalar(f"{name}/validation", result, epoch)
+                self.second_writer.add_scalar(f"{name}/validation", result, epoch)
 
             validation_results_current_curriculum = self.validate_loader(valset_epoch)
-            self.writer.add_scalar("Loss/validation_curriculum", validation_results_current_curriculum["loss"], epoch)
-            self.second_writer.add_scalar("Loss/validation_curriculum", validation_results_current_curriculum["loss"], epoch)
+            for name, result in validation_results_current_curriculum.items():
+                self.writer.add_scalar(f"{name}/validation_curriculum", result, epoch)
+                self.second_writer.add_scalar(f"{name}/validation_curriculum", result, epoch)
 
             if self.scheduler is not None and self.schedule_step_on == "epoch":
                 try: 
                     self.scheduler.step()
                 except:
-                    self.scheduler.step(validation_results["loss"])
+                    self.scheduler.step(validation_results["loss_median"])
             training_results = {}
             #for name, fun in self.evaluation_functions.items():
             #    training_results[name] = fun(targets, predictions)
 
-            avg_loss = torch.mean(torch.stack(loss_lis))
-            median_loss = torch.median(torch.stack(loss_lis))
-            std_loss = torch.std(torch.stack(loss_lis))
-            training_results["loss"] = avg_loss.item()
-            training_results["median_loss"] = median_loss.item()
-            training_results["std_loss"] = std_loss.item()
+            for agg_name, agg_fun in self.loss_aggregation_functions.items():
+                training_results[f"loss_{agg_name}"] = agg_fun(torch.stack(loss_lis)).item()
+
+            if self.sub_losses_names:
+                for i, name in enumerate(self.sub_losses_names):
+                    for agg_name, agg_fun in self.loss_aggregation_functions.items():
+                        training_results[f"{name}_{agg_name}"] = agg_fun(torch.stack([l[i] for l in sub_losses_lis])).item()
+
 
             end_time_epoch = time.time()
             time_epoch = end_time_epoch - start_time_epoch
@@ -403,7 +449,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             print("\n")
             print(100*"-")
 
-            val_loss = validation_results_current_curriculum["loss"]
+            val_loss = validation_results_current_curriculum["loss_median"]
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 print("Saving model")

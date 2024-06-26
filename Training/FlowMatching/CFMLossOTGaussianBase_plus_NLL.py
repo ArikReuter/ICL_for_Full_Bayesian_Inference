@@ -14,12 +14,14 @@ class CFMLossOTGaussianBase_plus_NLL(CFMLossOTGaussianBase):
             weight_nll: float,
             NLL_Loss_function: callable,
             sigma_min: float = 1e-4,
+            return_sub_losses: bool = False
     ):
         """
         Args:  
             weight_nll: float: the weight of the negative log likelihood, has to be between 0 and 1
             nll_loss_function: callable: the negative log likelihood loss function
             sigma_min: float: the minimum value of the sigma
+            return_sub_losses: bool: whether to return the sub losses
         """
         super(CFMLossOTGaussianBase, self).__init__()
 
@@ -28,6 +30,7 @@ class CFMLossOTGaussianBase_plus_NLL(CFMLossOTGaussianBase):
         self.weight_nll = weight_nll
         self.NLL_Loss_function = NLL_Loss_function
         self.sigma_min = sigma_min
+        self.return_sub_losses = return_sub_losses
 
 
     def __call__(self,
@@ -57,6 +60,9 @@ class CFMLossOTGaussianBase_plus_NLL(CFMLossOTGaussianBase):
         loss_nll = self.NLL_Loss_function(pred_for_nll_loss, z_1)
 
         loss = (1-self.weight_nll) * loss_flow_matching + self.weight_nll * loss_nll
+
+        if self.return_sub_losses:
+            return loss, loss_flow_matching, loss_nll
 
         return loss
 
