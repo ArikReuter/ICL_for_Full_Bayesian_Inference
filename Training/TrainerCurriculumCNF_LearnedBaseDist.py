@@ -31,8 +31,12 @@ class TrainerCurriculumCNF_LearnedBaseDist(TrainerCurriculumCNF):
     
         encoder_prediction, encoder_representation = self.model.forward_encoder(X_y)  # get the final output of the encoder and the intermediate transformer representation
         
+        if self.model.freeze_encoder:
 
-        base_distribution_samples = self.model.get_base_distribution_samples(encoder_prediction)  # sample from the base distribution
+            base_distribution_samples = self.model.get_base_distribution_samples(encoder_prediction)  # sample from the base distribution
+
+        else: 
+            base_distribution_samples = self.model.get_base_distribution_samples_reparametrized(encoder_prediction)
 
         if self.coupling is not None:
             base_distribution_samples = self.coupling.couple(z_1, base_distribution_samples)  # align the samples from the base distribution and the probability path using the coupling

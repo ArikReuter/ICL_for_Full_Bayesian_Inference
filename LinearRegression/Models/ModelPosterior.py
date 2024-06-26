@@ -179,6 +179,18 @@ class ModelPosteriorFullGaussian(ModelPosterior):
 
         return nll.mean()
     
+    def sample_reparametrization(self, pred, n_samples: int) -> torch.Tensor:
+        """
+        A method that takes in the models prediction and returns a sample from the posterior distribution
+        Args:
+            pred: torch.Tensor: the models prediction
+        Returns:
+            torch.Tensor: the sample from the posterior distribution
+        """
+        dist = self.pred2posterior(pred)
+        sample = dist.rsample((n_samples,))
+        return sample
+    
     def pred2posterior_samples(self, pred, n_samples: int) -> torch.Tensor:
         """
         A method that takes in the models prediction and returns samples from the posterior distribution

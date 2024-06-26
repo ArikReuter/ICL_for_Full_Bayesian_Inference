@@ -114,10 +114,12 @@ class TransformerCNFConditionalDecoderDouble_parallel_learnedBaseDistribution(to
             with torch.no_grad():
                 samples = self.model_posterior.pred2posterior_samples(encoder_prediction, n_samples=1)
         else:
-            samples = self.model_posterior.pred2posterior_samples(encoder_prediction, n_samples=1)
+            samples = self.model_posterior.sample_reparametrization(encoder_prediction, n_samples=1)
 
         samples = samples.squeeze(0)  # remove the first dimension of the samples
         return samples
+    
+
     
     def forward_decoder(self, z: torch.tensor, x_encoder: torch.tensor, condition_time: torch.tensor) -> torch.tensor:
             """
