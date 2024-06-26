@@ -35,7 +35,8 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
                  rtol: float = 1e-7,
                  device: str = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
                  target_device: str = torch.device("cpu"),
-                 solve_adjoint: bool = False
+                 solve_adjoint: bool = False, 
+                 sample_only_base_dist: bool = False
                  ) -> None:
         """
         Args:
@@ -50,6 +51,8 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
             adjoint: bool: whether to use the adjoint method for the ODE solver
             device: str: the device to use for the computation
             tarfet_device: str: the device to use for the final output samples
+            solve_adjoint: bool: whether to solve the ODE with the adjoint method
+            sample_only_base_dist: bool: whether to only sample from the base distribution and not use the flow matching model
         """
         self.model = model.to(device)
         self.sample_shape = sample_shape
@@ -64,6 +67,8 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
         self.n_samples = n_samples
         self.batch_size = batch_size
         self.solve_adjoint = solve_adjoint
+
+        self.sample_only_base_dist = sample_only_base_dist
 
     def generate_vector_field_function_cond_x(self, x: torch.tensor) -> torch.nn.Module:
         """
@@ -163,11 +168,35 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
         Returns:
             torch.Tensor
         """
+
+        
+
         if len(y.shape) == 1:
             y = y.unsqueeze(-1)
 
 
         X_y = torch.cat([X, y], dim = -1) # concatenate the x and y values to one data tensor
+
+
+        if self.sample_only_base_dist:
+            x = X_y.unsqueeze(0).repeat(self.n_samples, 1, 1)
+
+            #z_0 = self.base_dist_sample_function((n_samples, *self.sample_shape))
+
+            #z_0 = z_0.to(self.device)
+            x = x.to(self.device)
+
+            timepoints = torch.tensor([0., 1.]).to(self.device)
+
+            encoder_prediction, encoder_representation = self.model.forward_encoder(x)  # get the final output of the encoder and the intermediate transformer representation
+            base_distribution_samples = self.model.get_base_distribution_samples(encoder_prediction)  # sample from the base distribution
+
+            res = {
+                self.sample_name: base_distribution_samples,
+                "X": X,
+                "y": y
+            }
+            return res
 
         samples = self.sample_posterior_x(X_y, self.n_samples)
 
