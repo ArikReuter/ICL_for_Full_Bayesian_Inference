@@ -32,6 +32,11 @@ def compare_samples_classifier_based(P: torch.tensor,
     X = torch.cat([P, Q], dim = 0)
     y = torch.cat([torch.zeros(n), torch.ones(m)]).numpy()
 
+    # shuffle the data
+    perm = torch.randperm(X.shape[0])
+    X = X[perm]
+    y = y[perm]
+
     cv = sklearn.model_selection.StratifiedKFold(n_splits = n_folds)
 
     roc_auc_scores = []
@@ -40,6 +45,9 @@ def compare_samples_classifier_based(P: torch.tensor,
     for train_index, test_index in cv.split(X, y):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
+
+        #X_train = X_train.numpy()
+        #X_test = X_test.numpy()
 
         used_model.fit(X_train, y_train)
 
