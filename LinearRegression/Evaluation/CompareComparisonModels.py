@@ -2,12 +2,9 @@ import torch
 import os
 
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel 
-from PFNExperiments.LinearRegression.Models.ModelToPosterior import ModelToPosterior
-from PFNExperiments.Training.Trainer import batch_to_model_lm
 from PFNExperiments.Evaluation.ComparePosteriorSamples import compare_all_metrics, plot
 
 from PFNExperiments.LinearRegression.Evaluation.CompareModels import ModelComparison 
-import pandas as pd
 
 
 

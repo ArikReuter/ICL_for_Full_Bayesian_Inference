@@ -46,8 +46,8 @@ def compare_samples_classifier_based(P: torch.tensor,
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
 
-        #X_train = X_train.numpy()
-        #X_test = X_test.numpy()
+        X_train = X_train.detach().cpu().numpy()
+        X_test = X_test.detach().cpu().numpy()
 
         used_model.fit(X_train, y_train)
 

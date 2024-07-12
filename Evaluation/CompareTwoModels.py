@@ -6,6 +6,7 @@ from PFNExperiments.Evaluation.MMD import compare_samples_mmd
 from PFNExperiments.Evaluation.CompareModelToGT import results_dict_to_data_x_y, results_dict_to_latent_variable_beta, flatten_dict_list
 
 from PFNExperiments.Evaluation.ComparePosteriorSamples import compare_all_metrics
+from PFNExperiments.Evaluation.CompareModelToGT import try_otherwise_return_error
 
 class CompareTwoModels():
     """
@@ -16,9 +17,9 @@ class CompareTwoModels():
                  results_dict_to_latent_variable: callable = results_dict_to_latent_variable_beta,
                  results_dict_to_data: callable = results_dict_to_data_x_y,
                  metrics = [
-                    compare_Wasserstein,
-                    compare_samples_mmd,
-                    compare_samples_classifier_based
+                    try_otherwise_return_error(compare_Wasserstein),
+                    try_otherwise_return_error(compare_samples_mmd),
+                    try_otherwise_return_error(compare_samples_classifier_based)
                  ]
                     ) -> None:
         """
@@ -83,6 +84,6 @@ class CompareTwoModels():
         for model1_sample, model2_sample in zip(model1_samples, model2_samples):
             results.append(self._compare_model_samples_one_example(model1_sample, model2_sample))
 
-        results = flatten_dict_list(results)
+        #results = flatten_dict_list(results)
         
         return results

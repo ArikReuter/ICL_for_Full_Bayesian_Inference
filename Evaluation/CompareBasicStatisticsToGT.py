@@ -12,8 +12,10 @@ def compare_to_gt_mean_difference(samples:torch.tensor, true_parameter:torch.ten
     Returns:
         float: the mean difference between the samples and the true parameter
     """
-    return torch.mean(torch.abs(samples.mean(dim = 0) - true_parameter))
+    samples = samples.detach().cpu()
 
+    res = torch.mean(torch.abs(samples.mean(dim = 0) - true_parameter))
+    return res.item()
 
 def compare_to_gt_MAP(samples:torch.tensor, true_parameter:torch.tensor, kernel_bandwidth = None) -> float:
     """
@@ -27,16 +29,25 @@ def compare_to_gt_MAP(samples:torch.tensor, true_parameter:torch.tensor, kernel_
     """
     
     # compute the MAP of the samples
+
+    try: 
+        samples = samples.detach().cpu().numpy()
+    
+    except:
+        pass
+
     kde = gaussian_kde(samples.T, bw_method=kernel_bandwidth)
 
     # get the MAP
 
     objective_function = lambda x: -kde.logpdf(x)
 
-    MAP = minimize(objective_function, samples.mean(dim = 0).numpy()).x
+    MAP = minimize(objective_function, samples.mean(axis = 0)).x
     MAP = torch.tensor(MAP)
 
-    return torch.mean(torch.abs(MAP - true_parameter))
+    res = torch.mean(torch.abs(MAP - true_parameter))
+
+    return res.item()
 
 
 

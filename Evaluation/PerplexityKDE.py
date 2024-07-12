@@ -35,7 +35,7 @@ class PerplexityKDE():
 
 
         true_parameter = true_parameter.squeeze().numpy()
-        samples = samples.numpy()
+        samples = samples.detach().cpu().numpy()
 
         assert len(true_parameter) == samples.shape[1], "The number of dimensions of the true parameter and the samples should match. but got {} and {}".format(len(true_parameter), samples.shape[1])
 

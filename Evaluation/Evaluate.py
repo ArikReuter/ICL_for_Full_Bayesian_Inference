@@ -9,12 +9,18 @@ from PFNExperiments.Evaluation.CompareModelToGT import results_dict_to_data_x_y,
 from PFNExperiments.Evaluation.CompareModelToGT import CompareModelToGT
 from PFNExperiments.Evaluation.CompareTwoModels import CompareTwoModels
 
+
+
+
 def results_dict_to_data_x_y_tuple(result:dict) -> (torch.tensor, torch.tensor):
     """
     Take the dictionary with results and return the data x and y
     """
     x = result["x"]
     y = result["y"]
+
+    x = x.squeeze(0)
+    y = y.squeeze(0)
     return x, y
 
 class Evaluate:
@@ -28,7 +34,7 @@ class Evaluate:
             evaluation_loader: torch.utils.data.DataLoader,
             comparison_models: list[PosteriorComparisonModel] = [],
             n_evaluation_cases: int = 100,
-            n_posterior_samples: int = 1000,
+            #n_posterior_samples: int = 1000,
             results_dict_to_latent_variable: callable = results_dict_to_latent_variable_beta,
             results_dict_to_data_for_model: callable = results_dict_to_data_x_y_tuple,
             compare_to_gt: CompareModelToGT = CompareModelToGT(),
@@ -56,7 +62,7 @@ class Evaluate:
         self.evaluation_loader = convert_to_batchsize_1_dataloader(evaluation_loader)
         self.comparison_models = comparison_models
         self.n_evaluation_cases = n_evaluation_cases
-        self.n_posterior_samples = n_posterior_samples
+        #self.n_posterior_samples = n_posterior_samples
         self.results_dict_to_latent_variable = results_dict_to_latent_variable
         self.results_dict_to_data_for_model = results_dict_to_data_for_model
         self.compare_to_gt = compare_to_gt
@@ -65,6 +71,7 @@ class Evaluate:
         self.compare_comparison_models_among_each_other = compare_comparison_models_among_each_other
 
         self.evaluation_list = self._convert_dataloader_samples_to_list()
+        self.evaluation_list_alternative = self._convert_dataloader_samples_to_list()
 
     def _convert_dataloader_samples_to_list(self) -> list[dict]:
         """
@@ -92,12 +99,17 @@ class Evaluate:
         for case in tqdm(self.evaluation_list, desc="Sampling posterior"):
             data = self.results_dict_to_data_for_model(case)
             samples = model.sample_posterior(*data)
+            
+            for key in case.keys():
+                if key not in samples.keys():
+                    samples[key] = case[key]
+            
             posterior_samples.append(samples)
 
         return posterior_samples
     
 
-    def run_eval_raw_results(self) -> dict:
+    def _run_eval_raw_results(self) -> dict:
         """
         Run the evaluation
         Returns:
@@ -107,11 +119,19 @@ class Evaluate:
         posterior_model_samples = self.sample_posterior_model(self.posterior_model)
         comparison_model_samples = [self.sample_posterior_model(model) for model in self.comparison_models]
 
-        posterior_model_vs_gt = {(str(self.posterior_model), "gt"): self.compare_to_gt.compare(self.evaluation_list, posterior_model_samples)}
+        posterior_model_vs_gt = {(str(self.posterior_model), "gt"): self.compare_to_gt.compare(
+            ground_truth_data1=self.evaluation_list,
+            ground_truth_data2=self.evaluation_list_alternative,
+            model_samples=posterior_model_samples
+        ) }
 
 
         comparison_models_vs_gt = {
-            (str(model), "gt"): self.compare_to_gt.compare(self.evaluation_list, model_samples) for model, model_samples in zip(self.comparison_models, comparison_model_samples)
+            (str(model), "gt"): self.compare_to_gt.compare(
+            ground_truth_data1=self.evaluation_list,
+            ground_truth_data2=self.evaluation_list_alternative,
+            model_samples=model_samples
+        ) for model, model_samples in zip(self.comparison_models, comparison_model_samples)
         }
 
         posterior_model_vs_comparison_models = {
@@ -122,8 +142,8 @@ class Evaluate:
             comparison_models_vs_comparison_models = {}
             for i in range(len(self.comparison_models)):
                 for j in range(i+1, len(self.comparison_models)):
-                    comparison_models_vs_comparison_models[(str(self.comparison_models[i]), str(self.comparison_models[j]))] = self.compare_two_models.compare_model_samples(self.comparison_models[i], self.comparison_models[j])
-
+                    comparison_models_vs_comparison_models[(str(self.comparison_models[i]), str(self.comparison_models[j]))] = self.compare_two_models.compare_model_samples(comparison_model_samples[i], comparison_model_samples[j])
+                
 
         res = {
             "posterior_model_vs_gt": posterior_model_vs_gt,

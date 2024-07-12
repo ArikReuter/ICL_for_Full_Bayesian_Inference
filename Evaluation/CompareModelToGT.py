@@ -33,6 +33,8 @@ def results_dict_to_data_x_y(result:dict) -> (torch.tensor):
     """
     x = result["x"]
     y = result["y"]
+
+    y = y.reshape(1, -1)
     X_y = torch.cat([x, y.unsqueeze(-1)], dim = -1) # concatenate the x and y values to one data tensor
     return X_y
 
@@ -59,7 +61,20 @@ def flatten_dict_list(input_list: list[dict]) -> dict:
 
     return new_dict_list
     
-
+def try_otherwise_return_error(fun: callable) -> callable:
+    """
+    A wrapper that modifies a fuction to return torch.nan if the function fails
+    Args:
+        fun: callable: the function
+    Returns:
+        callable: a function that returns torch.nan if the original function fails
+    """
+    def wrapper(*args, **kwargs):
+        try:
+            return fun(*args, **kwargs)
+        except Exception as e:
+            return str(e)
+    return wrapper
 
 class CompareModelToGT():
     """
@@ -70,15 +85,15 @@ class CompareModelToGT():
                  results_dict_to_latent_variable: callable = results_dict_to_latent_variable_beta,
                  results_dict_to_data: callable = results_dict_to_data_x_y,
                  metrics_joint: dict =  {
-                        "Wasserstein Metric": compare_Wasserstein,
-                        "MMMD": compare_samples_mmd,
-                        "CST": compare_samples_classifier_based
+                        "Wasserstein Metric": try_otherwise_return_error(compare_Wasserstein),
+                        "MMMD": try_otherwise_return_error(compare_samples_mmd),
+                        "CST": try_otherwise_return_error(compare_samples_classifier_based)
                  },
                 n_draws_posterior_to_sample_joint: int = 100,
                 metrics_gt_parameter: dict = {
-                        "Perplextiy": compare_to_gt_perplexity_kde,
-                        "MAP diff": compare_to_gt_MAP,
-                        "Mean diff": compare_to_gt_mean_difference
+                        "Perplextiy": try_otherwise_return_error(compare_to_gt_perplexity_kde),
+                        "MAP diff": try_otherwise_return_error(compare_to_gt_MAP),
+                        "Mean diff": try_otherwise_return_error(compare_to_gt_mean_difference)
                 },
 
                     ) -> None:
@@ -210,18 +225,20 @@ class CompareModelToGT():
         return result
 
     
-    def compare(self, ground_truth_data: list[dict], model_samples: list[dict]) -> dict:
+    def compare(self, ground_truth_data1: list[dict], ground_truth_data2: list[dict], model_samples: list[dict]) -> dict:
         """
         Compare the model samples to the ground truth samples and parameters
         Args:
-            ground_truth_data: list[dict]: a list of dictionaries containing the ground truth data. 
+            ground_truth_data1: list[dict]: a list of dictionaries containing the ground truth data. Here the data part does not coincide with the data part of the model samples.
+            ground_truth_data2: list[dict]: a list of dictionaries containing the ground truth data. Here the data part coincides with the data part of the model samples.
             model_samples: list[dict]: a list of dictionaries containing the model samples
         Returns:
             dict: a dictionary containing the results of the comparison
         """
         results = {}
-        joint_results = self.compare_joint_samples(ground_truth_data, model_samples)
-        gt_paramter_results = self.compare_gt_parameters(ground_truth_data, model_samples)
+        gt_paramter_results = self.compare_gt_parameters(ground_truth_data1, model_samples)
+        joint_results = self.compare_joint_samples(ground_truth_data2, model_samples)
+        
 
         joint_results2 = {}
         # rename the keys of the joint results by adding "joint" to the key
@@ -235,7 +252,7 @@ class CompareModelToGT():
 
         results.update(joint_results2)
         results.update(gt_paramter_results2)
-        
+
 
         return results
 
