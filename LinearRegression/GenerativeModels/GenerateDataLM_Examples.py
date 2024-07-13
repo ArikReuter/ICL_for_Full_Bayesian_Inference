@@ -153,7 +153,7 @@ def make_lm_program_gamma_gamma_batched(
         return multivariate_lm_return_dict
 
 
-def make_lm_program_inggamma_gamma(
+def make_lm_program_invgamma_gamma(
         a0:float = 5.0,
         b0: float = 2.0,
         a1: float = 5.0,
@@ -203,7 +203,7 @@ import torch
 import pyro
 import pyro.distributions as dist
 
-def make_lm_program_invgama_gamma_batched(
+def make_lm_program_invgamma_gamma_batched(
         a0: float = 5.0,
         b0: float = 2.0,
         a1: float = 5.0,
