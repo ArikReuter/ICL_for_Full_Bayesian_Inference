@@ -114,7 +114,7 @@ class Evaluate:
         evaluation_list_data = []
         for i, d in enumerate(self.evaluation_loader):
             evaluation_list_data.append(d)
-            if i == self.n_evaluation_cases:
+            if i == self.n_evaluation_cases - 1:
                 break
         return evaluation_list_data
 
