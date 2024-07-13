@@ -200,13 +200,15 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
                 "y": y
             }
             return res
+        
+        else: 
 
-        samples = self.sample_posterior_x(X_y, self.n_samples)
+            samples = self.sample_posterior_x(X_y, self.n_samples)
 
-        res = {
-            self.sample_name: samples,
-            "X": X,
-            "y": y
-        }
+            res = {
+                self.sample_name: samples,
+                "X": X,
+                "y": y
+            }
 
-        return res
+            return res
