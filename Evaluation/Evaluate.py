@@ -255,7 +255,7 @@ class Evaluate:
             for column_name, (key, value) in zip(column_names, values_mean.items()):
                 values_mean2[f"Mean_{column_name}"] = value
 
-            values_std = df.std(axis=1).to_dict()
+            values_std = df.std(axis=0).to_dict()
             values_std2 = {}
             for column_name, (key, value) in zip(column_names, values_std.items()):
                 values_std2[f"Std_{column_name}"] = value
