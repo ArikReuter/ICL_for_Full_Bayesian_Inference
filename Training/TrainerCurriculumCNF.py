@@ -357,7 +357,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
 
                 if self.max_gradient_norm is not None:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_gradient_norm)
-                    
+
                 self.optimizer.step()
 
                 loss_lis.append(loss.detach().cpu())
@@ -370,6 +370,10 @@ class TrainerCurriculumCNF(TrainerCurriculum):
 
                 self.writer.add_scalar("Loss/train", loss, overall_iter)
                 self.second_writer.add_scalar("Loss/train", loss, overall_iter)
+
+                for curriculum_param_name, curriculum_param in current_params.items():
+                    self.writer.add_scalar(f"Curriculum/{curriculum_param_name}", curriculum_param, overall_iter)
+                    self.second_writer.add_scalar(f"Curriculum/{curriculum_param_name}", curriculum_param, overall_iter)
 
                 if self.sub_losses_names:
                     for i, name in enumerate(self.sub_losses_names):
