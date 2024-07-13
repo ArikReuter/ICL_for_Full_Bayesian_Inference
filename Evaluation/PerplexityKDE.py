@@ -41,7 +41,7 @@ class PerplexityKDE():
 
         kde = gaussian_kde(samples.T, bw_method=self.bw_method)
 
-        log_pdf = kde.logpdf(true_parameter)
+        log_pdf = kde.logpdf(true_parameter)[0]
 
         return log_pdf
     

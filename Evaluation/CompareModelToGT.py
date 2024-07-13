@@ -114,7 +114,6 @@ class CompareModelToGT():
         self.n_draws_posterior_to_sample_joint = n_draws_posterior_to_sample_joint
         self.metrics_gt_parameter = metrics_gt_parameter
 
-
     def compare_joint_samples(
                 self,
                 ground_truth_data: list[dict],
@@ -179,7 +178,10 @@ class CompareModelToGT():
 
             result.append(r)
 
-        result = flatten_dict_list(result)
+        try:
+            result = flatten_dict_list(result)
+        except:
+            pass
 
         return result
 
@@ -240,19 +242,28 @@ class CompareModelToGT():
         joint_results = self.compare_joint_samples(ground_truth_data2, model_samples)
         
 
-        joint_results2 = {}
+        joint_results2 = []
         # rename the keys of the joint results by adding "joint" to the key
-        for key, value in joint_results[0].items():
-            joint_results2["joint_" + key] = value
 
-        gt_paramter_results2 = {}
+        for elem in joint_results:
+            new_d = {}
+            for key, value in elem.items():
+                new_d["joint_" + key] = value
+
+            joint_results2.append(new_d)
+
+        gt_paramter_results2 = []
         # rename the keys of the gt parameter results by adding "gt_parameter" to the key
-        for key, value in gt_paramter_results[0].items():
-            gt_paramter_results2["gt_parameter_" + key] = value
 
-        results.update(joint_results2)
-        results.update(gt_paramter_results2)
+        for elem in gt_paramter_results:
+            new_d = {}
+            for key, value in elem.items():
+                new_d["gt_parameter_" + key] = value
 
+            gt_paramter_results2.append(new_d)
+
+        results["joint"] = joint_results2
+        results["gt_parameter"] = gt_paramter_results2
 
         return results
 

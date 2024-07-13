@@ -57,3 +57,7 @@ class Hamiltionian_MC(PosteriorComparisonModel):
         self.mcmc.run(X, y)
         posterior_samples = self.mcmc.get_samples()
         return posterior_samples
+    
+
+    def __repr__(self) -> str:
+        return "Hamiltonian Monte Carlo"

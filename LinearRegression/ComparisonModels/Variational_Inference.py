@@ -128,3 +128,6 @@ class Variational_Inference(PosteriorComparisonModel):
         self.do_inference(X, y)
         posterior_samples = pyro.infer.Predictive(self.guide, num_samples=self.n_samples)(X, y)
         return posterior_samples
+    
+    def __repr__(self) -> str:
+        return "Variational Inference with guide: {}".format(self.guide)

@@ -70,6 +70,9 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
 
         self.sample_only_base_dist = sample_only_base_dist
 
+    def __repr__(self) -> str:
+        return "ModelToPosteriorCNF_LearnedBaseDist"
+
     def generate_vector_field_function_cond_x(self, x: torch.tensor) -> torch.nn.Module:
         """
         Generate the vector field function that takes in the input x and returns the vector field at time t
