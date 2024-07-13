@@ -194,6 +194,7 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
             encoder_prediction, encoder_representation = self.model.forward_encoder(x)  # get the final output of the encoder and the intermediate transformer representation
             base_distribution_samples = self.model.get_base_distribution_samples(encoder_prediction)  # sample from the base distribution
 
+            base_distribution_samples = base_distribution_samples.to(self.target_device)
             res = {
                 self.sample_name: base_distribution_samples,
                 "X": X,
