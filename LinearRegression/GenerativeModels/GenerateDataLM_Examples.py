@@ -152,6 +152,119 @@ def make_lm_program_gamma_gamma_batched(
 
         return multivariate_lm_return_dict
 
+
+def make_lm_program_inggamma_gamma(
+        a0:float = 5.0,
+        b0: float = 2.0,
+        a1: float = 5.0,
+        b1: float = 2.0
+        ) -> LM_abstract.pprogram_linear_model_return_dict:
+        """
+        Make a linear model probabilistic program with a gamma prior on sigma_squared and a gamma prior on beta_var.
+        Args: 
+                a0: float: the shape parameter of the gamma prior on beta_var
+                bo: float: the rate parameter of the gamma prior on beta_var
+                a1: float: the shape parameter of the gamma prior on sigma_squared
+                b1: float: the rate parameter of the gamma prior on sigma_squared
+        Returns:
+                LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
+        """
+        def multivariate_lm_return_dict(x: torch.tensor, y: torch.tensor = None) -> dict:
+            
+            beta_dist = pyro.distributions.Gamma(a0, b0)
+            beta_var = pyro.sample("beta_var", beta_dist)
+        
+            sigma_squared_dist = pyro.distributions.InverseGamma(a1, b1)
+            sigma_squared = pyro.sample("sigma_squared", sigma_squared_dist)
+
+            beta_cov = torch.eye(x.shape[1]) * beta_var # the covariance matrix of the parameters of the linear model
+            beta = pyro.sample("beta", pyro.distributions.MultivariateNormal(torch.zeros(x.shape[1]), beta_cov)) # the parameters of the linear model
+
+            mean = torch.matmul(x, beta)
+
+            with pyro.plate("data", x.shape[0]):
+                y = pyro.sample("obs", pyro.distributions.Normal(mean, sigma_squared), obs=y)
+
+            return {
+                        "x": x,
+                        "y": y,
+                        "sigma_squared": sigma_squared,
+                        "beta_var": beta_var,
+                        "beta": beta
+                }
+        
+        return multivariate_lm_return_dict
+
+
+
+
+
+import torch
+import pyro
+import pyro.distributions as dist
+
+def make_lm_program_invgama_gamma_batched(
+        a0: float = 5.0,
+        b0: float = 2.0,
+        a1: float = 5.0,
+        b1: float = 2.0
+    ) -> 'LM_abstract.pprogram_linear_model_return_dict':
+        """
+        Make a linear model probabilistic program with a gamma prior on sigma_squared and a gamma prior on beta_var.
+        Args: 
+                a0: float: the shape parameter of the gamma prior on beta_var
+                b0: float: the rate parameter of the gamma prior on beta_var
+                a1: float: the shape parameter of the gamma prior on sigma_squared
+                b1: float: the rate parameter of the gamma prior on sigma_squared
+        Returns:
+                LM_abstract.pprogram_linear_model_return_dict: a linear model probabilistic program
+        """
+        def multivariate_lm_return_dict(x: torch.Tensor, y: torch.Tensor = None) -> dict:
+                if x.dim() == 2:
+                        x = x.unsqueeze(0)  # Ensure x is 3D (batch_size, N, P)
+                batch_size, N, P = x.shape
+
+                # Define distributions for the global parameters
+                beta_dist = dist.Gamma(a0, b0)
+                sigma_squared_dist = dist.InverseGamma(a1, b1)
+
+                with pyro.plate("batch", batch_size, dim=-1):
+                        # Sample global parameters per batch
+                        beta_var = pyro.sample("beta_var", beta_dist).squeeze() # Shape: (batch_size,)
+                        
+                        sigma_squared = pyro.sample("sigma_squared", sigma_squared_dist).squeeze() # Shape: (batch_size,)
+                        # Create beta covariance matrix based on the number of covariates P
+                        beta_cov = torch.eye(P) * beta_var.unsqueeze(-1).unsqueeze(-1)  # Expand beta_var to shape (batch_size, P, P)
+                        
+                        #print(beta_cov.shape)
+                        beta_dist = dist.MultivariateNormal(torch.zeros(P), beta_cov)
+                        #print(beta_dist.batch_shape, beta_dist.event_shape)
+                        beta = pyro.sample("beta", beta_dist)  # Shape: (batch_size, P)
+
+                
+                        # Compute mean using matrix multiplication
+                        mean = torch.matmul(x, beta.unsqueeze(-1)).squeeze(-1)  # Shape: (batch_size, N)
+
+
+                        with pyro.plate("data", N):
+                                noise = pyro.sample("noise", dist.Normal(0, sigma_squared))  # Shape: (batch_size, N)
+                        
+                        noise = noise.permute(1, 0)  # Shape: (N, batch_size)
+                        y = mean + noise  # Shape: (batch_size, N)
+
+                sigma_squared = sigma_squared.unsqueeze(-1)
+                beta_var = beta_var.unsqueeze(-1)
+
+                return {
+                                "x": x,
+                                "y": y,
+                                "sigma_squared": sigma_squared,
+                                "beta_var": beta_var,
+                                "beta": beta
+                        }
+
+        return multivariate_lm_return_dict
+
 def make_lm_program_trivial_batched(
         mu: float = 0.0,
         sigma: float = 1.0

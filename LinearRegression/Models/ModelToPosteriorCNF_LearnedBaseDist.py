@@ -205,6 +205,7 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
         else: 
 
             samples = self.sample_posterior_x(X_y, self.n_samples)
+            samples = samples.to(self.target_device)
 
             res = {
                 self.sample_name: samples,
