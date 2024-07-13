@@ -140,6 +140,7 @@ def make_lm_program_gamma_gamma_batched(
                         y = mean + noise  # Shape: (batch_size, N)
 
                 sigma_squared = sigma_squared.unsqueeze(-1)
+                beta_var = beta_var.unsqueeze(-1)
 
                 return {
                                 "x": x,
