@@ -50,7 +50,8 @@ class TrainerCurriculumCNF(TrainerCurriculum):
                      "median": torch.median,
                      "std": torch.std
                  },
-                 sub_losses_names = []
+                 sub_losses_names = [],
+                 max_gradient_norm: float = 1.0
     ):
         """
         A custom class for training neural networks
@@ -79,6 +80,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
             using_OTLossGaussianBase: bool: whether to use the OT loss with a Gaussian base distribution
             loss_aggregation_functions: dict: a dictionary containing the loss aggregation functions
             sub_losses_names: list: a list containing the names of the sub losses
+            max_gradient_norm: float: the maximum gradient norm
         """
 
         assert schedule_step_on in ["epoch", "batch"], "schedule_step_on must be either 'epoch' or 'batch'"
@@ -107,6 +109,7 @@ class TrainerCurriculumCNF(TrainerCurriculum):
         self.using_OTLossGaussianBase = using_OTLossGaussianBase
         self.loss_aggregation_functions = loss_aggregation_functions
         self.sub_losses_names = sub_losses_names
+        self.max_gradient_norm = max_gradient_norm
 
         if self.valset is None:
             self.valset = self.epoch_loader(n_epochs)[1]  #load the validation set for the last epoch from the epoch_loader
@@ -351,6 +354,10 @@ class TrainerCurriculumCNF(TrainerCurriculum):
 
                 self.optimizer.zero_grad()
                 loss.backward()
+
+                if self.max_gradient_norm is not None:
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_gradient_norm)
+                    
                 self.optimizer.step()
 
                 loss_lis.append(loss.detach().cpu())
