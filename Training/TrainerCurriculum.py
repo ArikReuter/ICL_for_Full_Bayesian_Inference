@@ -36,7 +36,8 @@ class TrainerCurriculum():
                  make_new_folder: bool = True,
                  early_stopping_patience: int = 10,
                  verbose:int = 100,
-                 summary_writer_path: str = "runs/"
+                 summary_writer_path: str = "runs/",
+                 max_gradient_norm: float = 1.0
     ):
         """
         A custom class for training neural networks
@@ -59,6 +60,7 @@ class TrainerCurriculum():
             early_stopping_patience: int: the patience for early stopping
             verbose: int: how much to print
             summary_writer_path: str: the path to save the summary writer
+            max_gradient_norm: float: the maximum gradient norm, can be None
         """
 
         assert schedule_step_on in ["epoch", "batch"], "schedule_step_on must be either 'epoch' or 'batch'"
@@ -80,6 +82,7 @@ class TrainerCurriculum():
         self.early_stopping_patience = early_stopping_patience
         self.verbose = verbose
         self.summary_writer_path = summary_writer_path
+        self.max_gradient_norm = max_gradient_norm
 
         if self.valset is None:
             self.valset = self.epoch_loader(n_epochs)[1]  #load the validation set for the last epoch from the epoch_loader
@@ -307,6 +310,10 @@ class TrainerCurriculum():
 
                 self.optimizer.zero_grad()
                 loss.backward()
+
+                if self.max_gradient_norm is not None:
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_gradient_norm)
+                    
                 self.optimizer.step()
 
                 self.writer.add_scalar("Loss/train", loss, overall_iter)
