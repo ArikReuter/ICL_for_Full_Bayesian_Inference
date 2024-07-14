@@ -162,7 +162,7 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
             res.append(self.sample_posterior_x_batch(X, n_samples % self.batch_size))
 
 
-        res = torch.cat(res, dim=0)
+        res = torch.cat(res, dim=0).to(self.target_device)
 
         assert len(res) == n_samples
         return res
@@ -205,8 +205,8 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
             base_distribution_samples = base_distribution_samples.to(self.target_device)
             res = {
                 self.sample_name: base_distribution_samples,
-                "X": X,
-                "y": y
+                "X": X.to(self.target_device),
+                "y": y.to(self.target_device)
             }
             return res
         
@@ -217,8 +217,8 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
 
             res = {
                 self.sample_name: samples,
-                "X": X,
-                "y": y
+                "X": X.to(self.target_device),
+                "y": y.to(self.target_device)
             }
 
             return res
