@@ -139,8 +139,10 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
         else:
             samples = odeint_adjoint(vector_field_function, base_distribution_samples, timepoints, atol=self.atol, rtol=self.rtol, method=self.solver)
 
-
+        samples = samples.detach()
         samples = samples.to(self.target_device)
+
+        del vector_field_function
 
         return samples[-1]
 
@@ -156,8 +158,6 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
         res = []
 
         for i in tqdm(list(range(n_batches))):
-            print("X shape", X.shape)
-            print("batch size", self.batch_size)
             res.append(self.sample_posterior_x_batch(X, self.batch_size))
 
         if n_samples % self.batch_size != 0:
