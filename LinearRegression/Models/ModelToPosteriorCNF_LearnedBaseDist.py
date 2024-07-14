@@ -156,14 +156,16 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
         res = []
 
         for i in tqdm(list(range(n_batches))):
-            x = X[i * self.batch_size: (i + 1) * self.batch_size]
-            res.append(self.sample_posterior_x_batch(x, self.batch_size))
+            res.append(self.sample_posterior_x_batch(X, self.batch_size))
 
         if n_samples % self.batch_size != 0:
-            x = X[n_batches * self.batch_size: n_samples]
-            res.append(self.sample_posterior_x_batch(x, n_samples % self.batch_size))
+            res.append(self.sample_posterior_x_batch(X, n_samples % self.batch_size))
 
-        return torch.cat(res, dim=0)
+
+        res = torch.cat(res, dim=0)
+
+        assert len(res) == n_samples
+        return res
 
     
     def sample_posterior(self,  
