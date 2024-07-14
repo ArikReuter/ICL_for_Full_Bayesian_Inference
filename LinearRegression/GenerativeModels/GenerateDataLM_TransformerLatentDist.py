@@ -47,7 +47,7 @@ def make_lm_program_ig_weird1_batched(
                         #print(beta_dist.batch_shape, beta_dist.event_shape)
                         beta = pyro.sample("beta", beta_dist)  # Shape: (batch_size, P)
 
-                        beta = torch.exp(beta) - beta + beta**2
+                        beta = torch.exp(beta) - 5*beta + beta**2
 
                 
                         # Compute mean using matrix multiplication
@@ -100,7 +100,7 @@ def make_lm_program_ig_weird1(
                 beta_dist = dist.MultivariateNormal(torch.zeros(x.shape[1]), beta_cov)
                 beta = pyro.sample("beta", beta_dist)
 
-                torch.exp(beta) - beta + beta**2
+                torch.exp(beta) - 5*beta + beta**2
 
                 # Compute mean using matrix multiplication
                 mean = torch.matmul(x, beta)
