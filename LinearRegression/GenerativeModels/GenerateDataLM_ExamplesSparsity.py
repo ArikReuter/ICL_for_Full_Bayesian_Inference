@@ -36,10 +36,10 @@ def make_lm_program_Laplace_ig_batched(
                         sigma_squared = pyro.sample("sigma_squared", sigma_squared_dist).squeeze() # Shape: (batch_size,)
 
                         #print(beta_cov.shape)
-                        beta_dist = dist.Laplace(torch.zeros(P), torch.ones(P) * tau)  # Shape: (batch_size, P)
+                        beta_dist = dist.Laplace(torch.zeros(P, 1), torch.ones(P, 1) * tau)  # Shape: (batch_size, P)
                         #print(beta_dist.batch_shape, beta_dist.event_shape)
-                        beta = pyro.sample("beta", beta_dist)  # Shape: (batch_size, P)
-
+                        beta = pyro.sample("beta", beta_dist).T  # Shape: (batch_size, P)
+                        print(beta.shape)
                 
                         # Compute mean using matrix multiplication
                         mean = torch.matmul(x, beta.unsqueeze(-1)).squeeze(-1)  # Shape: (batch_size, N)
