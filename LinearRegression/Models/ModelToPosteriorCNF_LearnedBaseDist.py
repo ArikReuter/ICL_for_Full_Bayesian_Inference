@@ -36,7 +36,8 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
                  device: str = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
                  target_device: str = torch.device("cpu"),
                  solve_adjoint: bool = False, 
-                 sample_only_base_dist: bool = False
+                 sample_only_base_dist: bool = False,
+                 name: str = None
                  ) -> None:
         """
         Args:
@@ -53,6 +54,7 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
             tarfet_device: str: the device to use for the final output samples
             solve_adjoint: bool: whether to solve the ODE with the adjoint method
             sample_only_base_dist: bool: whether to only sample from the base distribution and not use the flow matching model
+            name: str: the name of the model
         """
         self.model = model.to(device)
         self.sample_shape = sample_shape
@@ -69,9 +71,13 @@ class ModelToPosteriorCNF_LearnedBaseDist(PosteriorComparisonModel):
         self.solve_adjoint = solve_adjoint
 
         self.sample_only_base_dist = sample_only_base_dist
+        self.name = name
 
     def __repr__(self) -> str:
-        return "ModelToPosteriorCNF_LearnedBaseDist"
+        if self.name is not None:
+            return self.name
+        else:
+            return "ModelToPosteriorCNF_LearnedBaseDist"
 
     def generate_vector_field_function_cond_x(self, x: torch.tensor) -> torch.nn.Module:
         """
