@@ -389,30 +389,33 @@ class Evaluate:
                 k1 = model_comparison_among_each_other_df_keys[i]
                 k2 = model_comparison_among_each_other_df_keys[j]
 
-                df1 = model_comparison_among_each_other_df[k1]
-                df2 = model_comparison_among_each_other_df[k2]
+                if k1[0] == k1[1] or k1[0] == k2[0] or k1[0] == k2[1] or k1[1] == k2[0] or k1[1] == k2[1] or k2[0] == k2[1]:  # only consider cases where one partner if the same 
 
-                test_paired_res = test_paired(df1, df2)[1]
+                    df1 = model_comparison_among_each_other_df[k1]
+                    df2 = model_comparison_among_each_other_df[k2]
 
-                assert np.all(df1.columns == df2.columns), "The columns of the dataframes must be equal"
+                    test_paired_res = test_paired(df1, df2)[1]
 
-                metric_names = df1.columns
+                    assert np.all(df1.columns == df2.columns), "The columns of the dataframes must be equal"
 
-                metric_names = [f"{metric_name}_p-value" for metric_name in metric_names]
+                    metric_names = df1.columns
 
-                test_res = {
-                    metric_name: test_paired_res[i] for i, metric_name in enumerate(metric_names)
-                }
+                    metric_names = [f"{metric_name}_p-value" for metric_name in metric_names]
 
-                r = {
-                    "Pair 1: Model A": k1[0],
-                    "Pair 1: Model B": k1[1],
-                    "Pair 2: Model A": k2[0],
-                    "Pair 2: Model B": k2[1],
-                    **test_res
-                }
+                    test_res = {
+                        metric_name: test_paired_res[i] for i, metric_name in enumerate(metric_names)
+                    }
 
-                res_dict_list.append(r)
+                    
+                    r = {
+                        "Pair 1: Model A": k1[0],
+                        "Pair 1: Model B": k1[1],
+                        "Pair 2: Model A": k2[0],
+                        "Pair 2: Model B": k2[1],
+                        **test_res
+                    }
+
+                    res_dict_list.append(r)
 
         pvals_model_comparison_among_each_other = pd.DataFrame(res_dict_list)
 
