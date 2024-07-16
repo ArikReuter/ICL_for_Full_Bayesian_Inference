@@ -83,10 +83,9 @@ def make_lm_program_Laplace_ig(
                 # Define distributions for the global parameters
                 sigma_squared_dist = dist.InverseGamma(a, b)
 
-
                 sigma_squared = pyro.sample("sigma_squared", sigma_squared_dist).squeeze()
 
-                beta_dist = dist.Laplace(torch.zeros(x.shape[1]), torch.ones(x.shape[1]) * tau)
+                beta_dist = dist.Laplace(torch.zeros(x.shape[1]), torch.ones(x.shape[1]) * tau).to_event(1)
                 beta = pyro.sample("beta", beta_dist)
 
                 # Compute mean using matrix multiplication
