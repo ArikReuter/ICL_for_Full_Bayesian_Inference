@@ -4,6 +4,20 @@ import torch
 
 class TrainerCurriculumCNF_LearnedBaseDist_plus_nll(TrainerCurriculumCNF):
 
+    def __init__(
+        self,
+        stop_gradients_from_FM_to_encoder: bool = False,
+        **kwargs,
+    ):
+        """
+        Args:
+            stop_gradients_from_FM_to_encoder: bool: whether to stop the gradients from the flow matching to the encoder
+            kwargs: dict: the keyword arguments for the TrainerCurriculumCNF
+        """
+        super().__init__(**kwargs)
+        self.stop_gradients_from_FM_to_encoder = stop_gradients_from_FM_to_encoder
+
+
 
     def batch_to_loss(self, batch: dict[str, torch.Tensor]) -> torch.Tensor:
         """
@@ -43,10 +57,18 @@ class TrainerCurriculumCNF_LearnedBaseDist_plus_nll(TrainerCurriculumCNF):
             z_0_b = None,
         )
 
+        if self.stop_gradients_from_FM_to_encoder:
+            z_t = z_t.detach()
+
+
+        if self.stop_gradients_from_FM_to_encoder:
+            encoder_prediction_to_decoder = encoder_prediction.detach()
+        else:
+            encoder_prediction_to_decoder = encoder_prediction
 
         vector_field_prediction = self.model.forward_decoder(  # compute the vector field prediction by the model
             z = z_t,
-            x_encoder= encoder_representation,
+            x_encoder= encoder_prediction_to_decoder,
             condition_time= t
         )
 
