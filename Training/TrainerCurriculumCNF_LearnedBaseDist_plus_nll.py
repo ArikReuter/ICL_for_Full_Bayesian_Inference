@@ -62,7 +62,7 @@ class TrainerCurriculumCNF_LearnedBaseDist_plus_nll(TrainerCurriculumCNF):
 
 
         if self.stop_gradients_from_FM_to_encoder:
-            encoder_prediction_to_decoder = encoder_prediction.detach()
+            encoder_prediction_to_decoder = [elem.detach() for elem in encoder_prediction]
         else:
             encoder_prediction_to_decoder = encoder_prediction
 
