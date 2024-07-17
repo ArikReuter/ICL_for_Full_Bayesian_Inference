@@ -59,6 +59,7 @@ class TrainerCurriculumCNF_LearnedBaseDist_plus_nll(TrainerCurriculumCNF):
 
         if self.stop_gradients_from_FM_to_encoder:
             z_t = z_t.detach()
+            z_0_b = z_0_b.detach()
 
 
         if self.stop_gradients_from_FM_to_encoder:
