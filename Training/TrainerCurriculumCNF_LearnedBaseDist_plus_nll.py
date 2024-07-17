@@ -62,13 +62,13 @@ class TrainerCurriculumCNF_LearnedBaseDist_plus_nll(TrainerCurriculumCNF):
 
 
         if self.stop_gradients_from_FM_to_encoder:
-            encoder_prediction_to_decoder = [elem.detach() for elem in encoder_prediction]
+            encoder_representation_to_decoder = encoder_representation.detach()
         else:
-            encoder_prediction_to_decoder = encoder_prediction
+            encoder_representation_to_decoder = encoder_representation
 
         vector_field_prediction = self.model.forward_decoder(  # compute the vector field prediction by the model
             z = z_t,
-            x_encoder= encoder_prediction_to_decoder,
+            x_encoder= encoder_representation_to_decoder,
             condition_time= t
         )
 
