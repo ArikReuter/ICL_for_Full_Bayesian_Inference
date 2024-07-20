@@ -7,7 +7,7 @@ def compare_samples_classifier_based(P: torch.tensor,
                                      Q:torch.tensor, 
                                      used_model: sklearn.base.BaseEstimator = sklearn.ensemble.RandomForestClassifier(),
                                      n_folds = 10,
-                                     balance_classes = True) -> dict:
+                                     balance_classes = True) -> float:
     """
     A function that compares two samples from two distributions using a classifier
     Args:
@@ -17,9 +17,8 @@ def compare_samples_classifier_based(P: torch.tensor,
         n_folds: int: the number of folds to use in the cross validation
         balance_classes: bool: whether to use as much samples from one class as from the other
     Returns:
-        dict: a dictionary containing the result in terms of roc_auc_score and accuracy
+        float: the ROC AUC score of the classifier
     """
-
     n = P.shape[0]
     m = Q.shape[0]
 
@@ -54,8 +53,10 @@ def compare_samples_classifier_based(P: torch.tensor,
         y_pred = used_model.predict(X_test)
         roc_auc_scores.append(sklearn.metrics.roc_auc_score(y_test, y_pred))
         accuracy_scores.append(sklearn.metrics.accuracy_score(y_test, y_pred))
+    
+    roc = torch.tensor(roc_auc_scores).mean().item()
 
-    return {"CST_accuracy": torch.tensor(accuracy_scores).mean().item(), "CST_roc_auc_score": torch.tensor(roc_auc_scores).mean().item()}
+    return roc
 
 
 
