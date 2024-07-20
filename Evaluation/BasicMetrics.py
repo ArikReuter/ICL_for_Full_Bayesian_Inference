@@ -100,7 +100,7 @@ def compare_Wasserstein(P: torch.tensor, Q:torch.tensor, metric = 'euclidean') -
 
         W2 = ot.emd2(a, b, M)
 
-        return {f"Wasserstein_distance with metric {metric}": W2}
+        return {f"Wasserstein_distance with metric {metric}": W2.item()}
 
     except Exception as e:
         print(f"Expection in compare_Wasserstein: {e}")
