@@ -19,43 +19,47 @@ def compare_samples_classifier_based(P: torch.tensor,
     Returns:
         float: the ROC AUC score of the classifier
     """
-    n = P.shape[0]
-    m = Q.shape[0]
+    try:
+        n = P.shape[0]
+        m = Q.shape[0]
 
-    if balance_classes:
-        n = min(n, m)
-        m = n
-        P = P[:n]
-        Q = Q[:m]
+        if balance_classes:
+            n = min(n, m)
+            m = n
+            P = P[:n]
+            Q = Q[:m]
 
-    X = torch.cat([P, Q], dim = 0)
-    y = torch.cat([torch.zeros(n), torch.ones(m)]).numpy()
+        X = torch.cat([P, Q], dim = 0)
+        y = torch.cat([torch.zeros(n), torch.ones(m)]).numpy()
 
-    # shuffle the data
-    perm = torch.randperm(X.shape[0])
-    X = X[perm]
-    y = y[perm]
+        # shuffle the data
+        perm = torch.randperm(X.shape[0])
+        X = X[perm]
+        y = y[perm]
 
-    cv = sklearn.model_selection.StratifiedKFold(n_splits = n_folds)
+        cv = sklearn.model_selection.StratifiedKFold(n_splits = n_folds)
 
-    roc_auc_scores = []
-    accuracy_scores = []
+        roc_auc_scores = []
+        accuracy_scores = []
 
-    for train_index, test_index in cv.split(X, y):
-        X_train, X_test = X[train_index], X[test_index]
-        y_train, y_test = y[train_index], y[test_index]
+        for train_index, test_index in cv.split(X, y):
+            X_train, X_test = X[train_index], X[test_index]
+            y_train, y_test = y[train_index], y[test_index]
 
-        X_train = X_train.detach().cpu().numpy()
-        X_test = X_test.detach().cpu().numpy()
+            X_train = X_train.detach().cpu().numpy()
+            X_test = X_test.detach().cpu().numpy()
 
-        used_model.fit(X_train, y_train)
+            used_model.fit(X_train, y_train)
 
-        y_pred = used_model.predict(X_test)
-        roc_auc_scores.append(sklearn.metrics.roc_auc_score(y_test, y_pred))
-        accuracy_scores.append(sklearn.metrics.accuracy_score(y_test, y_pred))
-    
-    roc = torch.tensor(roc_auc_scores).mean().item()
-    res = {"cst_roc_auc": roc}
+            y_pred = used_model.predict(X_test)
+            roc_auc_scores.append(sklearn.metrics.roc_auc_score(y_test, y_pred))
+            accuracy_scores.append(sklearn.metrics.accuracy_score(y_test, y_pred))
+        
+        roc = torch.tensor(roc_auc_scores).mean().item()
+        res = {"cst_roc_auc": roc}
+
+    except:
+        res = {"cst_roc_auc": torch.nan}
     return res
 
 
