@@ -8,7 +8,7 @@ from scipy.stats import mannwhitneyu, wilcoxon
 
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel 
 from PFNExperiments.Evaluation.CompareModelToGT import convert_to_batchsize_1_dataloader
-from PFNExperiments.Evaluation.CompareModelToGT import results_dict_to_data_x_y, results_dict_to_latent_variable_beta
+from PFNExperiments.Evaluation.CompareModelToGT import results_dict_to_latent_variable_beta
 
 from PFNExperiments.Evaluation.CompareModelToGT import CompareModelToGT
 from PFNExperiments.Evaluation.CompareTwoModels import CompareTwoModels

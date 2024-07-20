@@ -2,14 +2,11 @@ import pyro
 from torch.distributions import constraints
 import torch
 
-import torch
-import pyro
 import pyro.infer
 import pyro.optim
 from pyro.infer import SVI, Trace_ELBO
 
 from PFNExperiments.LinearRegression.GenerativeModels.LM_abstract import ppgram_linear_model_return_y, pprogram_linear_model_return_dict
-from PFNExperiments.LinearRegression.GenerativeModels import LM_abstract
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel
 
 def make_guide_program_gamma_gamma(a0:float = 5.0,
