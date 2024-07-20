@@ -7,7 +7,7 @@ def compare_samples_classifier_based(P: torch.tensor,
                                      Q:torch.tensor, 
                                      used_model: sklearn.base.BaseEstimator = sklearn.ensemble.RandomForestClassifier(),
                                      n_folds = 10,
-                                     balance_classes = True) -> float:
+                                     balance_classes = True) -> dict
     """
     A function that compares two samples from two distributions using a classifier
     Args:
@@ -55,8 +55,8 @@ def compare_samples_classifier_based(P: torch.tensor,
         accuracy_scores.append(sklearn.metrics.accuracy_score(y_test, y_pred))
     
     roc = torch.tensor(roc_auc_scores).mean().item()
-
-    return roc
+    res = {"cst_roc_auc": roc}
+    return res
 
 
 
