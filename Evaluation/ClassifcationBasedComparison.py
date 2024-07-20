@@ -7,7 +7,7 @@ def compare_samples_classifier_based(P: torch.tensor,
                                      Q:torch.tensor, 
                                      used_model: sklearn.base.BaseEstimator = sklearn.ensemble.RandomForestClassifier(),
                                      n_folds = 10,
-                                     balance_classes = True) -> dict
+                                     balance_classes = True) -> dict:
     """
     A function that compares two samples from two distributions using a classifier
     Args:
