@@ -50,6 +50,9 @@ class TrainerCurriculumCNF_LearnedBaseDist_plus_nll(TrainerCurriculumCNF):
         if self.coupling is not None:
             base_distribution_samples = self.coupling.couple(z_1, base_distribution_samples)  # align the samples from the base distribution and the probability path using the coupling
 
+        if self.stop_gradients_from_FM_to_encoder:
+            base_distribution_samples = base_distribution_samples.detach()
+            
         z_t, z_0_b = self.loss_function.psi_t_conditional_fun(  # compute the conditional flow
             z_0_a = base_distribution_samples,
             z_1 = z_1,

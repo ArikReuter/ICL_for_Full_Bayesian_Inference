@@ -61,6 +61,11 @@ class CFMLossOTGaussianBase_plus_NLL(CFMLossOTGaussianBase):
 
         loss = (1-self.weight_nll) * loss_flow_matching + self.weight_nll * loss_nll
 
+        if self.weight_nll == 0.0:
+            loss = loss_flow_matching
+        if self.weight_nll == 1.0:
+            loss = loss_nll
+
         if self.return_sub_losses:
             return loss, loss_flow_matching, loss_nll
 
