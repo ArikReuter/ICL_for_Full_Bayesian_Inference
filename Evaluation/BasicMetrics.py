@@ -1,5 +1,6 @@
 import torch 
 import ot
+from scipy.stats import ks_2samp
 
 def compare_basic_statistics(P: torch.tensor, Q:torch.tensor) -> dict:
     """
@@ -91,15 +92,18 @@ def compare_Wasserstein(P: torch.tensor, Q:torch.tensor, metric = 'euclidean') -
     Returns:
         dict: a dictionary containing the Wasserstein-2 distance between the two sets of samples
     """
+    try:
+        M = ot.dist(P, Q, metric=metric)
 
-    M = ot.dist(P, Q, metric=metric)
+        a = torch.ones(P.shape[0]) / P.shape[0]
+        b = torch.ones(Q.shape[0]) / Q.shape[0]
 
-    a = torch.ones(P.shape[0]) / P.shape[0]
-    b = torch.ones(Q.shape[0]) / Q.shape[0]
+        W2 = ot.emd2(a, b, M)
 
-    W2 = ot.emd2(a, b, M)
+        return {f"Wasserstein_distance with metric {metric}": W2.item()}
 
-    return {f"Wasserstein_distance with metric {metric}": W2.item()}
+    except Exception as e:
+        return {f"Wasserstein_distance with metric {metric}": torch.nan}
 
 def compare_KLD_Gaussian(P: torch.tensor, Q: torch.tensor) -> dict:
     """

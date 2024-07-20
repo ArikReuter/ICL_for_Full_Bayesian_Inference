@@ -49,8 +49,11 @@ def compare_samples_mmd(P: torch.tensor, Q: torch.tensor, n_kernels = 5, mul_fac
     Returns:
         dict: a dictionary containing the result of the comparison
     """
-
-    mmd = MMDLoss(kernel=RBF(n_kernels=n_kernels, mul_factor=mul_factor, bandwidth=bandwith))
-    mmd_value = mmd(P, Q).item()
-    res = {"MMD": mmd_value}
+    try:
+        mmd = MMDLoss(kernel=RBF(n_kernels=n_kernels, mul_factor=mul_factor, bandwidth=bandwith))
+        mmd_value = mmd(P, Q).item()
+        res = {"MMD": mmd_value}
+    except:
+        res = {"MMD": torch.nan}
+    
     return res
