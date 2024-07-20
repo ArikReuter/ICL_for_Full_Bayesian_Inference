@@ -53,7 +53,8 @@ def compare_samples_mmd(P: torch.tensor, Q: torch.tensor, n_kernels = 5, mul_fac
         mmd = MMDLoss(kernel=RBF(n_kernels=n_kernels, mul_factor=mul_factor, bandwidth=bandwith))
         mmd_value = mmd(P, Q).item()
         res = {"MMD": mmd_value}
-    except:
+    except Exception as e:
+        print(f"An exception occured in compare_samples_mmd: {e}")
         res = {"MMD": torch.nan}
     
     return res
