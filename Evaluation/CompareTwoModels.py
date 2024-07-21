@@ -17,9 +17,9 @@ class CompareTwoModels():
                  results_dict_to_latent_variable: callable = results_dict_to_latent_variable_beta,
                  results_dict_to_data: callable = results_dict_to_data_x_y,
                  metrics = [
-                    try_otherwise_return_error(compare_Wasserstein),
-                    try_otherwise_return_error(compare_samples_mmd),
-                    try_otherwise_return_error(compare_samples_classifier_based)
+                    compare_Wasserstein,
+                    compare_samples_mmd,
+                    compare_samples_classifier_based
                  ]
                     ) -> None:
         """

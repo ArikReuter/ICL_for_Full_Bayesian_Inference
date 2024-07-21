@@ -12,10 +12,15 @@ def compare_to_gt_mean_difference(samples:torch.tensor, true_parameter:torch.ten
     Returns:
         float: the mean difference between the samples and the true parameter
     """
-    samples = samples.detach().cpu()
+    try:
+        samples = samples.detach().cpu()
 
-    res = torch.mean(torch.abs(samples.mean(dim = 0) - true_parameter)).item()
-    return res.item()
+        res = torch.mean(torch.abs(samples.mean(dim = 0) - true_parameter)).item()
+
+    except Exception as e:
+        res = torch.nan
+        print(f"An exception occured in compare_to_gt_mean_difference: {e}")
+    return res
 
 def compare_to_gt_MAP(samples:torch.tensor, true_parameter:torch.tensor, kernel_bandwidth = None) -> float:
     """
@@ -29,24 +34,29 @@ def compare_to_gt_MAP(samples:torch.tensor, true_parameter:torch.tensor, kernel_
     """
     
     # compute the MAP of the samples
+    try:
+        try: 
+            samples = samples.detach().cpu().numpy()
+        
+        except:
+            pass
 
-    try: 
-        samples = samples.detach().cpu().numpy()
+        kde = gaussian_kde(samples.T, bw_method=kernel_bandwidth)
+
+        # get the MAP
+
+        def objective_function(x):
+            return -kde.logpdf(x)
+
+        MAP = minimize(objective_function, samples.mean(axis = 0)).x
+        MAP = torch.tensor(MAP)
+
+        res = torch.mean(torch.abs(MAP - true_parameter)).item()
+
     
-    except:
-        pass
-
-    kde = gaussian_kde(samples.T, bw_method=kernel_bandwidth)
-
-    # get the MAP
-
-    def objective_function(x):
-        return -kde.logpdf(x)
-
-    MAP = minimize(objective_function, samples.mean(axis = 0)).x
-    MAP = torch.tensor(MAP)
-
-    res = torch.mean(torch.abs(MAP - true_parameter))
+    except Exception as e:
+        res = torch.nan
+        print(f"An exception occured in compare_to_gt_MAP: {e}")
 
     return res
 

@@ -58,7 +58,8 @@ def compare_samples_classifier_based(P: torch.tensor,
         roc = torch.tensor(roc_auc_scores).mean().item()
         res = {"cst_roc_auc": roc}
 
-    except:
+    except Exception as e:
+        print(f"An error occured in compare_samples_classifier_based: {e}")
         res = {"cst_roc_auc": torch.nan}
     return res
 

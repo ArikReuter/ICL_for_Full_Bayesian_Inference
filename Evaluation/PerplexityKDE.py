@@ -61,9 +61,13 @@ def compare_to_gt_perplexity_kde(
     Returns:
         float: the perplexity of the model measured as the log likelihood of the true parameter
     """
+    try:
+        metric = PerplexityKDE(bw_method=bw_method)
+        res = metric(samples, true_parameter)
+    except Exception as e:
+        print(f"An exception occured in compare_to_gt_perplexity_kde: {e}")
+        res = torch.nan
 
-    metric = PerplexityKDE(bw_method=bw_method)
-
-    return metric(samples, true_parameter)
+    return res
 
 

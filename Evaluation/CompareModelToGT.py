@@ -85,14 +85,14 @@ class CompareModelToGT():
                  results_dict_to_latent_variable: callable = results_dict_to_latent_variable_beta,
                  results_dict_to_data: callable = results_dict_to_data_x_y,
                  metrics_joint: dict =  {
-                        "Wasserstein Metric": try_otherwise_return_error(compare_Wasserstein),
-                        "MMMD": try_otherwise_return_error(compare_samples_mmd),
-                        "CST": try_otherwise_return_error(compare_samples_classifier_based)
+                        "Wasserstein Metric": compare_Wasserstein,
+                        "MMMD": compare_samples_mmd,
+                        "CST":  compare_samples_classifier_based
                  },
                 n_draws_posterior_to_sample_joint: int = 100,
                 metrics_gt_parameter: dict = {
-                        "Perplextiy": try_otherwise_return_error(compare_to_gt_perplexity_kde),
-                        "MAP diff": try_otherwise_return_error(compare_to_gt_MAP),
+                        "Perplextiy": compare_to_gt_perplexity_kde,
+                        "MAP diff": compare_to_gt_MAP,
                         "Mean diff": try_otherwise_return_error(compare_to_gt_mean_difference)
                 },
 
