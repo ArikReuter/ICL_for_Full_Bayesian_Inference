@@ -48,7 +48,7 @@ def compare_to_gt_MAP(samples:torch.tensor, true_parameter:torch.tensor, kernel_
 
     res = torch.mean(torch.abs(MAP - true_parameter))
 
-    return res.item()
+    return res
 
 
 
