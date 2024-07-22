@@ -103,6 +103,9 @@ class Evaluate:
             plot_save_path = f"{self.save_path}/plots" if self.save_path is not None else None
             if not os.path.exists(plot_save_path):
                 os.makedirs(plot_save_path)
+
+        else:
+            plot_save_path = None
         self.plot = Plot(save_path=plot_save_path)
 
     def _convert_dataloader_samples_to_list(self) -> list[dict]:
@@ -149,17 +152,20 @@ class Evaluate:
             dict: a dictionary containing the results in form of raw results
         """
 
+      
         posterior_model_samples = self.sample_posterior_model(self.posterior_model)
         comparison_model_samples = [self.sample_posterior_model(model) for model in self.comparison_models]
 
+      
         self.posterior_model_samples = posterior_model_samples
         self.comparison_model_samples = comparison_model_samples
 
+       
         posterior_model_vs_gt = {(str(self.posterior_model), "gt"): self.compare_to_gt.compare(
-            ground_truth_data1=self.evaluation_list,
-            ground_truth_data2=self.evaluation_list_alternative,
-            model_samples=posterior_model_samples
-        ) }
+                ground_truth_data1=self.evaluation_list,
+                ground_truth_data2=self.evaluation_list_alternative,
+                model_samples=posterior_model_samples
+            ) }
 
 
         comparison_models_vs_gt = {
@@ -169,17 +175,16 @@ class Evaluate:
             model_samples=model_samples
         ) for model, model_samples in zip(self.comparison_models, comparison_model_samples)
         }
-
+ 
         posterior_model_vs_comparison_models = {
             (str(self.posterior_model), str(model)): self.compare_two_models.compare_model_samples(posterior_model_samples, model_samples) for model, model_samples in zip(self.comparison_models, comparison_model_samples)
         }
 
-        if self.compare_comparison_models_among_each_other:
-            comparison_models_vs_comparison_models = {}
-            for i in range(len(self.comparison_models)):
-                for j in range(i+1, len(self.comparison_models)):
-                    comparison_models_vs_comparison_models[(str(self.comparison_models[i]), str(self.comparison_models[j]))] = self.compare_two_models.compare_model_samples(comparison_model_samples[i], comparison_model_samples[j])
-            
+        comparison_models_vs_comparison_models = {}
+        for i in range(len(self.comparison_models)):
+            for j in range(i+1, len(self.comparison_models)):
+                comparison_models_vs_comparison_models[(str(self.comparison_models[i]), str(self.comparison_models[j]))] = self.compare_two_models.compare_model_samples(comparison_model_samples[i], comparison_model_samples[j])
+        
 
 
 
