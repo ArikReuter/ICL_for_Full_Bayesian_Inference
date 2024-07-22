@@ -221,7 +221,7 @@ class TransformerCNFConditionalDecoderDouble_parallel_learnedBaseDistribution2(t
             mlp_to_process_decoder_output: torch.nn.Module: an MLP to process the output of the decoder before passing it to the model_posterior
             freeze_encoder: bool: whether to freeze the encoder during training
         """
-        super(TransformerCNFConditionalDecoderDouble_parallel_learnedBaseDistribution, self).__init__()
+        super(TransformerCNFConditionalDecoderDouble_parallel_learnedBaseDistribution2, self).__init__()
         self.encoder = encoder
         self.model_posterior = model_posterior
         self.model_to_process_encoder_output = model_to_process_encoder_output
