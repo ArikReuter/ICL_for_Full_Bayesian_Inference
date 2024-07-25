@@ -59,7 +59,8 @@ class GenerateDataCurriculum(GenerateData):
         else:
             self.seed = seed
 
-        assert pprogram_maker_param_names == curriculum_param_names, f"The parameters of the curriculum and the pprogram_maker must match, got {pprogram_maker_param_names} and {curriculum_param_names} respectively"
+        if not pprogram_maker_param_names == curriculum_param_names:
+            print(f"Warning: The parameters of the curriculum and the pprogram_maker must match, got {pprogram_maker_param_names} and {curriculum_param_names} respectively")
 
         self.pprogram_maker = pprogram_maker
         self.pprogram_covariates = pprogram_covariates

@@ -43,10 +43,15 @@ class Plot:
             max_number_plots: int: the maximum number of plots to show
         """
 
+        n_cases = len(model_samples[list(model_samples.keys())[0]])
+
+        if gt_samples is not None:
+            assert len(gt_samples) == n_cases, "The number of cases in the ground truth samples is different from the number of cases in the model samples"
+
        
-        max_number_plots = min(max_number_plots, len(gt_samples))
+        max_number_plots = min(max_number_plots, n_cases)
         # draw without replacement
-        random_indices = torch.multinomial(torch.ones(len(gt_samples)), max_number_plots, replacement = False)
+        random_indices = torch.multinomial(torch.ones(n_cases), max_number_plots, replacement = False)
 
         # define a model to color mapping with the default color palette
         model_color = {model: sns.color_palette()[i] for i, model in enumerate(model_samples.keys())}
@@ -59,8 +64,9 @@ class Plot:
             for model, samples in model_samples.items():
                 samples_per_model[model] = self.results_to_dict_latent_variable(samples[i])
 
-            gt_parameter = self.results_to_dict_latent_variable(gt_samples[i]).squeeze()
-            gt_parameter = gt_parameter.cpu().detach().numpy()
+            if gt_samples is not None:
+                gt_parameter = self.results_to_dict_latent_variable(gt_samples[i]).squeeze()
+                gt_parameter = gt_parameter.cpu().detach().numpy()
 
             n_dims = samples_per_model[model].shape[1]
 
@@ -74,7 +80,8 @@ class Plot:
                         pass
                     sns.kdeplot(samples[:, j], ax = ax[j], color = model_color[model])
                 
-                ax[j].axvline(gt_parameter[j], color = model_color["GT"])
+                if gt_samples is not None:
+                    ax[j].axvline(gt_parameter[j], color = model_color["GT"])
                 ax[j].set_title(f"Dimension {j}")
 
         

@@ -35,6 +35,10 @@ def results_dict_to_data_x_y(result:dict) -> (torch.tensor):
     y = result["y"]
 
     y = y.reshape(1, -1)
+
+    if len(x.shape) == 2:
+        x = x.unsqueeze(0)
+
     X_y = torch.cat([x, y.unsqueeze(-1)], dim = -1) # concatenate the x and y values to one data tensor
     return X_y
 

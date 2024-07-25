@@ -4,13 +4,11 @@ import pyro
 import pyro.distributions as dist
 try:
         import LM_abstract
-        from Quantizer import Quantizer
 except:
       from PFNExperiments.LinearRegression.GenerativeModels import LM_abstract 
-      from PFNExperiments.LinearRegression.GenerativeModels.Quantizer import Quantizer
 
 """
-A class where the latent variables are (weirdly) transformered 
+A class where a linear model with Gamma prior on the paramters beta is used 
 """
 
 def make_lm_program_gamma_prior_batched(
