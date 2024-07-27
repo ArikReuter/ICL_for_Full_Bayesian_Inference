@@ -96,7 +96,7 @@ def simulate_X_uniform_discretized2(
 
     if n == 100:
         n1 = int(n*0.2)
-        n2 = n - n1 
+        n2 = n - n1 -1
         prob_vec = [0]*n1 + [1]*n2 + [10]
         prob_vec = torch.tensor(prob_vec)
     
@@ -105,7 +105,7 @@ def simulate_X_uniform_discretized2(
 
     else:
         n1 = int(n*0.5)
-        n2 = n - n1 
+        n2 = n - n1 -1
         prob_vec = [0]*n1 + [1]*n2 + [10]
         prob_vec = torch.tensor(prob_vec)
 
@@ -116,7 +116,7 @@ def simulate_X_uniform_discretized2(
 
     for i in range(batch_size):
         for j in range(p):
-            n_diff_values = n_diff_values_dist.sample()
+            n_diff_values = n_diff_values_dist.sample() +1
 
             randperm = torch.randperm(n) % n_diff_values
 
