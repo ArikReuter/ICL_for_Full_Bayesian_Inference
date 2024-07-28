@@ -37,7 +37,7 @@ class Preprocessor():
         target_mean: float = 0.0,
         target_var: float = 1.0,
         seed: int = 0,
-        additive_noise_var: float = 0.0
+        additive_noise_std: float = 0.0
     ):
         """
         Args:
@@ -54,7 +54,7 @@ class Preprocessor():
         self.scale_features = scale_features
         self.target_scaler = make_target_scaler(target_mean, target_var)
         self.seed = seed
-        self.additive_noise_var = additive_noise_var
+        self.additive_noise_std = additive_noise_std
 
         # set the torch seed
         torch.manual_seed(seed)
@@ -141,9 +141,9 @@ class Preprocessor():
         x = x[:, :self.P_features] # select the first P_features
         n_diff_values = n_diff_values[:self.P_features]
 
-        if self.additive_noise_var > 0:
-            y = y + torch.normal(0, self.additive_noise_var, size = y.shape)
-            x = x + torch.normal(0, self.additive_noise_var, size = x.shape)
+        if self.additive_noise_std > 0:
+            y = y + torch.randn(y.shape) * self.additive_noise_std
+            x = x + torch.randn(x.shape) * self.additive_noise_std
 
         new_dataset = {
             "x": x,
