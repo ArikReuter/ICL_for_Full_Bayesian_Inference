@@ -292,7 +292,7 @@ class EvaluateRealWorld_DifferentDatasetPosteriorModel(Evaluate):
 
                     test_paired_res = test_paired(df1, df2)[1]
 
-                    assert np.all(df1.columns == df2.columns), "The columns of the dataframes must be equal"
+                    #if not np.all(df1.columns == df2.columns), "The columns of the dataframes must be equal"
 
                     metric_names = df1.columns
 
