@@ -72,8 +72,8 @@ class EvaluateRealWorld_DifferentDatasetPosteriorModel(Evaluate):
 
 
         self.posterior_model = posterior_model
-        self.evaluation_list = evaluation_datasets
-        self.evaluation_dataset_posterior_model = evaluation_dataset_posterior_model
+        self.evaluation_list = evaluation_datasets[:n_evaluation_cases]
+        self.evaluation_dataset_posterior_model = evaluation_dataset_posterior_model[:n_evaluation_cases]
         self.comparison_models = comparison_models
         self.n_evaluation_cases = n_evaluation_cases
         #self.n_posterior_samples = n_posterior_samples
