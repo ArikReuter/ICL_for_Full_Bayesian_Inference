@@ -65,7 +65,8 @@ class EvaluateRealWorld(Evaluate):
             overwrite_results: bool: whether to overwrite the results if they already exist
         """
 
-        assert len(evaluation_datasets) <= n_evaluation_cases, "The number of evaluation cases is larger than the number of datasets"
+        assert len(evaluation_datasets) >= n_evaluation_cases, f"The number of evaluation cases is larger than the number of datasets. But got {len(evaluation_datasets)} and {n_evaluation_cases}"
+
 
         self.posterior_model = posterior_model
         self.evaluation_list = evaluation_datasets
@@ -83,6 +84,9 @@ class EvaluateRealWorld(Evaluate):
         # check if the save path exists, if not create it. If it exists and is not empty, check if the overwrite flag is set
 
         if self.save_path is not None:
+            # append "real_world" to save path
+            
+
             if not os.path.exists(self.save_path):
                 print(f"The save path {self.save_path} does not exist, creating it")
                 os.makedirs(self.save_path)
