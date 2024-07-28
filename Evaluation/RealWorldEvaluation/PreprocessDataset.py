@@ -145,6 +145,9 @@ class Preprocessor():
             y = y + torch.randn(y.shape) * self.additive_noise_std
             x = x + torch.randn(x.shape) * self.additive_noise_std
 
+        x = self.scale_features(x)
+        y = self.target_scaler(y)
+
         new_dataset = {
             "x": x,
             "y": y,
