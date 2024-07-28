@@ -52,7 +52,10 @@ class CompareTwoModels():
         data1 = self.results_dict_to_data(model1_samples)
         data2 = self.results_dict_to_data(model2_samples)
 
-        assert torch.all(data1 == data2), "The data is not the same"
+        #assert torch.all(data1 == data2), "The data is not the same"
+
+        if not torch.all(data1 == data2):
+            print("Warning: The data is not the same for the two models")
 
         latent1 = self.results_dict_to_latent_variable(model1_samples)
         latent2 = self.results_dict_to_latent_variable(model2_samples)

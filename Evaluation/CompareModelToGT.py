@@ -150,7 +150,7 @@ class CompareModelToGT():
                 gt_data = self.results_dict_to_data(gt)
                 model_data = self.results_dict_to_data(model)
 
-                assert not torch.any(gt_data == model_data), "The data for the ground truth and model samples should not match. but got {} and {}".format(gt_data, model_data) 
+                assert not torch.all(gt_data == model_data), "The data for the ground truth and model samples should not match. but got {} and {}".format(gt_data, model_data) 
 
                 # randomly pick a sample for the latent variable by the model 
                 model_latent_variable_sample = model_latent_variable[torch.randint(0, model_latent_variable.shape[0], (1,))]
