@@ -153,6 +153,8 @@ class EvaluateRealWorld_DifferentDatasetPosteriorModel(Evaluate):
             
             posterior_samples.append(samples)
 
+        return posterior_samples
+
         
 
     def _run_eval_raw_results(self) -> tuple:
