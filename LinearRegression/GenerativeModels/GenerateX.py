@@ -18,6 +18,40 @@ def simulate_X_uniform(n:int, p:int, batch_size:int = 0) -> torch.tensor:
         return torch.rand(batch_size, n, p)
     
 
+def make_simulate_X_by_loading(
+        X_stored: torch.tensor
+) -> callable:
+    """
+    Make a function that generates the covariates by loading them from a tensor
+    Args:
+    X_stored: torch.tensor: the tensor to load the covariates from
+    """
+
+    def simulate_X_loading(n:int, p:int, batch_size:int = 0) -> torch.tensor:
+        """
+        Generate the covariates by loading them from a tensor
+        Args:
+            n: int: the number of observations
+            p: int: the number of covariates
+            batch_size: int: the batch size
+
+        Returns:
+            torch.tensor: the covariates of shape (n, p) or (batch_size, n, p)
+        """
+        random_indices = torch.randint(0, X_stored.shape[0], (batch_size))
+
+        X = X_stored[random_indices]
+
+        assert X.shape == (batch_size, n, p), f"X.shape = {X.shape}, (batch_size, n, p) = {(batch_size, n, p)}"
+
+        if batch_size == 0:
+            return X.squeeze(0)
+        
+        else:
+            return X
+        
+    return simulate_X_loading
+
 
 def simulate_X_uniform_discretized(
         n:int,
