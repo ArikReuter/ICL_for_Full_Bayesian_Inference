@@ -19,12 +19,14 @@ def simulate_X_uniform(n:int, p:int, batch_size:int = 0) -> torch.tensor:
     
 
 def make_simulate_X_by_loading(
-        X_stored: torch.tensor
+        X_stored: torch.tensor,
+        repeat_samples: bool = True
 ) -> callable:
     """
     Make a function that generates the covariates by loading them from a tensor
     Args:
     X_stored: torch.tensor: the tensor to load the covariates from
+    repeat_samples: bool: whether to repeat the samples or not
     """
 
     def simulate_X_loading(n:int, p:int, batch_size:int = 0) -> torch.tensor:
@@ -42,7 +44,10 @@ def make_simulate_X_by_loading(
         if batch_size == 0:
             batch_size = 1
 
-        random_indices = torch.randint(0, X_stored.shape[0], (batch_size,))
+        if repeat_samples:
+            random_indices = torch.randint(0, X_stored.shape[0], (batch_size,))
+        else:
+            random_indices = torch.randperm(X_stored.shape[0])[:batch_size]
         X = X_stored[random_indices]
 
         assert X.shape == (batch_size, n, p), f"X.shape = {X.shape}, expected shape = {(batch_size, n, p)}"
