@@ -17,6 +17,14 @@ import pandas  as pd
 import numpy as np
 import pickle
 
+
+def just_return_results(result:dict) -> dict:
+    """
+    Just return the results
+    """
+    return result
+
+
 def results_dict_to_latent_variable_beta(result:dict) ->  torch.tensor:
     """
     Take the dictionary with results and return the latent variable
@@ -30,9 +38,12 @@ def results_dict_to_latent_variable_beta0_and_beta(result:dict) ->  torch.tensor
     beta0 = result["beta0"]
     beta = result["beta"]
 
-    beta_combined = torch.cat([beta0, beta], dim=-1)
+    beta0 = beta0.unsqueeze(-1)
 
-    return beta_combined
+    beta_combined = torch.cat([beta0, beta], dim=-1)
+    
+    result["beta"] = beta_combined
+    return result
 
 def results_dict_to_data_x_y_tuple(result:dict) -> (torch.tensor, torch.tensor):
     """
@@ -57,7 +68,7 @@ class Evaluate:
             comparison_models: list[PosteriorComparisonModel] = [],
             n_evaluation_cases: int = 100,
             #n_posterior_samples: int = 1000,
-            results_dict_to_latent_variable_posterior_model: callable = results_dict_to_latent_variable_beta,
+            results_dict_to_latent_variable_posterior_model: callable = just_return_results,
             results_dict_to_latent_variable_comparison_models: callable = results_dict_to_latent_variable_beta0_and_beta,
             results_dict_to_data_for_model: callable = results_dict_to_data_x_y_tuple,
             compare_to_gt: CompareModelToGT = CompareModelToGT(),
@@ -154,14 +165,17 @@ class Evaluate:
             data = self.results_dict_to_data_for_model(case)
             samples = model.sample_posterior(*data)
 
-            if is_comparison_model:
-                samples = self.results_dict_to_latent_variable_comparison_models(samples)
-            else:
-                samples = self.results_dict_to_latent_variable_posterior_model(samples)
+            
+
             
             for key in case.keys():
                 if key not in samples.keys():
                     samples[key] = case[key]
+
+            if is_comparison_model:
+                samples = self.results_dict_to_latent_variable_comparison_models(samples)
+            else:
+                samples = self.results_dict_to_latent_variable_posterior_model(samples)
             
             posterior_samples.append(samples)
 
