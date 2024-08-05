@@ -8,7 +8,6 @@ from scipy.stats import mannwhitneyu, wilcoxon
 
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel 
 from PFNExperiments.Evaluation.CompareModelToGT import convert_to_batchsize_1_dataloader
-from PFNExperiments.Evaluation.CompareModelToGT import results_dict_to_latent_variable_beta
 
 from PFNExperiments.Evaluation.CompareModelToGT import CompareModelToGT
 from PFNExperiments.Evaluation.CompareTwoModels import CompareTwoModels
@@ -18,6 +17,22 @@ import pandas  as pd
 import numpy as np
 import pickle
 
+def results_dict_to_latent_variable_beta(result:dict) ->  torch.tensor:
+    """
+    Take the dictionary with results and return the latent variable
+    """
+    return result["beta"]
+
+def results_dict_to_latent_variable_beta0_and_beta(result:dict) ->  torch.tensor:
+    """
+    Take the dictionary with results and return the beta coefficient combined with the intercept
+    """
+    beta0 = result["beta0"]
+    beta = result["beta"]
+
+    beta_combined = torch.cat([beta0, beta], dim=-1)
+
+    return beta_combined
 
 def results_dict_to_data_x_y_tuple(result:dict) -> (torch.tensor, torch.tensor):
     """
@@ -42,7 +57,8 @@ class Evaluate:
             comparison_models: list[PosteriorComparisonModel] = [],
             n_evaluation_cases: int = 100,
             #n_posterior_samples: int = 1000,
-            results_dict_to_latent_variable: callable = results_dict_to_latent_variable_beta,
+            results_dict_to_latent_variable_posterior_model: callable = results_dict_to_latent_variable_beta,
+            results_dict_to_latent_variable_comparison_models: callable = results_dict_to_latent_variable_beta0_and_beta,
             results_dict_to_data_for_model: callable = results_dict_to_data_x_y_tuple,
             compare_to_gt: CompareModelToGT = CompareModelToGT(),
             compare_two_models: CompareTwoModels = CompareTwoModels(),
@@ -59,7 +75,8 @@ class Evaluate:
             comparison_models: list[PosteriorComparisonModel]: the comparison models
             n_evaluation_cases: int: the number of evaluation cases to use, corresponds to the number of datasets to evaluate on
             n_posterior_samples: int: the number of posterior samples to draw from the posterior model and the comparison models
-            results_dict_to_latent_variable: callable: a function that takes the results dictionary and returns the latent variable
+            results_dict_to_latent_variable_posterior_model: callable: a function that takes the results dictionary and returns the latent variable for the posterior model
+            results_dict_to_latent_variable_comparison_models: callable: a function that takes the results dictionary and returns the latent variable for the comparison models
             results_dict_to_data_for_model: callable: a function that takes the results dictionary and returns the data
             compare_to_gt: CompareModelToGT: the class to compare the model to the ground truth
             compare_two_models: CompareTwoModels: the class to compare two models
@@ -74,7 +91,8 @@ class Evaluate:
         self.comparison_models = comparison_models
         self.n_evaluation_cases = n_evaluation_cases
         #self.n_posterior_samples = n_posterior_samples
-        self.results_dict_to_latent_variable = results_dict_to_latent_variable
+        self.results_dict_to_latent_variable_posterior_model = results_dict_to_latent_variable_posterior_model
+        self.results_dict_to_latent_variable_comparison_models = results_dict_to_latent_variable_comparison_models
         self.results_dict_to_data_for_model = results_dict_to_data_for_model
         self.compare_to_gt = compare_to_gt
         self.compare_two_models = compare_two_models
@@ -121,11 +139,12 @@ class Evaluate:
                 break
         return evaluation_list_data
 
-    def sample_posterior_model(self, model: PosteriorComparisonModel) -> list[dict]:
+    def sample_posterior_model(self, model: PosteriorComparisonModel, is_comparison_model:bool = False) -> list[dict]:
         """
         Sample the posterior model
         Args:
             model: PosteriorComparisonModel: the model to sample from
+            is_comparison_model: bool: whether the model is a comparison model
         Returns:
             list[dict]: a list of dictionaries containing the posterior samples
         """
@@ -134,6 +153,11 @@ class Evaluate:
         for case in tqdm(self.evaluation_list, desc="Sampling posterior"):
             data = self.results_dict_to_data_for_model(case)
             samples = model.sample_posterior(*data)
+
+            if is_comparison_model:
+                samples = self.results_dict_to_latent_variable_comparison_models(samples)
+            else:
+                samples = self.results_dict_to_latent_variable_posterior_model(samples)
             
             for key in case.keys():
                 if key not in samples.keys():
@@ -153,8 +177,8 @@ class Evaluate:
         """
 
       
-        posterior_model_samples = self.sample_posterior_model(self.posterior_model)
-        comparison_model_samples = [self.sample_posterior_model(model) for model in self.comparison_models]
+        posterior_model_samples = self.sample_posterior_model(self.posterior_model, is_comparison_model=False)
+        comparison_model_samples = [self.sample_posterior_model(model, is_comparison_model = True) for model in self.comparison_models]
 
       
         self.posterior_model_samples = posterior_model_samples
