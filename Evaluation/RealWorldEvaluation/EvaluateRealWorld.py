@@ -144,8 +144,8 @@ class EvaluateRealWorld(Evaluate):
         """
 
       
-        posterior_model_samples = self.sample_posterior_model(self.posterior_model)
-        comparison_model_samples = [self.sample_posterior_model(model) for model in self.comparison_models]
+        posterior_model_samples = self.sample_posterior_model(self.posterior_model, is_comparison_model=False)
+        comparison_model_samples = [self.sample_posterior_model(model, is_comparison_model=True) for model in self.comparison_models]
 
       
         self.posterior_model_samples = posterior_model_samples
