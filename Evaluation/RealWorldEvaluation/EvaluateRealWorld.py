@@ -5,7 +5,6 @@ from IPython.display import display
 
 
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel 
-from PFNExperiments.Evaluation.CompareModelToGT import results_dict_to_latent_variable_beta
 
 from PFNExperiments.Evaluation.CompareTwoModels import CompareTwoModels
 from PFNExperiments.Evaluation.Plot import Plot
@@ -15,6 +14,13 @@ import numpy as np
 import pickle
 import os
 from scipy.stats import mannwhitneyu, wilcoxon
+
+def just_return_results(result:dict) -> dict:
+    """
+    Just return the results
+    """
+    return result
+
 
 def results_dict_to_data_x_y_tuple(result:dict) -> (torch.tensor, torch.tensor):
     """
@@ -27,6 +33,25 @@ def results_dict_to_data_x_y_tuple(result:dict) -> (torch.tensor, torch.tensor):
     y = y.squeeze(0)
     return x, y
 
+def results_dict_to_latent_variable_beta(result:dict) ->  torch.tensor:
+    """
+    Take the dictionary with results and return the latent variable
+    """
+    return result["beta"]
+
+def results_dict_to_latent_variable_beta0_and_beta(result:dict) ->  torch.tensor:
+    """
+    Take the dictionary with results and return the beta coefficient combined with the intercept
+    """
+    beta0 = result["beta0"]
+    beta = result["beta"]
+
+    beta0 = beta0.unsqueeze(-1)
+
+    beta_combined = torch.cat([beta0, beta], dim=-1)
+    
+    result["beta"] = beta_combined
+    return result
 
 class EvaluateRealWorld(Evaluate):
     """
@@ -39,7 +64,8 @@ class EvaluateRealWorld(Evaluate):
             evaluation_datasets: list[dict],
             comparison_models: list[PosteriorComparisonModel] = [],
             n_evaluation_cases: int = 1,
-            results_dict_to_latent_variable: callable = results_dict_to_latent_variable_beta,
+            results_dict_to_latent_variable_posterior_model: callable = just_return_results,
+            results_dict_to_latent_variable_comparison_models: callable = results_dict_to_latent_variable_beta0_and_beta,
             results_dict_to_data_for_model: callable = results_dict_to_data_x_y_tuple,
             compare_two_models: CompareTwoModels = CompareTwoModels(),
             verbose = True,
@@ -57,6 +83,7 @@ class EvaluateRealWorld(Evaluate):
             n_posterior_samples: int: the number of posterior samples to draw from the posterior model and the comparison models
             results_dict_to_latent_variable: callable: a function that takes the results dictionary and returns the latent variable
             results_dict_to_data_for_model: callable: a function that takes the results dictionary and returns the data
+            results_dict_to_data_for_model: callable: a function that takes the results dictionary and returns the data
             compare_to_gt: CompareModelToGT: the class to compare the model to the ground truth
             compare_two_models: CompareTwoModels: the class to compare two models
             verbose: bool: whether to print the results
@@ -73,7 +100,8 @@ class EvaluateRealWorld(Evaluate):
         self.comparison_models = comparison_models
         self.n_evaluation_cases = n_evaluation_cases
         #self.n_posterior_samples = n_posterior_samples
-        self.results_dict_to_latent_variable = results_dict_to_latent_variable
+        self.results_dict_to_latent_variable_posterior_model = results_dict_to_latent_variable_posterior_model
+        self.results_dict_to_latent_variable_comparison_models = results_dict_to_latent_variable_comparison_models
         self.results_dict_to_data_for_model = results_dict_to_data_for_model
         self.compare_two_models = compare_two_models
         self.verbose = verbose
