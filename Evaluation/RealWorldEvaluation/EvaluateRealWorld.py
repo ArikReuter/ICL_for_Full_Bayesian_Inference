@@ -134,6 +134,36 @@ class EvaluateRealWorld(Evaluate):
             plot_save_path = None
         self.plot = Plot(save_path=plot_save_path)
 
+    def sample_posterior_model(self, model: PosteriorComparisonModel, is_comparison_model:bool = False) -> list[dict]:
+        """
+        Sample the posterior model
+        Args:
+            model: PosteriorComparisonModel: the model to sample from
+            is_comparison_model: bool: whether the model is a comparison model
+        Returns:
+            list[dict]: a list of dictionaries containing the posterior samples
+        """
+
+        posterior_samples = []
+        for case in tqdm(self.evaluation_list, desc="Sampling posterior"):
+            data = self.results_dict_to_data_for_model(case)
+            samples = model.sample_posterior(*data)
+
+            
+
+            
+            for key in case.keys():
+                if key not in samples.keys():
+                    samples[key] = case[key]
+
+            if is_comparison_model:
+                samples = self.results_dict_to_latent_variable_comparison_models(samples)
+            else:
+                samples = self.results_dict_to_latent_variable_posterior_model(samples)
+            
+            posterior_samples.append(samples)
+
+        return posterior_samples
 
     def _run_eval_raw_results(self) -> tuple:
         """
