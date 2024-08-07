@@ -1,11 +1,27 @@
 import torch 
 
-def scale_features_01(X):
+def scale_features_01_total(X):
+    """
+    Scale the features between 0 and 1 using the min and max of the entire dataset
+    """
     return 0.95*(X - X.min()) / (X.max() - X.min()) + 0.025  # scale between 0.025 and 0.975
+
+def scale_features_01(X):
+    """
+    Scale the features between 0 and 1 using the min and max of each feature
+    Args: 
+        X: torch.Tensor: the features of shape (N,P)
+    """
+    mins = torch.min(X, dim = 1, keepdim=True) # shpe (N,1)
+    maxs = torch.max(X, dim = 1, keepdim=True) # shape (N,1)
+
+    X_scaled = (X - mins.values) / (maxs.values - mins.values)
+
+    return X_scaled
 
 def make_target_scaler(mu: float = 0.0, var: float = 1.0) -> callable:
     """
-    Make a target scaler that scales the target to have mean mu and variance var
+    Make a target scaler that scales the target to have mean mu and variance var averages the target
     Args:
         mu: float: the mean of the target
         var: float: the variance of the target
@@ -21,6 +37,7 @@ def make_target_scaler(mu: float = 0.0, var: float = 1.0) -> callable:
         Returns:
             torch.Tensor: the scaled target
         """
+        assert y.dim() == 1, "The target should be 1D"
         return mu + (var**0.5) * (y - y.mean()) / y.std()
 
     return target_scaler

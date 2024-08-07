@@ -167,8 +167,6 @@ class CompareModelToGT():
             model_data_sample = torch.stack(model_data_sample_list).squeeze().flatten(start_dim=1)
             gt_data = torch.stack(gt_data_sample_list).squeeze().flatten(start_dim=1)
 
-        
-
             joint_samples_model = torch.cat([model_latent_variable_sample, model_data_sample], dim = -1)
             joint_samples_gt = torch.cat([gt_latent_variable, gt_data], dim = -1)
 

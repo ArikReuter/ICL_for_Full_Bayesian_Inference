@@ -230,12 +230,13 @@ class SyntheticData(torch.utils.data.Dataset):
 
         return lm_res
 
-def check_data(data: List[Dict[str, torch.tensor]], batched_input:bool = False) -> dict:
+def check_data(data: List[Dict[str, torch.tensor]], batched_input:bool = False, consider_average_variance_statistics: bool = False) -> dict:
     """
     Check statistics about the simulated data
     Args:
         data: List[Dict[str, torch.tensor]]: the simulated data in the form of a list of dictionaries where each element of the list is a dictionary containing the data for one batch
         batched_input: bool: whether the input is batched
+        consider_average_variance_statistics: bool: whether to consider the average variance statistics
     
     Returns:
         dict: a dictionary containing the means and variances of the simulated data
@@ -265,31 +266,72 @@ def check_data(data: List[Dict[str, torch.tensor]], batched_input:bool = False) 
     minimums = {key: torch.min(stacked_data[key], dim=0).values for key in stacked_data.keys()}
     maximums = {key: torch.max(stacked_data[key], dim=0).values for key in stacked_data.keys()}
 
-    return {
-        "means": means,
-        "variances": variances,
-        "minimums": minimums,
-        "maximums": maximums
-    }
+    if consider_average_variance_statistics:
+        mean_means = {}
+        mean_variances = {}
+        mean_minimums = {}
+        mean_maximums = {}
 
-def check_and_plot_data(data: List[Dict[str, torch.tensor]], batched_input = False) -> None:
+        for key in stacked_data.keys():
+            try:
+                mean_means[key] = torch.mean(torch.mean(stacked_data[key], dim=1), dim = 0)
+            except:
+                mean_means[key] = None 
+            try:
+                mean_variances[key] = torch.mean(torch.var(stacked_data[key], dim=1), dim = 0)
+            except:
+                mean_variances[key] = None
+            try:
+                mean_minimums[key] = torch.mean(torch.min(stacked_data[key], dim=1), dim = 0)
+            except:
+                mean_minimums[key] = None
+            try:
+                mean_maximums[key] = torch.mean(torch.max(stacked_data[key], dim=1), dim = 0)
+            except:
+                mean_maximums[key] = None
+
+        
+
+        return {
+            "means": means,
+            "variances": variances,
+            "minimums": minimums,
+            "maximums": maximums,
+            "mean_means": mean_means,
+            "mean_variances": mean_variances,
+            "mean_minimums": mean_minimums,
+            "mean_maximums": mean_maximums
+        }
+    else:
+        return {
+            "means": means,
+            "variances": variances,
+            "minimums": minimums,
+            "maximums": maximums
+        }
+
+def check_and_plot_data(data: List[Dict[str, torch.tensor]], 
+                        batched_input = False,
+                        consider_average_variance_statistics: bool = False
+                        ) -> None:
     """
     Check statistics about the simulated data and plot the data
     Args:
         data: List[Dict[str, torch.tensor]]: the simulated data in the form of a list of dictionaries where each element of the list is a dictionary containing the data for one batch
         batched_input: bool: whether the input is batched
+        consider_average_variance_statistics: bool: whether to consider the average variance statistics
     """
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    stats = check_data(data)
+    #stats = check_data(data)
 
     if not batched_input:
         stacked_data = {key: torch.stack([d[key] for d in data]) for key in data[0].keys()} 
     else:
         stacked_data = {key: torch.cat([d[key] for d in data]) for key in data[0].keys()}
 
-    stats = check_data(data, batched_input=batched_input)
+    stats = check_data(data, batched_input=batched_input, consider_average_variance_statistics = consider_average_variance_statistics)
 
     X_overall_mean = stats["means"]["x"].mean()
     X_overall_variance = stats["variances"]["x"].mean()
@@ -323,6 +365,23 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]], batched_input = Fal
         }
     }
 
+    if consider_average_variance_statistics:
+        overall_agg_stats['X']['mean_mean'] = stats['mean_means']['x']
+        overall_agg_stats['X']['variance_mean'] = stats['mean_variances']['x']
+        overall_agg_stats['X']['min_mean'] = stats['mean_minimums']['x']
+        overall_agg_stats['X']['max_mean'] = stats['mean_maximums']['x']
+
+        overall_agg_stats['y']['mean_mean'] = stats['mean_means']['y']
+        overall_agg_stats['y']['variance_mean'] = stats['mean_variances']['y']
+        overall_agg_stats['y']['min_mean'] = stats['mean_minimums']['y']
+        overall_agg_stats['y']['max_mean'] = stats['mean_maximums']['y']
+
+        overall_agg_stats['beta']['mean_mean'] = stats['mean_means']['beta']
+        overall_agg_stats['beta']['variance_mean'] = stats['mean_variances']['beta']
+        overall_agg_stats['beta']['min_mean'] = stats['mean_minimums']['beta']
+        overall_agg_stats['beta']['max_mean'] = stats['mean_maximums']['beta']
+
+
     print(overall_agg_stats)
 
     # also print the statistics for the other keys in the dictionary
@@ -333,6 +392,13 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]], batched_input = Fal
             print(f"Variance: {stats['variances'][key]}")
             print(f"Min: {stats['minimums'][key]}")
             print(f"Max: {stats['maximums'][key]}")
+
+            if consider_average_variance_statistics:
+                if key in stats['mean_means'].keys():
+                    print(f"Mean of means: {stats['mean_means'][key]}")
+                    print(f"Mean of variances: {stats['mean_variances'][key]}")
+                    print(f"Mean of minimums: {stats['mean_minimums'][key]}")
+                    print(f"Mean of maximums: {stats['mean_maximums'][key]}")
             print("\n")
 
     # plot the data

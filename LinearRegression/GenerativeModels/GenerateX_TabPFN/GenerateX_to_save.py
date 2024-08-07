@@ -25,7 +25,8 @@ class GenerateX_to_save():
         P: int = 5,
         save_folder: str = 'data/',
         save_name: str = 'data_x_tabpfn.pt',
-        replace_nan: bool = True
+        replace_nan: bool = True,
+        normalize: bool = True
     ):
         """
         Args:
@@ -38,13 +39,27 @@ class GenerateX_to_save():
         self.n_samples = n_samples
         self.N = N
         self.P = P
+        self.replace_nan = replace_nan
+        self.normalize = normalize
         
         self.save_path = os.path.join(save_folder, save_name)
 
         if not os.path.exists(save_folder):
             os.makedirs(save_folder)
           
+    def scale(self, x):
+        """
+        Scale each feature in each dataset to the unit interval [0,1]
+        Args:
+            x: torch.Tensor: the data of shape (batch_size, N, P)
+        """
 
+        mins = torch.min(x, dim=1)[0]
+        maxs = torch.max(x, dim=1)[0]
+
+        x = (x - mins.unsqueeze(1)) / (maxs - mins).unsqueeze(1)
+
+        return x
 
     def sample(self) -> torch.Tensor:
         """
@@ -124,7 +139,10 @@ class GenerateX_to_save():
         data_res = torch.stack(data_res)
 
         if self.replace_nan:
-            data_res[torch.isnan(data_res)] = 0
+            data_res[torch.isnan(data_res)] = 0.0
+
+        if self.normalize:
+            data_res = self.scale(data_res)
 
         torch.save(data_res, self.save_path)
 

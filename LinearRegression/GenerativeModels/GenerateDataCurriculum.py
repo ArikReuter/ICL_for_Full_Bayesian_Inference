@@ -114,7 +114,14 @@ class GenerateDataCurriculum(GenerateData):
 
         return data, n_discarded
     
-    def check_model(self, p:int = 3, n:int = 100, n_samples_per_epoch:int = 1_000, batch_size: int = 256, epochs_to_check:List[int] = [0, 10], used_batch_samples:int = 1000) -> List:
+    def check_model(self, 
+                    p:int = 3, 
+                    n:int = 100, 
+                    n_samples_per_epoch:int = 1_000, 
+                    batch_size: int = 256, 
+                    epochs_to_check:List[int] = [0, 10], 
+                    used_batch_samples:int = 1000,
+                    consider_average_variance_statistics: bool = True) -> List:
         """
         Check the model for a few batches
         Args: 
@@ -124,6 +131,7 @@ class GenerateDataCurriculum(GenerateData):
             batch_size: int: the batch size
             epochs_to_check: List[int]: the epochs to check
             used_batch_samples: int: the number of batches to use for checking
+            consider_average_variance_statistics: bool: whether to consider the average variance statistics
 
         Returns:
             List: a list of results
@@ -152,7 +160,7 @@ class GenerateDataCurriculum(GenerateData):
                 sample_data.append(data)
 
 
-            r = check_and_plot_data(sample_data, batched_input=True)
+            r = check_and_plot_data(sample_data, batched_input=True, consider_average_variance_statistics = consider_average_variance_statistics)
 
             results.append(r)
 
