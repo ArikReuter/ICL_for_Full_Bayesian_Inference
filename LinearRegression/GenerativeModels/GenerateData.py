@@ -46,7 +46,7 @@ class GenerateData:
             print("pprogram_covariates_test is None, using pprogram_covariates instead")
 
         if pprogram_covariates is not None and pprogram_covariates_train is not None and pprogram_covariates_val is not None and pprogram_covariates_test is not None:
-            print("Warning: pprogram_covariates, pprogram_covariates_train, pprogram_covariates_val, and pprogram_covariates_test are all not None. This most likely doesn't make sense")
+            print("Warning: pprogram_covariates, pprogram_covariates_train, pprogram_covariates_val, and pprogram_covariates_test are all not None. Ignoring argument pprogram_covariates")
         
 
         self.pprogram = pprogram

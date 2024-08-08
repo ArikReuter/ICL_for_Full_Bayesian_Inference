@@ -79,7 +79,7 @@ class GenerateDataCurriculum(GenerateData):
             self.seed = seed
 
         if not pprogram_maker_param_names == curriculum_param_names:
-            print(f"Warning: The parameters of the curriculum and the pprogram_maker must match, got {pprogram_maker_param_names} and {curriculum_param_names} respectively")
+            print("Warning: pprogram_covariates, pprogram_covariates_train, pprogram_covariates_val, and pprogram_covariates_test are all not None. Ignoring argument pprogram_covariates")
 
         self.pprogram_maker = pprogram_maker
         self.pprogram_covariates = pprogram_covariates
