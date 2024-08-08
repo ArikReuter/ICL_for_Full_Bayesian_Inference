@@ -60,6 +60,44 @@ def make_simulate_X_by_loading(
     return simulate_X_loading
 
 
+def make_simulate_X_by_loading_split(
+        X_stored: torch.tensor,
+        repeat_samples: bool = True,
+        train_size: float = 0.8,
+        val_size: float = 0.1,
+        test_size: float = 0.1,
+        shuffle_X_stored: bool = True
+) -> callable:
+    """
+    Make three functions that generate the covariates by loading them from a tensor split into training, validation, and test sets
+    Args:
+    X_stored: torch.tensor: the tensor to load the covariates from
+    repeat_samples: bool: whether to repeat the samples or not
+    train_size: float: the proportion of the training set
+    val_size: float: the proportion of the validation set
+    test_size: float: the proportion of the test set
+    shuffle_X_stored: bool: whether to shuffle the tensor before splitting it or not
+    """
+    assert train_size + val_size + test_size == 1, "The sum of train_size, val_size, and test_size must be 1"
+
+    if shuffle_X_stored:
+        indices = torch.randperm(X_stored.shape[0])
+        X_stored = X_stored[indices]
+
+    train_size = int(train_size * X_stored.shape[0])
+    val_size = int(val_size * X_stored.shape[0])
+    test_size = int(test_size * X_stored.shape[0])
+
+    X_train = X_stored[:train_size]
+    X_val = X_stored[train_size:train_size + val_size]
+    X_test = X_stored[train_size + val_size:]
+
+    simulate_X_train = make_simulate_X_by_loading(X_train, repeat_samples)
+    simulate_X_val = make_simulate_X_by_loading(X_val, repeat_samples)
+    simulate_X_test = make_simulate_X_by_loading(X_test, repeat_samples)
+
+    return simulate_X_train, simulate_X_val, simulate_X_test
+
 
 def simulate_X_uniform_discretized(
         n:int,

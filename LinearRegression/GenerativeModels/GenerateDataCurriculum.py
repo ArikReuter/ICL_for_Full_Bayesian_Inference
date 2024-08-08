@@ -42,14 +42,33 @@ class GenerateDataCurriculum(GenerateData):
                  pprogram_maker: callable,
                  curriculum: Curriculum,
                  pprogram_covariates: pprogram_X = simulate_X_uniform,
+                 pprogram_covariates_train: pprogram_X = None,
+                 pprogram_covariates_val: pprogram_X = None,
+                 pprogram_covariates_test: pprogram_X = None,
                  seed: int = None):
         """
         Args:
             pprogram_maker: callable: a function that returns a probabilistic program
             curriculum: Curriculum: the curriculum
             pprogram_covariates: pprogram_X = simulate_X_uniform: a function that returns the covariates
+            pprogram_covariates_train: pprogram_X: a function that returns the covariates for the training set. If None, use pprogram_covariates
+            pprogram_covariates_val: pprogram_X: a function that returns the covariates for the validation set. If None, use pprogram_covariates
+            pprogram_covariates_test: pprogram_X: a function that returns the covariates for the test set. If None, use pprogram_covariates
             seed: int: the seed for the random number generator, default 42
         """
+        if pprogram_covariates_train is None:
+            pprogram_covariates_train = pprogram_covariates
+            print("pprogram_covariates_train is None, using pprogram_covariates instead")
+        if pprogram_covariates_val is None:
+            pprogram_covariates_val = pprogram_covariates
+            print("pprogram_covariates_val is None, using pprogram_covariates instead")
+        if pprogram_covariates_test is None:
+            pprogram_covariates_test = pprogram_covariates
+            print("pprogram_covariates_test is None, using pprogram_covariates instead")
+
+        if pprogram_covariates is not None and pprogram_covariates_train is not None and pprogram_covariates_val is not None and pprogram_covariates_test is not None:
+            print("Warning: pprogram_covariates, pprogram_covariates_train, pprogram_covariates_val, and pprogram_covariates_test are all not None. This most likely doesn't make sense")
+        
     
         pprogram_maker_param_names = get_function_parameter_names(pprogram_maker)
         curriculum_param_names = list(curriculum.generation_params.keys())
@@ -65,8 +84,9 @@ class GenerateDataCurriculum(GenerateData):
         self.pprogram_maker = pprogram_maker
         self.pprogram_covariates = pprogram_covariates
         self.curriculum = curriculum
-        #torch.manual_seed(self.seed)
-        #pyro.set_rng_seed(self.seed)
+        self.pprogram_covariates_train = pprogram_covariates_train
+        self.pprogram_covariates_val = pprogram_covariates_val
+        self.pprogram_covariates_test = pprogram_covariates_test
 
         self.program = pprogram_maker(**curriculum.get_params(0))  # get the program for the first iteration. Also use this for plotting
 
@@ -216,7 +236,7 @@ class GenerateDataCurriculum(GenerateData):
                                 epoch = epoch,
                                 pprogram_maker = self.pprogram_maker,
                                 curriculum = self.curriculum,
-                                pprogram_covariates = self.pprogram_covariates,
+                                pprogram_covariates = self.pprogram_covariates_train,
                                 seed = None,
                                 n_samples_to_generate_at_once = n_samples_to_generate_at_once)
         
@@ -226,7 +246,7 @@ class GenerateDataCurriculum(GenerateData):
                                 epoch = epoch,
                                 pprogram_maker = self.pprogram_maker,
                                 curriculum = self.curriculum,
-                                pprogram_covariates = self.pprogram_covariates,
+                                pprogram_covariates = self.pprogram_covariates_val,
                                 seed = None,
                                 n_samples_to_generate_at_once = n_samples_to_generate_at_once)   
         
@@ -236,7 +256,7 @@ class GenerateDataCurriculum(GenerateData):
                                 epoch = epoch,
                                 pprogram_maker = self.pprogram_maker,
                                 curriculum = self.curriculum,
-                                pprogram_covariates = self.pprogram_covariates,
+                                pprogram_covariates = self.pprogram_covariates_test,
                                 seed = None, 
                                 n_samples_to_generate_at_once = n_samples_to_generate_at_once)
         
