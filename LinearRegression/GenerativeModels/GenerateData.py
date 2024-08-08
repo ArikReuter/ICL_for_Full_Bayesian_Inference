@@ -18,6 +18,9 @@ class GenerateData:
     def __init__(self,
                  pprogram: pprogram_linear_model_return_dict,
                  pprogram_covariates: pprogram_X = simulate_X_uniform,
+                 pprogram_covariates_train: pprogram_X = None,
+                 pprogram_covariates_val: pprogram_X = None,
+                 pprogram_covariates_test: pprogram_X = None,
                  seed:int = 42
                  ):
         """
@@ -25,14 +28,35 @@ class GenerateData:
         Args:
             pprogram: pprogram_linear_model_return_dict: a linear model probabilistic program
             ppriogram_covariates: pprogram_X: a probabilistic program that simulates covariates
+            pprogram_covariates_train: pprogram_X: a probabilistic program that simulates covariates for the training set
+            pprogram_covariates_val: pprogram_X: a probabilistic program that simulates covariates for the validation set
+            pprogram_covariates_test: pprogram_X: a probabilistic program that simulates covariates for the test set
+
             seed: int: the seed for the random number generator
         """
+
+        if pprogram_covariates_train is None:
+            pprogram_covariates_train = pprogram_covariates
+            print("pprogram_covariates_train is None, using pprogram_covariates instead")
+        if pprogram_covariates_val is None:
+            pprogram_covariates_val = pprogram_covariates
+            print("pprogram_covariates_val is None, using pprogram_covariates instead")
+        if pprogram_covariates_test is None:
+            pprogram_covariates_test = pprogram_covariates
+            print("pprogram_covariates_test is None, using pprogram_covariates instead")
+
+        if pprogram_covariates is not None and pprogram_covariates_train is not None and pprogram_covariates_val is not None and pprogram_covariates_test is not None:
+            print("Warning: pprogram_covariates, pprogram_covariates_train, pprogram_covariates_val, and pprogram_covariates_test are all not None. This most likely doesn't make sense")
+        
+
         self.pprogram = pprogram
         self.pprogram_covariates = pprogram_covariates
         self.seed = seed
         
-        #torch.manual_seed(seed)
-        #pyro.set_rng_seed(seed)
+        self.pprogram_covariates_train = pprogram_covariates_train
+        self.pprogram_covariates_val = pprogram_covariates_val
+        self.pprogram_covariates_test = pprogram_covariates_test
+
 
 
     def simulate_data(self, 
@@ -55,7 +79,7 @@ class GenerateData:
 
         data = []
         for i in tqdm(list(range(n_batch))):
-            x = self.pprogram_covariates(n,p)
+            x = self.pprogram_covariates_train(n,p)
 
             while True:
                 lm_res = self.pprogram(x)
@@ -77,7 +101,7 @@ class GenerateData:
         """
         Render the model
         """
-        Xt = self.pprogram_covariates(1, p)
+        Xt = self.pprogram_covariates_train(1, p)
         yt = return_only_y(self.pprogram)(Xt)
 
         r = pyro.render_model(self.pprogram, model_args=(Xt, yt), render_distributions=True)
@@ -157,19 +181,19 @@ class GenerateData:
                                 p = p, 
                                 n_batch = train_size, 
                                 pprogram = self.pprogram, 
-                                pprogram_covariates = self.pprogram_covariates, 
+                                pprogram_covariates = self.pprogram_covariates_train, 
                                 seed = self.seed)
         dataset_val = SyntheticData(n = n,
                                 p = p,
                                 n_batch = val_size,
                                 pprogram = self.pprogram,
-                                pprogram_covariates = self.pprogram_covariates,
+                                pprogram_covariates = self.pprogram_covariates_val,
                                 seed = self.seed)
         dataset_test = SyntheticData(n = n,
                                 p = p,
                                 n_batch = test_size,
                                 pprogram = self.pprogram,
-                                pprogram_covariates = self.pprogram_covariates,
+                                pprogram_covariates = self.pprogram_covariates_test,
                                 seed = self.seed)
         
         train_loader = torch.utils.data.DataLoader(dataset_train, batch_size=batch_size, shuffle=shuffle)

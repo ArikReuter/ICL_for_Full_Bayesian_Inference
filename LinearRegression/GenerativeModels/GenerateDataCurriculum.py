@@ -90,7 +90,12 @@ class GenerateDataCurriculum(GenerateData):
 
         self.program = pprogram_maker(**curriculum.get_params(0))  # get the program for the first iteration. Also use this for plotting
 
-        super().__init__(pprogram = self.program, pprogram_covariates = self.pprogram_covariates, seed = self.seed)
+        super().__init__(pprogram = self.program, 
+                         pprogram_covariates = self.pprogram_covariates, 
+                         pprogram_covariates_train = self.pprogram_covariates_train,
+                         pprogram_covariates_val = self.pprogram_covariates_val,
+                         pprogram_covariates_test = self.pprogram_covariates_test,
+                         seed = self.seed)
 
 
     def simulate_data(self, 
