@@ -63,6 +63,8 @@ def make_target_scaler(mu: float = 0.0, var: float = 1.0, power_transform:bool =
         if power_transform:
             pt = PowerTransformer()
             y = pt.fit_transform(y.reshape(-1,1)).squeeze()
+            y = torch.tensor(y, dtype = torch.float).unsqueeze(0)
+
         
         return mu + (var**0.5) * (y - y.mean()) / y.std()
 
