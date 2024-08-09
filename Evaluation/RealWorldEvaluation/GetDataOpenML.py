@@ -101,7 +101,7 @@ class GetDataOpenML:
                 dataset["id"] = id
                 
             except Exception as e:
-                print(f"An error occured while preprocessing the dataset with id {dataset['id']}. Skipping the dataset")
+                print(f"An error {e} occured while preprocessing the dataset with id {dataset['id']}. Skipping the dataset")
                 continue
 
             new_dataset_lis.append(dataset)

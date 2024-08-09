@@ -1,4 +1,5 @@
 import torch 
+from sklearn.preprocessing import PowerTransformer
 
 def scale_features_01_total(X):
     """
@@ -6,12 +7,31 @@ def scale_features_01_total(X):
     """
     return 0.95*(X - X.min()) / (X.max() - X.min()) + 0.025  # scale between 0.025 and 0.975
 
-def scale_features_01(X):
+def scale_features_01(X, eps = 1e-3):
     """
     Scale the features between 0 and 1 using the min and max of each feature
     Args: 
         X: torch.Tensor: the features of shape (N,P)
+        eps: float: a small number to avoid division by zero
     """
+    mins = torch.min(X, dim = 1, keepdim=True) # shpe (N,1)
+    maxs = torch.max(X, dim = 1, keepdim=True) # shape (N,1)
+
+    X_scaled = (X - mins.values) / (maxs.values - mins.values + eps)
+
+    return X_scaled
+
+
+def scale_features_01_power_transform(X):
+    """
+    Scale the features between 0 and 1 using the min and max of each feature. Apply the power-transform per feature before.
+    Args: 
+        X: torch.Tensor: the features of shape (N,P)
+    """
+    pt = PowerTransformer()
+    X = pt.fit_transform(X)
+    X = torch.tensor(X, dtype = torch.float)
+
     mins = torch.min(X, dim = 1, keepdim=True) # shpe (N,1)
     maxs = torch.max(X, dim = 1, keepdim=True) # shape (N,1)
 
@@ -19,12 +39,14 @@ def scale_features_01(X):
 
     return X_scaled
 
-def make_target_scaler(mu: float = 0.0, var: float = 1.0) -> callable:
+
+def make_target_scaler(mu: float = 0.0, var: float = 1.0, power_transform:bool = True) -> callable:
     """
     Make a target scaler that scales the target to have mean mu and variance var averages the target
     Args:
         mu: float: the mean of the target
         var: float: the variance of the target
+        power_transform: bool: whether to apply a power transform to the target
     Returns:
         callable: a target scaler
     """
@@ -38,6 +60,10 @@ def make_target_scaler(mu: float = 0.0, var: float = 1.0) -> callable:
             torch.Tensor: the scaled target
         """
         assert y.dim() == 1, "The target should be 1D"
+        if power_transform:
+            pt = PowerTransformer()
+            y = pt.fit_transform(y.reshape(-1,1)).squeeze()
+        
         return mu + (var**0.5) * (y - y.mean()) / y.std()
 
     return target_scaler
@@ -50,9 +76,10 @@ class Preprocessor():
         self,
         N_datapoints: int,
         P_features: int,
-        scale_features: callable = scale_features_01,
+        scale_features: callable = scale_features_01_power_transform,
         target_mean: float = 0.0,
         target_var: float = 1.0,
+        power_transform_y: bool = True,
         seed: int = 0,
         additive_noise_std: float = 0.0
     ):
@@ -63,13 +90,15 @@ class Preprocessor():
             scale_features (callable): A callable that scales the features.
             target_mean (float): The mean of the target.
             target_var (float): The variance of the target.
+            power_transform_y (bool): Whether to apply a power transform to the target.
             seed (int): The seed to use.
             additive_noise_var (float): The variance of the additive noise.
         """
         self.N_datapoints = N_datapoints
         self.P_features = P_features
         self.scale_features = scale_features
-        self.target_scaler = make_target_scaler(target_mean, target_var)
+        self.target_scaler = make_target_scaler(target_mean, target_var, power_transform = power_transform_y)
+
         self.seed = seed
         self.additive_noise_std = additive_noise_std
 
@@ -149,8 +178,8 @@ class Preprocessor():
 
         x, y = self._subsample_data(x, y)   
 
-        x = self.scale_features(x)
-        y = self.target_scaler(y)
+        #x = self.scale_features(x)
+        #y = self.target_scaler(y)
 
         x, n_diff_values = self._identify_numerical_features(x)
 
