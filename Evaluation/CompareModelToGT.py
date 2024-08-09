@@ -1,4 +1,4 @@
-    import torch 
+import torch 
 from tqdm import tqdm
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel 
 
