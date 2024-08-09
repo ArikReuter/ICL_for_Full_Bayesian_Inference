@@ -31,7 +31,10 @@ def results_dict_to_data_x_y_tuple(result:dict) -> (torch.tensor, torch.tensor):
     y = result["y"]
 
     x = x.squeeze(0)
-    y = y.squeeze(0)
+    
+    y = torch.tensor(y, dtype = torch.float32)
+    if len(y.shape) == 2:
+      y = y.squeeze(0)
     return x, y
 
 def results_dict_to_latent_variable_beta(result:dict) ->  torch.tensor:
