@@ -203,3 +203,80 @@ class Preprocessor():
         }
 
         return new_dataset
+    
+class PreprocessorClassification(Preprocessor):
+
+    def __init__(
+        self,
+        N_datapoints: int,
+        P_features: int,
+        scale_features: callable = scale_features_01_power_transform,
+        seed: int = 0,
+        additive_noise_std: float = 0.0
+    ):
+        """
+        Args:
+            N_datapoints (int): The number of datapoints to use.
+            P_features (int): The number of features to use.
+            scale_features (callable): A callable that scales the features.
+            seed (int): The seed to use.
+            additive_noise_var (float): The variance of the additive noise.
+        """
+        self.N_datapoints = N_datapoints
+        self.P_features = P_features
+        self.scale_features = scale_features
+
+        self.seed = seed
+        self.additive_noise_std = additive_noise_std
+
+        # set the torch seed
+        torch.manual_seed(seed)
+
+
+    def preprocess(
+            self,
+            dataset: dict[str, torch.Tensor]
+    ) -> dict[str, torch.Tensor]:
+        """
+        Scale the features and the target of the dataset
+        Args:
+            dataset: dict[str, torch.Tensor]: the dataset
+        Returns:
+            dict[str, torch.Tensor]: the preprocessed dataset
+        """
+
+        x = dataset["x"]
+        y = dataset["y"]
+
+        try:
+            x = torch.tensor(x, dtype = torch.float)
+            y = torch.tensor(y, dtype = torch.float)
+        except Exception as e:
+            raise ValueError("The features and target should be convertible to a torch tensor") from e
+
+        assert len(x) == len(y), "The number of features and targets is different. got {} and {}".format(len(x), len(y))
+
+        
+
+        x, y = self._subsample_data(x, y)   
+
+        #x = self.scale_features(x)
+        #y = self.target_scaler(y)
+
+        x, n_diff_values = self._identify_numerical_features(x)
+
+        assert x.shape[1] >= self.P_features, "The number of features is smaller than the number of features to use"
+        x = x[:, :self.P_features] # select the first P_features
+        n_diff_values = n_diff_values[:self.P_features]
+        if self.additive_noise_std > 0:
+            x = x + torch.randn(x.shape) * self.additive_noise_std
+
+        x = self.scale_features(x)
+
+        new_dataset = {
+            "x": x,
+            "y": y,
+            "n_diff_values": n_diff_values
+        }
+
+        return new_dataset
