@@ -263,7 +263,7 @@ def make_lm_program_LaplaceLaplace_ig_batched(
                                 noise = pyro.sample("noise", dist.Laplace(0, sigma_squared))  # Shape: (batch_size, N)
                         
                         noise = noise.permute(1, 0)  # Shape: (N, batch_size)
-                        print(f"mean shape: {mean.shape}, noise shape: {noise.shape}")
+                        #print(f"mean shape: {mean.shape}, noise shape: {noise.shape}")
                         y = mean + noise  # Shape: (batch_size, N)
                     
                 
