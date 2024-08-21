@@ -171,7 +171,7 @@ def make_logreg_program_ig_intercept_batched(
 
                 sigma_squared = sigma_squared.unsqueeze(-1)
 
-                beta = torch.cat([beta0.unsqueeze(-1), beta], dim=-1)
+                beta = torch.cat([beta0, beta], dim=-1)
 
                 return {
                                 "x": x,
