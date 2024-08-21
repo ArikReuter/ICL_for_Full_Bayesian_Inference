@@ -180,7 +180,7 @@ def make_lm_program_gamma_prior_intercept_batched(
 
 
                 
-                beta = torch.cat([beta0.unsqueeze(-1), beta], dim=-1)
+                beta = torch.cat([beta0, beta], dim=-1)
                 sigma_squared = sigma_squared.unsqueeze(-1)
 
                 return {
