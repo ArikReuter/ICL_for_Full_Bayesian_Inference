@@ -37,7 +37,7 @@ def make_lm_program_ig_intercept_batched(
 
                 beta_cov = torch.eye(P) * (tau ** 2)  # the covariance matrix of the parameters of the linear model
 
-                dist_beta0 = dist.Normal(0, tau_beta0)
+                dist_beta0 = dist.Normal(0, tau_beta0**2)
 
                 with pyro.plate("batch", batch_size, dim=-1):   
                         
@@ -108,7 +108,7 @@ def make_lm_program_ig_intercept(
 
                 beta_dist = dist.MultivariateNormal(torch.zeros(x.shape[1]), beta_cov)
 
-                dist_beta0 = dist.Normal(0, tau_beta0)
+                dist_beta0 = dist.Normal(0, tau_beta0**2)
 
                 beta = pyro.sample("beta", beta_dist)
 

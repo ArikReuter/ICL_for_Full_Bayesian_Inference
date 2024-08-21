@@ -52,6 +52,10 @@ def results_dict_to_latent_variable_beta0_and_beta(result:dict) ->  torch.tensor
 
     beta0 = beta0.unsqueeze(-1)
 
+    if len(beta.shape) == 3 and len(beta0.shape) == 4:
+        beta0 = beta0.squeeze(-1).squeeze(-1)
+        beta = beta.squeeze(-1)
+
     beta_combined = torch.cat([beta0, beta], dim=-1)
     
     result["beta"] = beta_combined
@@ -181,6 +185,7 @@ class EvaluateRealWorld(Evaluate):
         posterior_model_samples = self.sample_posterior_model(self.posterior_model, is_comparison_model=False)
         comparison_model_samples = [self.sample_posterior_model(model, is_comparison_model=True) for model in self.comparison_models]
 
+        #print(posterior_model_samples)
       
         self.posterior_model_samples = posterior_model_samples
         self.comparison_model_samples = comparison_model_samples
