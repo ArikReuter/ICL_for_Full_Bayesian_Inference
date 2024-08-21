@@ -178,8 +178,9 @@ def make_lm_program_gamma_prior_intercept_batched(
                         y = mean + noise  # Shape: (batch_size, N)
                         y = y + beta0 # Shape: (batch_size, N)
 
-                
 
+                
+                beta = torch.cat([beta0.unsqueeze(-1), beta], dim=-1)
                 sigma_squared = sigma_squared.unsqueeze(-1)
 
                 return {
