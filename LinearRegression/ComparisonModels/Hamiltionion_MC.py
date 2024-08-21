@@ -17,7 +17,8 @@ class Hamiltionian_MC(PosteriorComparisonModel):
                  n_samples:int = 200,
                  n_warmup:int = 100,
                  kernel_kwargs: dict = {},
-                 mcmc_kwargs: dict = {}
+                 mcmc_kwargs: dict = {},
+                 shuffle_samples: bool = True
 
                  ) -> None:
         
@@ -28,6 +29,7 @@ class Hamiltionian_MC(PosteriorComparisonModel):
             n_warmup: int: the number of warmup samples to draw from the posterior
             kernel_kwargs: dict: the keyword arguments for the kernel
             mcmc_kwargs: dict: the keyword arguments for the mcmc
+            shuffle_samples: bool: whether to shuffle the samples
         
         Returns:
             None
@@ -41,6 +43,7 @@ class Hamiltionian_MC(PosteriorComparisonModel):
 
         self.nuts_kernel = NUTS(self.pprogram, **kernel_kwargs)
         self.mcmc = MCMC(self.nuts_kernel, num_samples=self.n_samples, warmup_steps=self.n_warmup, **mcmc_kwargs)
+        self.shuffle_samples = shuffle_samples
 
 
     def sample_posterior(self,  
@@ -56,6 +59,10 @@ class Hamiltionian_MC(PosteriorComparisonModel):
         """
         self.mcmc.run(X, y)
         posterior_samples = self.mcmc.get_samples()
+
+        if self.shuffle_samples:
+            posterior_samples = {k: v[torch.randperm(v.shape[0])] for k, v in posterior_samples.items()}
+
         return posterior_samples
     
 
