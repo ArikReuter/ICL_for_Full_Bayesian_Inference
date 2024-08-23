@@ -36,11 +36,8 @@ def results_dict_to_data_x_y(result:dict) -> (torch.tensor):
 
     y = y.reshape(1, -1)
 
-    try:
-        y = torch.tensor(y, dtype = torch.float32)
-    except:
-        pass
-
+    if not torch.is_tensor(x) or not x.dtype == torch.float32:
+        x = torch.tensor(x, dtype = torch.float32)
 
     if len(x.shape) == 2:
         x = x.unsqueeze(0)

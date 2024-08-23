@@ -55,8 +55,12 @@ def results_dict_to_latent_variable_beta0_and_beta(result:dict) ->  torch.tensor
     if len(beta.shape) == 3 and len(beta0.shape) == 4:
         beta0 = beta0.squeeze(-1).squeeze(-1)
         beta = beta.squeeze(-1)
-
+    
+    if len(beta0.shape) == 3 and len(beta.shape) == 2:
+        beta0 = beta0.squeeze(-1)
+  
     beta_combined = torch.cat([beta0, beta], dim=-1)
+
     
     result["beta"] = beta_combined
     return result
