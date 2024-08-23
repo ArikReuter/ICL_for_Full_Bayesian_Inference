@@ -10,9 +10,14 @@ class BasicConfigCreatorColab():
     
     def __init__(
             self,
-            config_name: str = None):
+            config_name: str = None,
+            config_path: str = "./",
+    ):
         """
         Constructor of the BasicConfigCreator class.
+        Args:
+        config_name: str: the name of the configuration file
+        config_path: str: the path to save the configuration file
         """
         self.config = configparser.ConfigParser()
         self.config["confic_created_on"] = time.asctime()
@@ -23,6 +28,28 @@ class BasicConfigCreatorColab():
             self.config_name = config_name
 
         self.config["name"] = self.config_name
+        self.config_path = config_path
+
+    def create_config(self):
+        """
+        Create the configuration file.
+        """
+
+        self.set_basic_params()
+        self.set_data_generation_params()
+        self.set_model_params()
+        self.set_training_params()
+        self.set_evaluation_params()
+        self.set_full_model_params()
+
+        
+    def save_config(self):
+        """
+        Save the configuration file.
+        """
+
+        with open(f"{self.config_path}/{self.config_name}.ini", "w") as configfile:
+            self.config.write(configfile)
 
         
     def set_basic_params(self):
@@ -54,10 +81,13 @@ class BasicConfigCreatorColab():
             "Pprogram_batched": None, # probabilistic program to generate the data in batches
             "Use_intercept": False, # whether to use an intercept in the model
             "Scheduler_behaviour": "All_constant", # behaviour of the scheduler of the probabilistic program's parameters
-            "Generate_X_behaviour": "TabPFNX_extended1" # behaviour of the data generation process
+            "Generate_X_behaviour": "TabPFNX_extended1", # behaviour of the data generation process
+            "pprogram_params": {
+                "a": 5.0,
+                "b": 2.0,
+                "tau": 1.0
+            } # parameters for the probabilistic program. Is a dictionary
         }
-
-        self.config['PPROGRAM_PARAMS'] = None # parameters for the probabilistic program
 
 
     def set_model_params(
@@ -83,6 +113,8 @@ class BasicConfigCreatorColab():
         """
 
         self.config['TRAINING'] = {
+            "Loss_function": "CFMLossOT2", # loss function to use for training
+            "Sigma_min": 1e-4, # minimum value for sigma
             "Learning_rate": 1e-6, # learning rate for training
             "Weight_decay": 1e-5, # weight decay for training
             "Scheduler": "OneCycleLR", # scheduler for the learning rate
@@ -96,7 +128,6 @@ class BasicConfigCreatorColab():
             },
             "early_stopping_patience": 100_000, # patience for early stopping -> set to a large number to disable early stopping
             "max_grad_norm": 1.0, # maximum gradient norm
-            "trainer_save_path": None,
         }
 
     def set_evaluation_params(self):
@@ -108,7 +139,10 @@ class BasicConfigCreatorColab():
             "N_samples_per_model": 1_000, # number of samples to generate per model
             "N_synthetic_cases": 50, # number of synthetic cases to generate and evaluate on
             "Real_world_eval": "Basic1", # real world evaluation to perform,
-            "n_evaluation_cases_real_world": "All" # number of real world evaluation cases to use
+            "n_evaluation_cases_real_world": "All", # number of real world evaluation cases to use
+            "do_full_evaluation": True, # whether to do a full evaluation
+            "save_path_data_real_world_eval": "/content/drive/MyDrive/PFN_Experiments/RealWorldEvaluationData", # path to save the data for real world evaluation
+            "real_world_benchmark_id": 336 # id of the real world benchmark
         }
 
     def set_full_model_params(self):
@@ -120,7 +154,7 @@ class BasicConfigCreatorColab():
         self.config['FULL_MODEL'] = {
             "sample_name": "beta",
             "sample_shape": (P+1,) if self.config['DATA_GENERATION']['Use_intercept'] else (P,),
-            "n_samples": 1_000, # number of samples to generate to compare for each case
+            "n_samples": self.config["EVALUATION"]["N_samples_per_model"], # number of samples to generate to compare for each case
             "batch_size": self.config['BASIC']['Batch_size'], # batch size for generating samples
             "solve_adjoint": True, # whether to solve the adjoint ODE
             "atol": 1e-7,
