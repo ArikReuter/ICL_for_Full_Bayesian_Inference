@@ -408,10 +408,12 @@ class PreprocessorGammaResponse():
             x = x + torch.randn(x.shape) * self.additive_noise_std
 
         x = self.scale_features(x)
-        y = self.target_scaler(y)
+        
 
         y = torch.exp(y) # the target is the log of the response
         y = boxcox(y, self.target_lambda)
+
+        y = self.target_scaler(y)
 
         new_dataset = {
             "x": x,
