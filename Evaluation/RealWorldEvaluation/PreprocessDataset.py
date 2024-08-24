@@ -412,7 +412,7 @@ class PreprocessorGammaResponse():
         y = self.target_scaler(y)
 
         y = torch.exp(y) # the target is the log of the response
-        #y = boxcox(y, self.target_lambda)
+        y = boxcox(y, self.target_lambda)
 
         y = torch.tensor(y, dtype = torch.float)
 
