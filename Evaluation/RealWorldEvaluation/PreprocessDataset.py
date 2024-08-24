@@ -416,7 +416,8 @@ class PreprocessorGammaResponse():
 
         y = torch.tensor(y, dtype = torch.float)
 
-        
+        # ensure y is positive
+        y = y - y.min() + 1e-5
 
         new_dataset = {
             "x": x,
