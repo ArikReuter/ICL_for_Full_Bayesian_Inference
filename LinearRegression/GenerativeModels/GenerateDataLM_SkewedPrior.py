@@ -233,11 +233,13 @@ def make_lm_program_gamma_prior_intercept(
                 #print(f"mean: {mean.shape}")
                 #print(f"sigma_squared: {sigma_squared.shape}")
 
-                with pyro.plate("data", len(x)):
-                        y = pyro.sample("obs", pyro.distributions.Normal(mean, sigma_squared), obs=y)
+                
 
                 beta0 = pyro.sample("beta0", dist_beta0)
                 mean = mean + beta0
+
+                with pyro.plate("data", len(x)):
+                        y = pyro.sample("obs", pyro.distributions.Normal(mean, sigma_squared), obs=y)
 
                 beta = torch.cat([beta0.unsqueeze(-1), beta], dim=-1)
                 
