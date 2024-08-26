@@ -296,6 +296,12 @@ def check_data(data: List[Dict[str, torch.tensor]], batched_input:bool = False, 
         mean_minimums = {}
         mean_maximums = {}
 
+        median_means = {}
+        median_variances = {}
+        median_minimums = {}
+        median_maximums = {}
+
+
         for key in stacked_data.keys():
             try:
                 mean_means[key] = torch.mean(torch.mean(stacked_data[key], dim=1), dim = 0)
@@ -314,6 +320,24 @@ def check_data(data: List[Dict[str, torch.tensor]], batched_input:bool = False, 
             except:
                 mean_maximums[key] = None
 
+            try:
+                median_means[key] = torch.median(torch.mean(stacked_data[key], dim=1), dim = 0)
+            except:
+                median_means[key] = None
+            try:
+                median_variances[key] = torch.median(torch.var(stacked_data[key], dim=1), dim = 0)
+            except:
+                median_variances[key] = None
+            try:
+                median_minimums[key] = torch.median(torch.min(stacked_data[key], dim=1), dim = 0)
+            except:
+                median_minimums[key] = None
+            try:
+                median_maximums[key] = torch.median(torch.max(stacked_data[key], dim=1), dim = 0)
+            except:
+                median_maximums[key] = None
+            
+
         
 
         return {
@@ -324,7 +348,12 @@ def check_data(data: List[Dict[str, torch.tensor]], batched_input:bool = False, 
             "mean_means": mean_means,
             "mean_variances": mean_variances,
             "mean_minimums": mean_minimums,
-            "mean_maximums": mean_maximums
+            "mean_maximums": mean_maximums,
+            "median_means": median_means,
+            "median_variances": median_variances,
+            "median_minimums": median_minimums,
+            "median_maximums": median_maximums
+            
         }
     else:
         return {
