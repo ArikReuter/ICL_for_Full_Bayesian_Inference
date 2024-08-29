@@ -16,17 +16,20 @@ class Plot:
         results_to_dict_data_x_y: callable = results_dict_to_data_x_y,
         results_to_dict_latent_variable: callable = results_dict_to_latent_variable_beta,
         save_path: str = None,
+        fontsize: int = 12,
     ):
         """
         Args:
             results_to_dict_data_x_y: callable: a function that takes the results dictionary and returns the data
             results_to_dict_latent_variable: callable: a function that takes the results dictionary and returns the latent variable
             save_path: str: the path to save the plots
+            fontsize: int: the fontsize of the plots
         """
 
         self.results_to_dict_data_x_y = results_to_dict_data_x_y
         self.results_to_dict_latent_variable = results_to_dict_latent_variable
         self.save_path = save_path
+        self.fontsize = fontsize
 
 
     def density_plot_marginals(
@@ -86,9 +89,12 @@ class Plot:
                     ax[j].axvline(gt_parameter[j], color = model_color["GT"])
                 ax[j].set_title(f"Dimension {j}")
 
-        
-        
-                
+            # set font size
+            for axis in ax:
+                axis.tick_params(labelsize = self.fontsize)
+                axis.set_xlabel("Density", fontsize = self.fontsize)
+                axis.set_ylabel("Value", fontsize = self.fontsize)
+
 
 
             # set legend once for the figure because it is the same for all subplots. Set it below the subplots by using figlegend

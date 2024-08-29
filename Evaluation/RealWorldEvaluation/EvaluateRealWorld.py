@@ -356,7 +356,15 @@ class EvaluateRealWorld(Evaluate):
 
         return res
     
-    def plot_results(self, max_number_plots = 5) -> None:
+    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12) -> None:
+        """
+        Plot the results
+        Args:
+            max_number_plots: int: the maximum number of plots to show
+            fontsize: int: the fontsize of the plots
+        
+        """
+        self.plot.fontsize = fontsize
 
         assert self.posterior_model_samples is not None, "You need to run the evaluation first"
         assert self.comparison_model_samples is not None, "You need to run the evaluation first"
