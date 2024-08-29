@@ -211,7 +211,7 @@ class EvaluateRealWorld(Evaluate):
         comparison_models_vs_comparison_models = {}
         for i in range(len(self.comparison_models)):
             for j in range(i+1, len(self.comparison_models)):
-                comparison_models_vs_comparison_models[(str(self.comparison_models[i]), str(self.comparison_models[j]))] = self.compare_two_models.compare_model_samples(comparison_model_samples[i], comparison_model_samples[j])
+                comparison_models_vs_comparison_models[(self.model_names_dict[self.comparison_models[i]], self.model_names_dict[self.comparison_models[j]])] = self.compare_two_models.compare_model_samples(comparison_model_samples[i], comparison_model_samples[j])
         
 
         res_raw = {
