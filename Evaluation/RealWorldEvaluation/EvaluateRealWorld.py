@@ -203,7 +203,7 @@ class EvaluateRealWorld(Evaluate):
         self.posterior_model_samples = posterior_model_samples
         self.comparison_model_samples = comparison_model_samples
 
-      
+    
         posterior_model_vs_comparison_models = {
             (self.model_names_dict[self.posterior_model], self.model_names_dict[model]): self.compare_two_models.compare_model_samples(posterior_model_samples, model_samples) for model, model_samples in zip(self.comparison_models, comparison_model_samples)
         }
