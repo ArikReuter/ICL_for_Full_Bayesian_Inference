@@ -87,13 +87,14 @@ class Plot:
                 
                 if gt_samples is not None and plot_gt:
                     ax[j].axvline(gt_parameter[j], color = model_color["GT"])
-                ax[j].set_title(f"Dimension {j}")
+                ax[j].set_title(f"Dimension {j}", fontsize = self.fontsize)
 
             # set font size
             for axis in ax:
-                axis.tick_params(labelsize = self.fontsize)
-                axis.set_xlabel("Density", fontsize = self.fontsize)
-                axis.set_ylabel("Value", fontsize = self.fontsize)
+                #axis.tick_params(labelsize = self.fontsize)
+                #axis.set_xlabel("Density", fontsize = self.fontsize)
+                #axis.set_ylabel("Value", fontsize = self.fontsize)
+                pass
 
 
 
@@ -105,7 +106,7 @@ class Plot:
             fig.legend(handles = handles, loc = 'center left', fontsize = 12)
 
             # set title 
-            fig.suptitle(f"Dataset Id: {i}")
+            fig.suptitle(f"Dataset Id: {i}", fontsize = self.fontsize)
           
 
         
