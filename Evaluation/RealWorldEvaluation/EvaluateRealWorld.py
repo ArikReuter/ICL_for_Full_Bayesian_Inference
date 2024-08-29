@@ -75,7 +75,7 @@ class EvaluateRealWorld(Evaluate):
             posterior_model: PosteriorComparisonModel,
             evaluation_datasets: list[dict],
             comparison_models: list[PosteriorComparisonModel] = [],
-            comparison_models_names: list[str] = None,
+            model_names: list[str] = None,
             n_evaluation_cases: int = 1,
             results_dict_to_latent_variable_posterior_model: callable = just_return_results,
             results_dict_to_latent_variable_comparison_models: callable = results_dict_to_latent_variable_beta0_and_beta,
@@ -122,12 +122,13 @@ class EvaluateRealWorld(Evaluate):
         self.save_path = save_path
         self.overwrite_results = overwrite_results
 
-        if comparison_models_names is None:
+        if model_names is None:
             comparison_models_names = [str(model) for model in comparison_models]
+            model_names = [str(posterior_model)] + comparison_models_names
 
-        assert len(comparison_models_names) == len(comparison_models), f"The number of comparison models and comparison model names must be equal. but got {len(comparison_models)} and {len(comparison_models_names)}"
-        comparison_model_name_dict = {str(model): name for model, name in zip(comparison_models, comparison_models_names)}
-        self.comparison_model_name_dict = comparison_model_name_dict
+        assert len(model_names) == len(comparison_models) +1, f"The number of model names must be equal to the number of comparison models + 1. But got {len(model_names)} and {len(comparison_models) +1}"
+        model_names_dict = {model: name for model, name in zip([posterior_model] + comparison_models, model_names)}
+        self.model_names_dict = model_names_dict
 
         # check if the save path exists, if not create it. If it exists and is not empty, check if the overwrite flag is set
 
@@ -204,7 +205,7 @@ class EvaluateRealWorld(Evaluate):
 
       
         posterior_model_vs_comparison_models = {
-            (self.comparison_model_name_dict[self.posterior_model], self.comparison_model_name_dict[model]): self.compare_two_models.compare_model_samples(posterior_model_samples, model_samples) for model, model_samples in zip(self.comparison_models, comparison_model_samples)
+            (self.model_names_dict[self.posterior_model], self.model_names_dict[model]): self.compare_two_models.compare_model_samples(posterior_model_samples, model_samples) for model, model_samples in zip(self.comparison_models, comparison_model_samples)
         }
 
         comparison_models_vs_comparison_models = {}
