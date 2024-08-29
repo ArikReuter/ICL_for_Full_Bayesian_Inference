@@ -49,15 +49,7 @@ def results_dict_to_latent_variable_beta0_and_beta(result:dict) ->  torch.tensor
   
     beta_combined = torch.cat([beta0, beta], dim=-1)
 
-    print(
-        f"""
-        shape beta0: {beta0.shape}
-        shape beta: {beta.shape}
-        shape beta_combined: {beta_combined.shape}
-"""
-    )
 
-    
     result["beta"] = beta_combined
     return result
 

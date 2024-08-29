@@ -363,17 +363,18 @@ class EvaluateRealWorld(Evaluate):
 
         assert len(self.comparison_models) == len(self.comparison_model_samples), "The number of comparison models and comparison model samples must be equal"
         comparison_model_samples_dict = {
-            model: samples for model, samples in zip(self.comparison_models, self.comparison_model_samples)
+            self.model_names_dict[model]: samples for model, samples in zip(self.comparison_models, self.comparison_model_samples)
         }
 
         model_samples_dict = {
-            self.posterior_model: self.posterior_model_samples,
+            self.model_names_dict[self.posterior_model]: self.posterior_model_samples,
             **comparison_model_samples_dict
         }
 
         self.plot.density_plot_marginals(
             model_samples= model_samples_dict,
             gt_samples=None,
+            plot_gt=False,
             max_number_plots = max_number_plots
         )
 

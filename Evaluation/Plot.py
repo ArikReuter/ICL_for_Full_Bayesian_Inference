@@ -33,6 +33,7 @@ class Plot:
             self,
             model_samples: dict[list[dict]],
             gt_samples: list[dict],
+            plot_gt: bool = True,
             max_number_plots: int = 5,
     ) -> None:
         """
@@ -40,6 +41,7 @@ class Plot:
         Args:
             model_samples: dict[list[dict]]: the samples by the models
             gt_samples: list[dict]: the ground truth samples
+            plot_gt: bool: whether to plot the ground truth samples
             max_number_plots: int: the maximum number of plots to show
         """
 
@@ -80,7 +82,7 @@ class Plot:
                         pass
                     sns.kdeplot(samples[:, j], ax = ax[j], color = model_color[model])
                 
-                if gt_samples is not None:
+                if gt_samples is not None and plot_gt:
                     ax[j].axvline(gt_parameter[j], color = model_color["GT"])
                 ax[j].set_title(f"Dimension {j}")
 
@@ -92,11 +94,12 @@ class Plot:
             # set legend once for the figure because it is the same for all subplots. Set it below the subplots by using figlegend
 
             handles = [plt.Line2D([0], [0], color = model_color[model], label = model) for model in model_samples.keys()]
-            handles.append(plt.Line2D([0], [0], color = "black", label = "GT"))
+            if gt_samples is not None and plot_gt:
+                handles.append(plt.Line2D([0], [0], color = "black", label = "GT"))
             fig.legend(handles = handles, loc = 'center left', fontsize = 12)
 
             # set title 
-            fig.suptitle(f"Example {i}")
+            fig.suptitle(f"Dataset Id: {i}")
           
 
         
