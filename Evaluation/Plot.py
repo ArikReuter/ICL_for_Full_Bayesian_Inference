@@ -103,12 +103,14 @@ class Plot:
             handles = [plt.Line2D([0], [0], color = model_color[model], label = model) for model in model_samples.keys()]
             if gt_samples is not None and plot_gt:
                 handles.append(plt.Line2D([0], [0], color = "black", label = "GT"))
-            fig.legend(handles = handles, loc = 'center left', fontsize = 12)
+            fig.legend(handles = handles, loc = 'center left', fontsize = self.fontsize)
 
             # set title 
             fig.suptitle(f"Dataset Id: {i}", fontsize = self.fontsize)
           
+            # use tight layout
 
+            fig.tight_layout(rect = [0, 0.03, 1, 0.95])
         
 
             if self.save_path is not None:
