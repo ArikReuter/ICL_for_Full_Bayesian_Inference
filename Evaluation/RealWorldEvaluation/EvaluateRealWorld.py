@@ -124,6 +124,8 @@ class EvaluateRealWorld(Evaluate):
 
         if comparison_models_names is None:
             comparison_models_names = [str(model) for model in comparison_models]
+
+        assert len(comparison_models_names) == len(comparison_models), f"The number of comparison models and comparison model names must be equal. but got {len(comparison_models)} and {len(comparison_models_names)}"
         comparison_model_name_dict = {str(model): name for model, name in zip(comparison_models, comparison_models_names)}
         self.comparison_model_name_dict = comparison_model_name_dict
 
