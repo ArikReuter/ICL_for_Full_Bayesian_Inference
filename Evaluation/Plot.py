@@ -91,12 +91,16 @@ class Plot:
 
             # set font size
             for axis in ax:
-                #axis.tick_params(labelsize = self.fontsize)
-                #axis.set_xlabel("Density", fontsize = self.fontsize)
-                #axis.set_ylabel("Value", fontsize = self.fontsize)
-                pass
-
-
+                axis.tick_params(labelsize = self.fontsize)
+                axis.set_xlabel("Density", fontsize = self.fontsize)
+                axis.set_ylabel("Value", fontsize = self.fontsize)
+                
+            
+            # increase line width of all lines in the plot
+            for axis in ax:
+                for line in axis.lines:
+                    line.set_linewidth(3)
+                
 
             # set legend once for the figure because it is the same for all subplots. Set it below the subplots by using figlegend
 
