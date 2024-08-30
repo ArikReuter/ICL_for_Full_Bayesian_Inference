@@ -99,7 +99,7 @@ class Plot:
             # increase line width of all lines in the plot
             for axis in ax:
                 for line in axis.lines:
-                    line.set_linewidth(3)
+                    line.set_linewidth(2)
                 
 
             # set legend once for the figure because it is the same for all subplots. Set it below the subplots by using figlegend
