@@ -165,7 +165,7 @@ class BasicConfigCreator():
         Set the params for the full model.
         """
 
-        P = self.config['BASIC']['P']   
+        P = int(self.config['BASIC']['P'])
         self.config['FULL_MODEL'] = {
             "sample_name": "beta",
             "sample_shape": (P+1,) if self.config['DATA_GENERATION']['Use_intercept'] == "True" else (P,),
