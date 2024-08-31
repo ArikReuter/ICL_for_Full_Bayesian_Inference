@@ -175,13 +175,18 @@ class Curriculum():
         Plot all schedules
         Args: 
             steps_to_plot: int: the number of steps to plot
-        """ 
-        
+        """         
         fig, axs = plt.subplots(len(self.generation_params), 1)
         fig.set_figheight(5 * len(self.generation_params))
+
+
+        endoint_plot = max(3, self.max_iter)
+        step = max(1, endoint_plot // steps_to_plot)
+        
+
         for i, (name, schedule) in enumerate(self.generation_params.items()):
-            y_values = [schedule(i) for i in range(0, self.max_iter, self.max_iter // steps_to_plot)]
-            x_values = range(0, self.max_iter, self.max_iter // steps_to_plot)
+            y_values = [schedule(i) for i in range(0, endoint_plot, step)]
+            x_values = range(0, endoint_plot, step)
 
             axs[i].plot(x_values, y_values)
             axs[i].set_title(name)

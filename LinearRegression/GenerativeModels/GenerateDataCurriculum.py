@@ -146,7 +146,10 @@ class GenerateDataCurriculum(GenerateData):
                     batch_size: int = 256, 
                     epochs_to_check:List[int] = [0, 10], 
                     used_batch_samples:int = 1000,
-                    consider_average_variance_statistics: bool = True) -> List:
+                    consider_average_variance_statistics: bool = True,
+                    save_path_plots: str = None
+                    
+    )-> List:
         """
         Check the model for a few batches
         Args: 
@@ -157,6 +160,7 @@ class GenerateDataCurriculum(GenerateData):
             epochs_to_check: List[int]: the epochs to check
             used_batch_samples: int: the number of batches to use for checking
             consider_average_variance_statistics: bool: whether to consider the average variance statistics
+            save_path_plots: str: the path to save the plots
 
         Returns:
             List: a list of results
@@ -185,7 +189,7 @@ class GenerateDataCurriculum(GenerateData):
                 sample_data.append(data)
 
 
-            r = check_and_plot_data(sample_data, batched_input=True, consider_average_variance_statistics = consider_average_variance_statistics)
+            r = check_and_plot_data(sample_data, batched_input=True, consider_average_variance_statistics = consider_average_variance_statistics, save_path_plots = save_path_plots)
 
             results.append(r)
 

@@ -68,7 +68,6 @@ class EpochLoader():
         Returns:
             Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]: a tuple of dataloaders for the training, validation and test data
         """
-        
         dataoaders = self.GenerateDataCurriculum.make_dataloaders_for_epoch_dynamic(
                                 epoch = epoch,
                                 n = self.n,

@@ -78,7 +78,6 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
             Tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]: a tuple of dataloaders for the training, test and validation data
         """
 
-
         train_size = int(train_frac * n_samples_per_epoch)
         val_size = int(val_frac * n_samples_per_epoch)
         test_size = n_samples_per_epoch - train_size - val_size
@@ -132,7 +131,6 @@ class GenerateDataCurriculumCFM(GenerateDataCurriculum):
                                 relevant_parameter = self.relevant_parameter)
         
         
-
         
         dataloader_train = torch.utils.data.DataLoader(dataset_train, batch_size = batch_size, shuffle = shuffle)
         dataloader_val = torch.utils.data.DataLoader(dataset_val, batch_size = batch_size, shuffle = shuffle)

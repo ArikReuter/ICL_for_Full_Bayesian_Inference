@@ -61,8 +61,11 @@ class GetDataOpenML:
         ]
 
         if self.save_path is not None:
-            with open(self.save_path, "wb") as f:
-                pickle.dump(dataset_lis, f)
+            try:
+                with open(self.save_path, "wb") as f:
+                    pickle.dump(dataset_lis, f)
+            except Exception as e:
+                print(f"An error {e} occured while saving the data to disk")
 
         return dataset_lis
     

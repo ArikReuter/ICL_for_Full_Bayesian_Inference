@@ -2,6 +2,7 @@ import torch
 import pyro
 from tqdm import tqdm
 from typing import List, Dict, Tuple
+import os
 try:
     from LM_abstract import pprogram_linear_model_return_dict, return_only_y, pprogram_X
     from GenerateX import simulate_X_uniform
@@ -365,7 +366,8 @@ def check_data(data: List[Dict[str, torch.tensor]], batched_input:bool = False, 
 
 def check_and_plot_data(data: List[Dict[str, torch.tensor]], 
                         batched_input = False,
-                        consider_average_variance_statistics: bool = False
+                        consider_average_variance_statistics: bool = False,
+                        save_path_plots: str = None
                         ) -> None:
     """
     Check statistics about the simulated data and plot the data
@@ -373,11 +375,14 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]],
         data: List[Dict[str, torch.tensor]]: the simulated data in the form of a list of dictionaries where each element of the list is a dictionary containing the data for one batch
         batched_input: bool: whether the input is batched
         consider_average_variance_statistics: bool: whether to consider the average variance statistics
+        save_path_plots: str: the path to save the plots
     """
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    #stats = check_data(data)
+    if not os.path.exists(save_path_plots):
+        os.makedirs(save_path_plots)
+
 
     if not batched_input:
         stacked_data = {key: torch.stack([d[key] for d in data]) for key in data[0].keys()} 
@@ -460,7 +465,12 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]],
     ax[0].set_title("Histogram of y")
     sns.histplot(stacked_data["x"].flatten(), ax=ax[1])
     ax[1].set_title("Histogram of x")
+    
+    if save_path_plots is not None:
+        plt.savefig(save_path_plots + "Histograms.png")
+
     plt.show()
+
 
     # plot each of the beta values in a histogram 
     p = stacked_data["beta"].shape[1]
@@ -468,6 +478,9 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]],
     for i in range(p):
         sns.histplot(stacked_data["beta"][:, i], ax=ax[i])
         ax[i].set_title(f"Histogram of beta_{i}")
+    
+    if save_path_plots is not None:
+        plt.savefig(save_path_plots + "Beta_Histograms.png")
     
     plt.show()
 
@@ -481,6 +494,8 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]],
                 fig, ax = plt.subplots(1, 1, figsize=(5, 5))
                 sns.histplot(data, ax=ax)
                 ax.set_title(f"Histogram of {key}")
+                if save_path_plots is not None:
+                    plt.savefig(save_path_plots + f"{key}_Histogram.png")
                 plt.show()
             else:
                 p = data.shape[1]
@@ -488,6 +503,9 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]],
                 for i in range(p):
                     sns.histplot(data[:, i], ax=ax[i])
                     ax[i].set_title(f"Histogram of {key}_{i}")
+                
+                if save_path_plots is not None:
+                    plt.savefig(save_path_plots + f"{key}_Histograms.png")
                 plt.show()
 
     

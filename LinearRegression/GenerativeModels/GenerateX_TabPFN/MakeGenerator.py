@@ -3,7 +3,7 @@ from PFNExperiments.LinearRegression.GenerativeModels.GenerateX import make_simu
 
 
 
-class MakeGeneratorColab():
+class MakeGenerator():
 
     def __init__(self,
                  paths: list = [

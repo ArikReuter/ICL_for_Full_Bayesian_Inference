@@ -183,7 +183,7 @@ def make_logreg_program_ig_intercept_batched(
 
         return multivariate_lm_return_dict
 
-def make_logreg_program_intercept_ig(
+def make_logreg_program_ig_intercept(
         tau: float = 1.0,
         a: float = 5.0,
         b: float = 2.0,

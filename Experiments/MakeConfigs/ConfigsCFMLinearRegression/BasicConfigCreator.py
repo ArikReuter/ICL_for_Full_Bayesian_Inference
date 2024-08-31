@@ -3,7 +3,7 @@ import time
 
 from ModelConfigCreator import make_basic_model_config
 
-class BasicConfigCreatorColab():
+class BasicConfigCreator():
     """
     A class to create a basic configuration file for experiments in Colab.
     """
@@ -20,14 +20,15 @@ class BasicConfigCreatorColab():
         config_path: str: the path to save the configuration file
         """
         self.config = configparser.ConfigParser()
-        self.config["confic_created_on"] = time.asctime()
+
+        self.config["confic_created_on"] = {"time": {time.asctime()}}
 
         if config_name is None:
             self.config_name = "basic_config"
         else:
             self.config_name = config_name
 
-        self.config["name"] = self.config_name
+        self.config["name"] = {"name": self.config_name}
         self.config_path = config_path
 
     def create_config(self):
@@ -56,6 +57,7 @@ class BasicConfigCreatorColab():
         """
         Set the basic parameters for the configuration file.
         """
+        time = time.asctime()
 
         self.config['BASIC'] = {
             "N": 50,   # number of samples per in-context dataset
@@ -65,10 +67,13 @@ class BasicConfigCreatorColab():
             "N_samples_per_epoch": 500_000, # number of samples to use per epoch
             "N_samples_to_generate_at_once": 250_000, # number of samples to generate at once
             "Shuffle": False, # shuffle the data before training
-            "Save_path": "/content/drive/MyDrive/PFN_Experiments/Training_RunsCFM", # path to save the model
+            "Save_path": "/content/drive/MyDrive/PFN_Experiments/Training_RunsCFM" + f"/{self.config_name}_{time}", # path to save the results
             "Train_frac": 0.5, # fraction of the data to use for training
             "Val_frac": 0.1 # fraction of the data to use for validation
         }
+
+        self.config['BASIC']['N_batches_per_epoch'] = str(max(1, int(self.config['BASIC']['N_samples_per_epoch']) // int(self.config['BASIC']['Batch_size'])))
+
 
 
     def set_data_generation_params(self):
@@ -77,11 +82,18 @@ class BasicConfigCreatorColab():
         """
 
         self.config['DATA_GENERATION'] = {
-            "Pprogram": None, # probabilistic program to generate the data
-            "Pprogram_batched": None, # probabilistic program to generate the data in batches
+            "Pprogram": "ig", # probabilistic program to generate the data
+            #"Pprogram_batched": None, # probabilistic program to generate the data in batches
             "Use_intercept": False, # whether to use an intercept in the model
             "Scheduler_behaviour": "All_constant", # behaviour of the scheduler of the probabilistic program's parameters
             "Generate_X_behaviour": "TabPFNX_extended1", # behaviour of the data generation process
+            "X_data_files": [
+                "/content/drive/MyDrive/PFN_Experiments/DataX/TabPFN_Prior/X_tabpfn_n50_p5_1_000_000_v3_scaled.pt",
+                "/content/drive/MyDrive/PFN_Experiments/DataX/TabPFN_Prior/X_tabpfn_n50_p5_2_000_000_v4_scaled.pt",
+                "/content/drive/MyDrive/PFN_Experiments/DataX/TabPFN_Prior/X_tabpfn_n50_p5_2_000_000_v5_scaled.pt",
+                "/content/drive/MyDrive/PFN_Experiments/DataX/TabPFN_Prior/X_tabpfn_n50_p5_2_000_000_v6_scaled.pt",
+                "/content/drive/MyDrive/PFN_Experiments/DataX/TabPFN_Prior/X_tabpfn_n50_p5_2_000_000_v7_scaled.pt"
+            ],
             "pprogram_params": {
                 "a": 5.0,
                 "b": 2.0,
@@ -97,12 +109,12 @@ class BasicConfigCreatorColab():
         Set the model parameters for the configuration file.
 
         """
-        P = self.config['BASIC']['P']
+        P = int(self.config['BASIC']['P'])
 
 
         self.config['MODEL'] = make_basic_model_config(
             P = P,
-            use_intercept = self.config['DATA_GENERATION']['Use_intercept']
+            use_intercept = True if self.config['DATA_GENERATION']['Use_intercept'] == "True" else False,
         )
 
     def set_training_params(
@@ -121,7 +133,7 @@ class BasicConfigCreatorColab():
             "Scheduler_params": {
                 "max_lr": 5e-4, # maximum learning rate
                 "epochs": self.config['BASIC']['N_epochs'], # number of epochs
-                "steps_per_epoch": self.config['BASIC']['N_samples_per_epoch'] // self.config['BASIC']['Batch_size'], # steps per epoch
+                "steps_per_epoch": max(1, int(self.config['BASIC']['N_samples_per_epoch']) // int(self.config['BASIC']['Batch_size'])), # steps per epoch
                 "pct_start": 0.1, # percentage of the cycle spent increasing the learning rate
                 "div_factor": 25.0, # factor by which the maximum learning rate is divided
                 "final_div_factor": 1e4 # factor by which the maximum learning rate is divided at the end
@@ -153,7 +165,7 @@ class BasicConfigCreatorColab():
         P = self.config['BASIC']['P']   
         self.config['FULL_MODEL'] = {
             "sample_name": "beta",
-            "sample_shape": (P+1,) if self.config['DATA_GENERATION']['Use_intercept'] else (P,),
+            "sample_shape": (P+1,) if self.config['DATA_GENERATION']['Use_intercept'] == "True" else (P,),
             "n_samples": self.config["EVALUATION"]["N_samples_per_model"], # number of samples to generate to compare for each case
             "batch_size": self.config['BASIC']['Batch_size'], # batch size for generating samples
             "solve_adjoint": True, # whether to solve the adjoint ODE
@@ -161,3 +173,10 @@ class BasicConfigCreatorColab():
             "rtol": 1e-7
         }
 
+if __name__ == "__main__":
+    config_creator = BasicConfigCreator(
+        config_name = "basic_config",
+        config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\LM_Configs"
+    )
+    config_creator.create_config()
+    config_creator.save_config()
