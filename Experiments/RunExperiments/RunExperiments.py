@@ -60,7 +60,7 @@ class RunExperiments():
         if not os.path.exists(self.config["BASIC"]["Save_path"]):
             os.makedirs(self.config["BASIC"]["Save_path"])
 
-        with open(f"{self.config['BASIC']['Save_path']}\\config.ini", "w") as configfile:
+        with open(f"{self.config['BASIC']['Save_path']}/config.ini", "w") as configfile:
             self.config.write(configfile)
 
     def setup_data_generation(self):
