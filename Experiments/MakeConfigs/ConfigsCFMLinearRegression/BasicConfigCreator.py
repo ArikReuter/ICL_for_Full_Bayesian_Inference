@@ -156,7 +156,7 @@ class BasicConfigCreator():
             "Real_world_eval": "Basic1", # real world evaluation to perform,
             "n_evaluation_cases_real_world": "All", # number of real world evaluation cases to use
             "do_full_evaluation": True, # whether to do a full evaluation
-            "save_path_data_real_world_eval": "/content/drive/MyDrive/PFN_Experiments/RealWorldEvaluationData", # path to save the data for real world evaluation
+            "save_path_data_real_world_eval": "/content/drive/MyDrive/PFN_Experiments/RealWorldEvaluationData/DatasetsOpenML/numerical_regression.pkl", # path to save the data for real world evaluation
             "real_world_benchmark_id": 336 # id of the real world benchmark
         }
 
