@@ -57,7 +57,10 @@ class BasicConfigCreator():
         """
         Set the basic parameters for the configuration file.
         """
-        time = time.asctime()
+        datetime = time.asctime()
+        datetime = datetime.replace(" ", "_")
+        datetime = datetime.replace(":", "_")
+
 
         self.config['BASIC'] = {
             "N": 50,   # number of samples per in-context dataset
@@ -67,7 +70,7 @@ class BasicConfigCreator():
             "N_samples_per_epoch": 500_000, # number of samples to use per epoch
             "N_samples_to_generate_at_once": 250_000, # number of samples to generate at once
             "Shuffle": False, # shuffle the data before training
-            "Save_path": "/content/drive/MyDrive/PFN_Experiments/Training_RunsCFM" + f"/{self.config_name}_{time}", # path to save the results
+            "Save_path": "/content/drive/MyDrive/PFN_Experiments/Training_RunsCFM" + f"/{self.config_name}_{datetime}",
             "Train_frac": 0.5, # fraction of the data to use for training
             "Val_frac": 0.1 # fraction of the data to use for validation
         }
