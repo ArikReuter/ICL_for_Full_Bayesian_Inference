@@ -189,7 +189,7 @@ class GenerateDataCurriculum(GenerateData):
                 sample_data.append(data)
 
 
-            r = check_and_plot_data(sample_data, batched_input=True, consider_average_variance_statistics = consider_average_variance_statistics, save_path_plots = save_path_plots)
+            r = check_and_plot_data(sample_data, batched_input=True, consider_average_variance_statistics = consider_average_variance_statistics, save_path_plots = save_path_plots + "/")
 
             results.append(r)
 
