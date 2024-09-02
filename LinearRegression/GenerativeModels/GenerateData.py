@@ -380,9 +380,9 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]],
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    if not os.path.exists(save_path_plots):
-        os.makedirs(save_path_plots)
-
+    if save_path_plots is not None:
+        if not os.path.exists(save_path_plots):
+            os.makedirs(save_path_plots)
 
     if not batched_input:
         stacked_data = {key: torch.stack([d[key] for d in data]) for key in data[0].keys()} 
@@ -391,49 +391,60 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]],
 
     stats = check_data(data, batched_input=batched_input, consider_average_variance_statistics = consider_average_variance_statistics)
 
-    X_overall_mean = stats["means"]["x"].mean()
-    X_overall_variance = stats["variances"]["x"].mean()
-    X_overall_min = stats["minimums"]["x"].min()
-    X_overall_max = stats["maximums"]["x"].max()
+    overall_agg_stats = {}
+    if "x" in stacked_data.keys():
+        X_overall_mean = stats["means"]["x"].mean()
+        X_overall_variance = stats["variances"]["x"].mean()
+        X_overall_min = stats["minimums"]["x"].min()
+        X_overall_max = stats["maximums"]["x"].max()
 
-    y_overall_mean = stats["means"]["y"].mean()
-    y_overall_variance = stats["variances"]["y"].mean()
-    y_overall_min = stats["minimums"]["y"].min()
-    y_overall_max = stats["maximums"]["y"].max()
-
-
-    overall_agg_stats = {
-        'X': {
+        overall_agg_stats['X'] = {
             'mean': X_overall_mean,
             'variance': X_overall_variance,
             'min': X_overall_min,
             'max': X_overall_max
-        },
-        'y': {
+        }
+
+    if "y" in stacked_data.keys():
+        y_overall_mean = stats["means"]["y"].mean()
+        y_overall_variance = stats["variances"]["y"].mean()
+        y_overall_min = stats["minimums"]["y"].min()
+        y_overall_max = stats["maximums"]["y"].max()
+
+        overall_agg_stats['y'] = {
             'mean': y_overall_mean,
             'variance': y_overall_variance,
             'min': y_overall_min,
             'max': y_overall_max
-        },
-        'beta': {
-            'mean': stats["means"]["beta"],
-            'variance': stats["variances"]["beta"],
-            'min': stats["minimums"]["beta"],
-            'max': stats["maximums"]["beta"]
         }
-    }
 
-    if consider_average_variance_statistics:
+    if "beta" in stacked_data.keys():
+        beta_overall_mean = stats["means"]["beta"].mean()
+        beta_overall_variance = stats["variances"]["beta"].mean()
+        beta_overall_min = stats["minimums"]["beta"].min()
+        beta_overall_max = stats["maximums"]["beta"].max()
+
+        overall_agg_stats['beta'] = {
+            'mean': beta_overall_mean,
+            'variance': beta_overall_variance,
+            'min': beta_overall_min,
+            'max': beta_overall_max
+        }
+
+
+    if consider_average_variance_statistics and "x" in stacked_data.keys():
         overall_agg_stats['X']['mean_mean'] = stats['mean_means']['x']
         overall_agg_stats['X']['variance_mean'] = stats['mean_variances']['x']
         overall_agg_stats['X']['min_mean'] = stats['mean_minimums']['x']
         overall_agg_stats['X']['max_mean'] = stats['mean_maximums']['x']
 
+    if consider_average_variance_statistics and "y" in stacked_data.keys():
         overall_agg_stats['y']['mean_mean'] = stats['mean_means']['y']
         overall_agg_stats['y']['variance_mean'] = stats['mean_variances']['y']
         overall_agg_stats['y']['min_mean'] = stats['mean_minimums']['y']
         overall_agg_stats['y']['max_mean'] = stats['mean_maximums']['y']
 
+    if consider_average_variance_statistics and "beta" in stacked_data.keys():
         overall_agg_stats['beta']['mean_mean'] = stats['mean_means']['beta']
         overall_agg_stats['beta']['variance_mean'] = stats['mean_variances']['beta']
         overall_agg_stats['beta']['min_mean'] = stats['mean_minimums']['beta']
@@ -461,10 +472,14 @@ def check_and_plot_data(data: List[Dict[str, torch.tensor]],
 
     # plot the data
     fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-    sns.histplot(stacked_data["y"].flatten(), ax=ax[0])
-    ax[0].set_title("Histogram of y")
-    sns.histplot(stacked_data["x"].flatten(), ax=ax[1])
-    ax[1].set_title("Histogram of x")
+    if "y" in stacked_data.keys():
+        
+        sns.histplot(stacked_data["y"].flatten(), ax=ax[0])
+        ax[0].set_title("Histogram of y")
+
+    if "x" in stacked_data.keys():
+        sns.histplot(stacked_data["x"].flatten(), ax=ax[1])
+        ax[1].set_title("Histogram of x")
     
     if save_path_plots is not None:
         plt.savefig(save_path_plots + "Histograms.png")

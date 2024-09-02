@@ -60,8 +60,8 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         """
 
         self.guide = AutoGuideList(self.pprogram)
-        self.guide.append(self.make_guide_fun(block(self.pprogram, hide = ["z"], expose= ['mu', "sigma_squared"]), **self.additional_make_guide_args))
-        #self.guide.append(AutoDiscreteParallel(block(self.pprogram, expose = ["z"])))
+        self.guide.append(self.make_guide_fun(block(self.pprogram, hide = ["z"]), **self.additional_make_guide_args))
+        self.guide.append(AutoDiscreteParallel(block(self.pprogram, expose = ["z"])))
         self.guide = config_enumerate(self.guide, "parallel")
 
     def do_inference(self,  

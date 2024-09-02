@@ -3,6 +3,7 @@ import pyro.distributions
 import torch 
 import pyro 
 import pyro.distributions as dist
+from copy import deepcopy
 
 def make_gmm_program_univariate(
         n: int = 100,
@@ -37,6 +38,15 @@ def make_gmm_program_univariate(
         Returns:
             torch.tensor: the output
         """
+        #if x is not None:
+        #    n = x.shape[0]
+        #    p = x.shape[1]  
+        
+        if x is not None:
+            x = x.squeeze()
+
+
+
         sigma_squared_dist = pyro.distributions.InverseGamma(a1, b1)
 
         phi_dist = pyro.distributions.Dirichlet(torch.tensor([dirichlet_beta] * p))
@@ -59,6 +69,7 @@ def make_gmm_program_univariate(
         }
     
     return gmm_program_univariate
+
 
 
 def make_gmm_program_univariate_batched(
@@ -85,7 +96,7 @@ def make_gmm_program_univariate_batched(
     dirichlet_beta = torch.tensor(dirichlet_beta)
     lambda1 = torch.tensor(lambda1)
 
-    def gmm_program_univariate(x: torch.tensor = None) -> dict:
+    def gmm_program_univariate(x: torch.tensor = None, y: torch.tensor = None, n = n, p = p, batch_size = batch_size) -> dict:
         """
         A univariate GMM program
 
@@ -95,12 +106,12 @@ def make_gmm_program_univariate_batched(
         Returns:
             torch.tensor: the output
         """
+        
         if x is not None:
-            assert x.shape[0] == batch_size, "The batch size of the input must be equal to the batch size of the model"
-            assert x.shape[1] == n, "The number of data points must be equal to the number of data points in the model"
-            assert x.shape[2] == p, "The number of features must be equal to 1"
-
-
+            n = x.shape[1]
+            p = x.shape[2]
+            batch_size = x.shape[0]
+        
         sigma_squared_dist = pyro.distributions.InverseGamma(a1, b1)
 
         phi_dist = pyro.distributions.Dirichlet(torch.tensor([dirichlet_beta] * p))
@@ -119,12 +130,24 @@ def make_gmm_program_univariate_batched(
 
             x = pyro.sample("x", dist.Normal(mu_z, sigma_squared_z))
 
+            # make the batch dimension the first dimension
+            #phi = phi.transpose(0, 1)
+            mu = mu.transpose(0, 1).float()
+            sigma_squared = sigma_squared.transpose(0, 1).float()
+            z = z.transpose(0, 1).float()
+            x = x.transpose(0, 1).float().unsqueeze(-1)
+
+            beta = torch.cat([mu, sigma_squared], dim=1).float()
+
+
+
         return {
-            "phi": phi,
+            "phi": phi.float(),
             "mu": mu,
             "sigma_squared": sigma_squared,
             "z": z,
             "x": x,
+            "beta": beta
         }
     
     return gmm_program_univariate

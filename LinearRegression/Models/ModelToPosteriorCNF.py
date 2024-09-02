@@ -147,7 +147,7 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
     
     def sample_posterior(self,  
                 X: torch.Tensor,
-                y: torch.Tensor) -> torch.Tensor:
+                y: torch.Tensor = None) -> torch.Tensor:
         """
         A method that samples from the posterior distribution
         Args:
@@ -156,12 +156,15 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
         Returns:
             torch.Tensor
         """
-        if len(y.shape) == 1:
-            y = y.unsqueeze(-1)
+        if y is not None:
+            if len(y.shape) == 1:
+                y = y.unsqueeze(-1)
 
 
-        X_y = torch.cat([X, y], dim = -1) # concatenate the x and y values to one data tensor
-
+            X_y = torch.cat([X, y], dim = -1) # concatenate the x and y values to one data tensor
+        else:
+            X_y = X
+            
         samples = self.sample_posterior_x(X_y, self.n_samples)
 
         res = {

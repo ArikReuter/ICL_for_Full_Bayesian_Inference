@@ -188,8 +188,10 @@ class GenerateDataCurriculum(GenerateData):
                     break
                 sample_data.append(data)
 
-
-            r = check_and_plot_data(sample_data, batched_input=True, consider_average_variance_statistics = consider_average_variance_statistics, save_path_plots = save_path_plots + "/")
+            if save_path_plots is not None:
+                save_path_plots = save_path_plots + "/"
+            
+            r = check_and_plot_data(sample_data, batched_input=True, consider_average_variance_statistics = consider_average_variance_statistics, save_path_plots = save_path_plots)
 
             results.append(r)
 
@@ -538,8 +540,6 @@ class SyntheticDataCurriculumBatched(SyntheticDataCurriculum):
 
         res = {}
 
-
-    
         for key, value in self.stored_samples["samples"].items():
             if len(value.shape) == 1:
                 res[key] = value

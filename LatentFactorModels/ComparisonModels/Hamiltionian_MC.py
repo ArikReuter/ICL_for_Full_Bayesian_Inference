@@ -47,7 +47,8 @@ class Hamiltionian_MC(PosteriorComparisonModel):
 
 
     def sample_posterior(self,  
-                x: torch.tensor) -> torch.Tensor:
+                x: torch.tensor,
+                y = None) -> torch.Tensor:
         """
         A method that samples from the posterior distribution
         Args:

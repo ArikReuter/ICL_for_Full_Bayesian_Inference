@@ -64,6 +64,30 @@ def results_dict_to_data_x_y_tuple(result:dict) -> (torch.tensor, torch.tensor):
     y = y.squeeze(0)
     return x, y
 
+def results_dict_to_data_x_tuple(result:dict) -> (torch.tensor, torch.tensor):
+    """
+    Take the dictionary with results and return the data x and y
+    """
+    x = result["x"]
+
+    x = x.squeeze(0)
+    return x, None
+
+def result_dict_to_latent_variable_convert_mu_sigma_to_beta(result:dict) -> torch.tensor:
+    """
+    Take the dictionary with results and return the latent variable
+    """
+    mu = result["mu"]
+    sigma_sq = result["sigma_squared"]
+
+    print(f"mu shape: {mu.shape}")
+    print(f"sigma_sq shape: {sigma_sq.shape}")
+
+    beta = torch.cat([mu, sigma_sq], dim=-1)
+    result["beta"] = beta
+    print(beta.shape)
+    return result
+
 class Evaluate:
     """
     Class to perform evaluation of the probabilistic model
@@ -171,11 +195,8 @@ class Evaluate:
         posterior_samples = []
         for case in tqdm(self.evaluation_list, desc="Sampling posterior"):
             data = self.results_dict_to_data_for_model(case)
+
             samples = model.sample_posterior(*data)
-
-            
-
-            
             for key in case.keys():
                 if key not in samples.keys():
                     samples[key] = case[key]

@@ -32,17 +32,28 @@ def results_dict_to_data_x_y(result:dict) -> (torch.tensor):
     Take the dictionary with results and return the data x and y concatenated 
     """
     x = result["x"]
-    y = result["y"]
+    if "y" in result and result["y"] is not None:
+        y = result["y"]
 
-    y = y.reshape(1, -1)
+        y = y.reshape(1, -1)
 
-    if not torch.is_tensor(x) or not x.dtype == torch.float32:
-        x = torch.tensor(x, dtype = torch.float32)
+        if not torch.is_tensor(x) or not x.dtype == torch.float32:
+            x = torch.tensor(x, dtype = torch.float32)
 
-    if len(x.shape) == 2:
-        x = x.unsqueeze(0)
+        if len(x.shape) == 2:
+            x = x.unsqueeze(0)
 
-    X_y = torch.cat([x, y.unsqueeze(-1)], dim = -1) # concatenate the x and y values to one data tensor
+        X_y = torch.cat([x, y.unsqueeze(-1)], dim = -1) # concatenate the x and y values to one data tensor
+    
+    else:
+        if not torch.is_tensor(x) or not x.dtype == torch.float32:
+            x = torch.tensor(x, dtype = torch.float32)
+
+        if len(x.shape) == 2:
+            x = x.unsqueeze(0)
+
+        X_y = x
+    
     return X_y
 
 def flatten_dict_list(input_list: list[dict]) -> dict:
