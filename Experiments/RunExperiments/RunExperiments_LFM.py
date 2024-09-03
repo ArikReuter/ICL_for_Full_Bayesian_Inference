@@ -234,7 +234,7 @@ class RunExperiments_LFM(RunExperiments):
 
         if string2bool(self.config["EVALUATION"]["do_full_evaluation"]) is True:
             self.comparison_models = make_default_list_comparison(
-                pprogram_y=self.pprogram1_y,
+                pprogram=self.pprogram1_y,
                 n_samples=int(self.config["EVALUATION"]["N_samples_per_model"])
             )
         else:
