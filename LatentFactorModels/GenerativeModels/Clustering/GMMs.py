@@ -27,6 +27,9 @@ def make_gmm_program_univariate(
     b1 = torch.tensor(b1)
     dirichlet_beta = torch.tensor(dirichlet_beta)
     lambda1 = torch.tensor(lambda1)
+
+    p = int(p)
+    n = int(n)
     
     def gmm_program_univariate(x: torch.tensor = None) -> dict:
         """
@@ -44,8 +47,6 @@ def make_gmm_program_univariate(
         
         if x is not None:
             x = x.squeeze()
-
-        p = int(p)
 
         sigma_squared_dist = pyro.distributions.InverseGamma(a1, b1)
 
