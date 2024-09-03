@@ -219,6 +219,9 @@ class RunExperiments_LFM(RunExperiments):
         """
 
         benchmark_params_ppgrogram = self.data_generator.curriculum.get_params(-1)
+
+        del benchmark_params_ppgrogram["batch_size"]
+
         print(f"params for pprogram: {benchmark_params_ppgrogram}")
 
         self.pprogram1 = name2pprogram_maker[self.config["DATA_GENERATION"]["Pprogram"]][1](**benchmark_params_ppgrogram)
