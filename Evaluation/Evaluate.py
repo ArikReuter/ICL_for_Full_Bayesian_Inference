@@ -80,12 +80,12 @@ def result_dict_to_latent_variable_convert_mu_sigma_to_beta(result:dict) -> torc
     mu = result["mu"]
     sigma_sq = result["sigma_squared"]
 
-    print(f"mu shape: {mu.shape}")
-    print(f"sigma_sq shape: {sigma_sq.shape}")
+    #print(f"mu shape: {mu.shape}")
+    #print(f"sigma_sq shape: {sigma_sq.shape}")
 
     beta = torch.cat([mu, sigma_sq], dim=-1)
     result["beta"] = beta
-    print(beta.shape)
+    #print(beta.shape)
     return result
 
 class Evaluate:
