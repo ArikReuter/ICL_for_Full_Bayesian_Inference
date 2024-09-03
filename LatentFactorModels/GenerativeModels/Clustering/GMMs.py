@@ -45,7 +45,7 @@ def make_gmm_program_univariate(
         if x is not None:
             x = x.squeeze()
 
-
+        p = int(p)
 
         sigma_squared_dist = pyro.distributions.InverseGamma(a1, b1)
 
