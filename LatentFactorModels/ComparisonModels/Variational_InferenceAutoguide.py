@@ -65,7 +65,8 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         self.guide = config_enumerate(self.guide, "parallel")
 
     def do_inference(self,  
-                x: torch.Tensor) -> torch.Tensor:
+                x: torch.Tensor,
+                y = None) -> torch.Tensor:
         """
         A method that performs variational inference
         Args:
@@ -82,7 +83,8 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         return self.loss
     
     def sample_posterior(self,
-                x: torch.Tensor
+                x: torch.Tensor,
+                y = None
                 ) -> torch.Tensor:
         """
         A method that samples from the posterior distribution
