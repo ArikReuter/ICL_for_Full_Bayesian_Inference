@@ -65,8 +65,7 @@ class RunExperiments():
 
     def setup_data_generation(self):
         """
-        Setup the data generation.
-        """
+        Setup the data generation."""
         gen_config = self.config["DATA_GENERATION"]
         N_EPOCHS = int(self.config["BASIC"]["N_epochs"])
         N_BATCHES_PER_EPOCH = int(self.config["BASIC"]["N_batches_per_epoch"])
@@ -89,7 +88,6 @@ class RunExperiments():
             X_files_paths_str = gen_config["X_data_files"]
             # parse a string of paths to a list of paths
             X_files_paths = ast.literal_eval(X_files_paths_str)
-
             self.generate_X = MakeGenerator(
                 paths = X_files_paths
             ).make_generator()

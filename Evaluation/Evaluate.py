@@ -195,7 +195,6 @@ class Evaluate:
         posterior_samples = []
         for case in tqdm(self.evaluation_list, desc="Sampling posterior"):
             data = self.results_dict_to_data_for_model(case)
-
             samples = model.sample_posterior(*data)
             for key in case.keys():
                 if key not in samples.keys():

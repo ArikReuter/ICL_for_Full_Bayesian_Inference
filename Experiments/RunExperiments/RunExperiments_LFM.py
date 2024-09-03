@@ -23,8 +23,9 @@ from PFNExperiments.LinearRegression.GenerativeModels.Name2Pprogram import name2
 from PFNExperiments.Experiments.RunExperiments.RunExperiments import RunExperiments
 import torch
 
-from LatentFactorModels.Training.TrainerCurriculumCNF_LatentFactor import TrainerCurriculumCNF_LatentFactor
-from LinearRegression.GenerativeModels.LM_abstract import print_code
+from PFNExperiments.Evaluation.RealWorldEvaluation.Preprocess_univariate_GMM import Preprocessor_GMM_univariate
+from PFNExperiments.LatentFactorModels.Training.TrainerCurriculumCNF_LatentFactor import TrainerCurriculumCNF_LatentFactor
+from PFNExperiments.LinearRegression.GenerativeModels.LM_abstract import print_code
 
 def string2bool(s: str) -> bool:
     """
@@ -261,16 +262,14 @@ class RunExperiments_LFM(RunExperiments):
         """
         Evaluate the real world data.
         """
-
-        target_mean = self.check_model_res[1]["y"]['mean_mean']
-        target_var = self.check_model_res[1]["y"]['variance_mean']
+        target_mean = self.check_model_res[1]["x"]['mean_mean']
+        target_var = self.check_model_res[1]["x"]['variance_mean']
 
         self.getdata = GetDataOpenML(
-            preprocessor = Preprocessor(
-                N_datapoints = int(self.config["BASIC"]["N"]),
-                P_features = int(self.config["BASIC"]["P"]),
-                target_mean = target_mean,
-                target_var = target_var
+            preprocessor = Preprocessor_GMM_univariate(
+                N_datapoints = int(self.config["EVALUATION"]["N_datapoints"]),
+                x_mean = target_mean,
+                x_var = target_var,
             ),
             save_path = self.config["EVALUATION"]["save_path_data_real_world_eval"],
             benchmark_id = self.config["EVALUATION"]["real_world_benchmark_id"]
@@ -287,7 +286,8 @@ class RunExperiments_LFM(RunExperiments):
             evaluation_datasets = self.datasets,
             comparison_models = self.comparison_models,
             results_dict_to_data_for_model = results_dict_to_data_x_tuple,
-            results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_convert_mu_sigma_to_beta,            n_evaluation_cases = n_evaluation_cases,
+            results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_convert_mu_sigma_to_beta,            
+            n_evaluation_cases = n_evaluation_cases,
             save_path = self.config["BASIC"]["Save_path"] + "/real_world_evaluation",
             overwrite_results = True
         )
