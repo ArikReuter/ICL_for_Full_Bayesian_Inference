@@ -265,8 +265,8 @@ class RunExperiments_LFM(RunExperiments):
         """
         Evaluate the real world data.
         """
-        target_mean = self.check_model_res[1]["x"]['mean_mean']
-        target_var = self.check_model_res[1]["x"]['variance_mean']
+        target_mean = self.check_model_res[1]["X"]['mean_mean']
+        target_var = self.check_model_res[1]["X"]['variance_mean']
 
         self.getdata = GetDataOpenML(
             preprocessor = Preprocessor_GMM_univariate(

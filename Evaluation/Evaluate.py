@@ -73,6 +73,18 @@ def results_dict_to_data_x_tuple(result:dict) -> (torch.tensor, torch.tensor):
     x = x.squeeze(0)
     return x, None
 
+def results_dict_to_data_x_tuple_transpose(result:dict) -> (torch.tensor, torch.tensor):
+    """
+    Take the dictionary with results and return the data x transposed
+    """
+    x = result["x"]
+    x = x.transpose(1,0)
+    x = x.squeeze()
+
+    #x = x.squeeze()
+    return x, None
+
+
 def result_dict_to_latent_variable_convert_mu_sigma_to_beta(result:dict) -> torch.tensor:
     """
     Take the dictionary with results and return the latent variable
@@ -103,6 +115,7 @@ class Evaluate:
             results_dict_to_latent_variable_posterior_model: callable = just_return_results,
             results_dict_to_latent_variable_comparison_models: callable = results_dict_to_latent_variable_beta0_and_beta,
             results_dict_to_data_for_model: callable = results_dict_to_data_x_y_tuple,
+            result_dict_to_data_for_comparison_models: callable = None,
             compare_to_gt: CompareModelToGT = CompareModelToGT(),
             compare_two_models: CompareTwoModels = CompareTwoModels(),
             verbose = True,
@@ -146,6 +159,11 @@ class Evaluate:
         self.evaluation_list_alternative = self._convert_dataloader_samples_to_list()
         self.save_path = save_path
         self.overwrite_results = overwrite_results
+
+        if result_dict_to_data_for_comparison_models is None:
+            self.result_dict_to_data_for_comparison_models = self.results_dict_to_data_for_model
+        else:
+            self.result_dict_to_data_for_comparison_models = result_dict_to_data_for_comparison_models
 
         # check if the save path exists, if not create it. If it exists and is not empty, check if the overwrite flag is set
 
@@ -194,7 +212,16 @@ class Evaluate:
 
         posterior_samples = []
         for case in tqdm(self.evaluation_list, desc="Sampling posterior"):
-            data = self.results_dict_to_data_for_model(case)
+            for key, value in case.items():
+                print(f"Key: {key}, value shape: {value.shape}")
+            if is_comparison_model:
+                data = self.result_dict_to_data_for_comparison_models(case)
+                print(f"Data: {data}")
+                print(f"Data shape: {data[0].shape}")
+
+            else:
+                data = self.results_dict_to_data_for_model(case) 
+            
             samples = model.sample_posterior(*data)
             for key in case.keys():
                 if key not in samples.keys():
