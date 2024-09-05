@@ -318,3 +318,82 @@ def make_gmm_program_spherical_batched(
         }
     
     return gmm_program_shperical
+
+
+
+def make_gmm_program_diagonal(
+        n: int = 100,
+        p: int = 5,
+        k: int = 3,
+        a1: float = 5.0,
+        b1: float = 2.0,
+        dirichlet_beta: float = 1.0,
+        lambda1: float = 3.0,
+):
+    """
+    Make a probabilistic program for a univariate GMM 
+    Args:   
+        N: int: number of data points
+        p: int: number of dimensions
+        K: int: number of components
+        a1: float: shape of inverse gamma prior on sigma_squared
+        b1: float: scale of inverse gamma prior on sigma_squared
+        dirichlet_beta: float: concentration parameter of the Dirichlet prior on the mixture weights
+        lambda1: float: scale the variance for the prior on the mus
+    """
+    a1 = torch.tensor(a1)
+    b1 = torch.tensor(b1)
+    dirichlet_beta = torch.tensor(dirichlet_beta)
+    lambda1 = torch.tensor(lambda1)
+
+    p = int(p)
+    n = int(n)
+    k = int(k)
+    
+    def gmm_program(x: torch.tensor = None, p = p, k = k, n = n) -> dict:
+        """
+        A univariate GMM program
+
+        Args:
+            x: torch.tensor: the input
+
+        Returns:
+            torch.tensor: the output
+        """
+        #if x is not None:
+        #    n = x.shape[0]
+        #    p = x.shape[1]  
+        
+        if x is not None:
+            x = x.squeeze()
+        
+        k = int(k)
+
+        sigma_squared_dist = pyro.distributions.InverseGamma(a1, b1)
+
+        phi_dist = pyro.distributions.Dirichlet(torch.tensor([dirichlet_beta] * k))
+        phi = pyro.sample("phi", phi_dist) # mixture weights
+
+        with pyro.plate("components", k):
+            with pyro.plate("dims", p):
+                sigma_squared = pyro.sample("sigma_squared", sigma_squared_dist)
+                mu = pyro.sample("mu", dist.Normal(0, lambda1 * sigma_squared))
+        
+        with pyro.plate("data", n):
+            z = pyro.sample("z", dist.Categorical(phi))
+            mu_z = mu[:, z].T
+            sigma_squared_z = sigma_squared[:, z].T
+
+            cov_mat = torch.diag_embed(sigma_squared_z)
+          
+            x = pyro.sample("x", dist.MultivariateNormal(mu_z, cov_mat), obs=x)
+        #x = x.transpose(0, 1)
+        return {
+            "phi": phi,
+            "mu": mu,
+            "sigma_squared": sigma_squared,
+            "z": z,
+            "x": x,
+        }
+    
+    return gmm_program
