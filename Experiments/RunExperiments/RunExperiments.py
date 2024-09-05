@@ -220,6 +220,69 @@ class RunExperiments():
 
         print(f"Test results: {test_res}")
 
+    def load_model_from_path(self, new_save_path: str, validate = True):
+        """
+        Load the model from a path.
+        Args:
+        new_save_path: str: the path to load the model from
+        validate: bool: whether to validate the model 
+        """
+        train_config = self.config["TRAINING"]
+
+        if train_config["Loss_function"] == "CFMLossOT2":
+            self.loss_function = CFMLossOT2(
+                sigma_min = float(train_config["Sigma_min"])
+            )
+        else:
+            raise ValueError(f"Loss function {train_config['Loss_function']} not implemented yet!")
+        
+        self.optimizer = torch.optim.Adam(
+                                          self.model.parameters(), 
+                                          lr=float(self.config["TRAINING"]["Learning_rate"]),
+                                          weight_decay=float(self.config["TRAINING"]["Weight_decay"]))
+        
+        scheduler_params = ast.literal_eval(train_config["Scheduler_params"])
+        self.scheduler = OneCycleLR(
+            optimizer = self.optimizer,
+            max_lr = float(scheduler_params["max_lr"]),
+            epochs = int(scheduler_params["epochs"]),
+            steps_per_epoch = int(scheduler_params["steps_per_epoch"]),
+            pct_start = float(scheduler_params["pct_start"]),
+            div_factor = float(scheduler_params["div_factor"]),
+            final_div_factor = float(scheduler_params["final_div_factor"])
+
+        )
+
+        
+
+        self.trainer = TrainerCurriculumCNF(
+            model = self.model,
+            optimizer = self.optimizer,
+            scheduler = self.scheduler,
+            loss_function = self.loss_function,
+            epoch_loader = self.epoch_loader,
+            evaluation_functions = {},
+            n_epochs = int(self.config["BASIC"]["N_epochs"]),
+            early_stopping_patience = int(self.config["TRAINING"]["Early_stopping_patience"]),
+            schedule_step_on = "batch",
+            save_path = self.config["BASIC"]["Save_path"],
+            coupling = None,
+            use_same_timestep_per_batch = False,
+            use_train_mode_during_validation = False,
+            max_gradient_norm = float(self.config["TRAINING"]["max_grad_norm"]),
+
+        )
+        self.trainer.set_new_save_path(new_save_path)
+
+        self.trainer.load_best_model()
+        self.model = self.trainer.model
+        self.model.eval()
+
+        if validate:
+            initial_val_loss = self.trainer.validate()
+
+            print(f"Initial validation loss: {initial_val_loss}")
+
     def setup_full_model(self):
         """
         Setup the full model.
