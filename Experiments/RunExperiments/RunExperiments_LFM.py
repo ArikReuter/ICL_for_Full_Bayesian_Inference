@@ -340,6 +340,11 @@ class RunExperiments_LFM(RunExperiments):
         target_mean = self.check_model_res[1]["X"]['mean_mean']
         target_var = self.check_model_res[1]["X"]['variance_mean']
 
+        if self.config["EVALUATION"]["result_dict_to_data_for_comparison_models"] == "results_dict_to_data_x_tuple_transpose":
+            results_dict_to_data_x = results_dict_to_data_x_tuple_transpose
+        else:
+            results_dict_to_data_x = results_dict_to_data_x_tuple
+
         if self.config["EVALUATION"]["real_world_preprocessor"] == "gmm_preprocessor_univariate":
             self.getdata = GetDataOpenML(
                 preprocessor = Preprocessor_GMM_univariate(
@@ -375,7 +380,8 @@ class RunExperiments_LFM(RunExperiments):
             evaluation_datasets = self.datasets,
             comparison_models = self.comparison_models,
             results_dict_to_data_for_model = results_dict_to_data_x_tuple,
-            results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_convert_mu_sigma_to_beta,            
+            results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_convert_mu_sigma_to_beta, 
+            result_dict_to_data_for_comparison_models = results_dict_to_data_x,           
             n_evaluation_cases = n_evaluation_cases,
             save_path = self.config["BASIC"]["Save_path"] + "/real_world_evaluation",
             overwrite_results = True
