@@ -332,7 +332,7 @@ class RunExperiments_LFM(RunExperiments):
 
         self.getdata = GetDataOpenML(
             preprocessor = Preprocessor_GMM_univariate(
-                N_datapoints = int(self.config["EVALUATION"]["N_datapoints"]),
+                N_datapoints = int(self.config["BASIC"]["N"]),
                 x_mean = target_mean,
                 x_var = target_var,
             ),
