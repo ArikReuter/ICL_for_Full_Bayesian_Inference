@@ -85,7 +85,7 @@ class BasicConfigCreator():
         """
 
         self.config['DATA_GENERATION'] = {
-            "Pprogram": "gmm_univariate", # probabilistic program to generate the data
+            "Pprogram": "gmm_spherical", # probabilistic program to generate the data
             #"Pprogram_batched": None, # probabilistic program to generate the data in batches
             "Scheduler_behaviour": "All_constant", # behaviour of the scheduler of the probabilistic program's parameters
             "Generate_X_behaviour": "uniform", # behaviour of the data generation process
