@@ -155,7 +155,9 @@ class BasicConfigCreator():
             "do_full_evaluation": True, # whether to do a full evaluation
             "save_path_data_real_world_eval": "/content/drive/MyDrive/PFN_Experiments/RealWorldEvaluationData/DatasetsOpenML/numerical_regression.pkl", # path to save the data for real world evaluation
             "real_world_benchmark_id": 336, # id of the real world benchmark,
-            "real_world_preprocessor": "gmm_preprocessor_multivariate" # preprocessor for the real world data
+            "real_world_preprocessor": "gmm_preprocessor_multivariate", # preprocessor for the real world data
+            "results_dict_to_data_for_model": "results_dict_to_data_x_tuple",
+            "result_dict_to_data_for_comparison_models": "results_dict_to_data_x_tuple_transpose",
         }
 
     def set_full_model_params(self):

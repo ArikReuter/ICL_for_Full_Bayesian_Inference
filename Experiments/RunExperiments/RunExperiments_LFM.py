@@ -11,7 +11,7 @@ from PFNExperiments.LinearRegression.Models.ModelToPosteriorCNF import ModelToPo
 from PFNExperiments.LinearRegression.GenerativeModels.Curriculum import Curriculum
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateDataCurriculumCFM import GenerateDataCurriculumCFM
 from PFNExperiments.Training.TrainerCurriculumCNF import TrainerCurriculumCNF
-from PFNExperiments.Evaluation.Evaluate import Evaluate, result_dict_to_latent_variable_convert_mu_sigma_to_beta, results_dict_to_data_x_tuple
+from PFNExperiments.Evaluation.Evaluate import Evaluate, result_dict_to_latent_variable_convert_mu_sigma_to_beta, results_dict_to_data_x_tuple, results_dict_to_data_x_tuple_transpose
 from PFNExperiments.Evaluation.RealWorldEvaluation.EvaluateRealWorld import EvaluateRealWorld, just_return_results, results_dict_to_latent_variable_beta0_and_beta
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateX_TabPFN.MakeGenerator import MakeGenerator
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateX import simulate_X_uniform
@@ -312,15 +312,22 @@ class RunExperiments_LFM(RunExperiments):
         """
         Evaluate the synthetic data.
         """
+
+        if self.config["EVALUATION"]["result_dict_to_data_for_comparison_models"] == "results_dict_to_data_x_tuple_transpose":
+            results_dict_to_data_x = results_dict_to_data_x_tuple_transpose
+        else:
+            results_dict_to_data_x = results_dict_to_data_x_tuple
+
         self.evaluator = Evaluate(
-            posterior_model=self.full_model,
-            evaluation_loader=self.trainer.testset,
-            comparison_models=self.comparison_models,
-            n_evaluation_cases = int(self.config["EVALUATION"]["N_synthetic_cases"]),
-            save_path = self.config["BASIC"]["Save_path"] + "/synthetic_evaluation",
-            results_dict_to_data_for_model = results_dict_to_data_x_tuple,
-            results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_convert_mu_sigma_to_beta,
-            overwrite_results=True
+        posterior_model=self.full_model,
+        evaluation_loader=self.trainer.testset,
+        comparison_models=self.comparison_models,
+        n_evaluation_cases = int(self.config["EVALUATION"]["N_synthetic_cases"]),
+        save_path = self.config["BASIC"]["Save_path"] + "/synthetic_evaluation",
+        results_dict_to_data_for_model = results_dict_to_data_x_tuple,
+        results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_convert_mu_sigma_to_beta,
+        result_dict_to_data_for_comparison_models =  results_dict_to_data_x,
+        overwrite_results=True
         )
 
         self.eval_res_synthetic = self.evaluator.run_evaluation()
