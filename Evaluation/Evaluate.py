@@ -78,8 +78,9 @@ def results_dict_to_data_x_tuple_transpose(result:dict) -> (torch.tensor, torch.
     Take the dictionary with results and return the data x transposed
     """
     x = result["x"]
-    x = x.transpose(1,0)
     x = x.squeeze()
+    x = x.permute(1,0)
+    
 
     #x = x.squeeze()
     return x, None
@@ -212,12 +213,9 @@ class Evaluate:
 
         posterior_samples = []
         for case in tqdm(self.evaluation_list, desc="Sampling posterior"):
-            for key, value in case.items():
-                print(f"Key: {key}, value shape: {value.shape}")
+
             if is_comparison_model:
                 data = self.result_dict_to_data_for_comparison_models(case)
-                print(f"Data: {data}")
-                print(f"Data shape: {data[0].shape}")
 
             else:
                 data = self.results_dict_to_data_for_model(case) 

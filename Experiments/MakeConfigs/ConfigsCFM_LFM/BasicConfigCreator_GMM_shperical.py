@@ -1,6 +1,7 @@
 import configparser
 import time 
-from PFNExperiments.Experiments.MakeConfigs.ConfigsCFM_LFM.ModelConfigCreator_GMM_univariate import make_basic_model_config
+from PFNExperiments.Experiments.MakeConfigs.ConfigsCFM_LFM.ModelConfigCreator_GMM_spherical import make_basic_model_config
+import ast
 
 class BasicConfigCreator():
     """
@@ -23,7 +24,7 @@ class BasicConfigCreator():
         self.config["confic_created_on"] = {"time": {time.asctime()}}
 
         if config_name is None:
-            self.config_name = "basic_config_lfm"
+            self.config_name = "basic_config_gmm_spherical"
         else:
             self.config_name = config_name
 
@@ -62,8 +63,8 @@ class BasicConfigCreator():
 
 
         self.config['BASIC'] = {
-            "N": 50,   # number of samples per in-context dataset
-            "P": 5,    # number of features per in-context dataset
+            "N" : 10,
+            "P" : 5,
             "Batch_size": 1024,  # batch size for training
             "N_epochs": 100,  # number of epochs for training
             "N_samples_per_epoch": 500_000, # number of samples to use per epoch
@@ -91,6 +92,7 @@ class BasicConfigCreator():
             "pprogram_params": {
                 "n": self.config['BASIC']['N'], # number of data points
                 "p": self.config['BASIC']['P'], # number of features
+                "k": 3, # number of components for the GMM
                 "batch_size": self.config['BASIC']['Batch_size'], # batch size
                 "a1": 5.0, # parameter for the InverseGamma distribution
                 "b1": 2.0, # parameter for the InverseGamma distribution
@@ -108,9 +110,11 @@ class BasicConfigCreator():
 
         """
         P = int(self.config['BASIC']['P'])
+        K = int(ast.literal_eval(self.config['DATA_GENERATION']['pprogram_params'])['k'])
 
         self.config['MODEL'] = make_basic_model_config(
             P = P,
+            K = K
         )
 
     def set_training_params(
@@ -151,7 +155,7 @@ class BasicConfigCreator():
             "do_full_evaluation": True, # whether to do a full evaluation
             "save_path_data_real_world_eval": "/content/drive/MyDrive/PFN_Experiments/RealWorldEvaluationData/DatasetsOpenML/numerical_regression.pkl", # path to save the data for real world evaluation
             "real_world_benchmark_id": 336, # id of the real world benchmark,
-            "real_world_preprocessor": "gmm_preprocessor_univariate" # preprocessor for the real world data
+            "real_world_preprocessor": "gmm_preprocessor_multivariate" # preprocessor for the real world data
         }
 
     def set_full_model_params(self):
@@ -159,10 +163,10 @@ class BasicConfigCreator():
         Set the params for the full model.
         """
 
-        P = int(self.config['BASIC']['P'])
+        K = int(ast.literal_eval(self.config['DATA_GENERATION']['pprogram_params'])['k'])
         self.config['FULL_MODEL'] = {
             "sample_name": "beta",
-            "sample_shape": (2*P,),
+            "sample_shape": (2*K,),
             "n_samples": self.config["EVALUATION"]["N_samples_per_model"], # number of samples to generate to compare for each case
             "batch_size": self.config['BASIC']['Batch_size'], # batch size for generating samples
             "solve_adjoint": True, # whether to solve the adjoint ODE
@@ -172,7 +176,7 @@ class BasicConfigCreator():
 
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
-        config_name = "basic_config_gmm",
+        config_name = "basic_config_gmm_spherical",
         config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\GMM_Configs"
     )
     config_creator.create_config()

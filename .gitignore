@@ -166,7 +166,8 @@ log.txt
 
 /Experiments/Runs/
 *.pkl
-
+events.out.*
+setup.txt
 
 #msc
 Experiments/RunExperiments/runs/events.out.tfevents.1725110927.Lenovo_AR.5980.2

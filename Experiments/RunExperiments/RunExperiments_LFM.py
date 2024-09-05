@@ -27,6 +27,9 @@ from PFNExperiments.Evaluation.RealWorldEvaluation.Preprocess_univariate_GMM imp
 from PFNExperiments.LatentFactorModels.Training.TrainerCurriculumCNF_LatentFactor import TrainerCurriculumCNF_LatentFactor
 from PFNExperiments.LinearRegression.GenerativeModels.LM_abstract import print_code
 
+from PFNExperiments.Evaluation.RealWorldEvaluation.Preprocess_multivariate_GMM import Preprocessor_GMM_multivariate
+#from PFNExperiments.Evaluation.RealWorldEvaluation.PreprocessName2Preprocessor import name2preprocessor
+
 def string2bool(s: str) -> bool:
     """
     Convert a string to a boolean.
@@ -330,15 +333,29 @@ class RunExperiments_LFM(RunExperiments):
         target_mean = self.check_model_res[1]["X"]['mean_mean']
         target_var = self.check_model_res[1]["X"]['variance_mean']
 
-        self.getdata = GetDataOpenML(
-            preprocessor = Preprocessor_GMM_univariate(
-                N_datapoints = int(self.config["BASIC"]["N"]),
-                x_mean = target_mean,
-                x_var = target_var,
-            ),
-            save_path = self.config["EVALUATION"]["save_path_data_real_world_eval"],
-            benchmark_id = self.config["EVALUATION"]["real_world_benchmark_id"]
-        )
+        if self.config["EVALUATION"]["real_world_preprocessor"] == "gmm_preprocessor_univariate":
+            self.getdata = GetDataOpenML(
+                preprocessor = Preprocessor_GMM_univariate(
+                    N_datapoints = int(self.config["BASIC"]["N"]),
+                    x_mean = target_mean,
+                    x_var = target_var,
+                ),
+                save_path = self.config["EVALUATION"]["save_path_data_real_world_eval"],
+                benchmark_id = self.config["EVALUATION"]["real_world_benchmark_id"]
+            )
+
+        if self.config["EVALUATION"]["real_world_preprocessor"] == "gmm_preprocessor_multivariate":
+            self.getdata = GetDataOpenML(
+                preprocessor = Preprocessor_GMM_multivariate(
+                    N_datapoints = int(self.config["BASIC"]["N"]),
+                    P_features = int(self.config["BASIC"]["P"]),
+                    x_mean = target_mean,
+                    x_var = target_var,
+                ),
+                save_path = self.config["EVALUATION"]["save_path_data_real_world_eval"],
+                benchmark_id = self.config["EVALUATION"]["real_world_benchmark_id"]
+            )
+            
         self.datasets = self.getdata.get_data()
 
         if self.config["EVALUATION"]["n_evaluation_cases_real_world"] == "All":

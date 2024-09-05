@@ -80,6 +80,7 @@ class EvaluateRealWorld(Evaluate):
             results_dict_to_latent_variable_posterior_model: callable = just_return_results,
             results_dict_to_latent_variable_comparison_models: callable = results_dict_to_latent_variable_beta0_and_beta,
             results_dict_to_data_for_model: callable = results_dict_to_data_x_y_tuple,
+            result_dict_to_data_for_comparison_models: callable = None,
             compare_two_models: CompareTwoModels = CompareTwoModels(),
             verbose = True,
             compare_comparison_models_among_each_other = True,
@@ -121,6 +122,11 @@ class EvaluateRealWorld(Evaluate):
         self.compare_comparison_models_among_each_other = compare_comparison_models_among_each_other
         self.save_path = save_path
         self.overwrite_results = overwrite_results
+
+        if result_dict_to_data_for_comparison_models is None:
+            self.result_dict_to_data_for_comparison_models = self.results_dict_to_data_for_model
+        else:
+            self.result_dict_to_data_for_comparison_models = result_dict_to_data_for_comparison_models
 
         if model_names is None:
             comparison_models_names = [str(model) for model in comparison_models]
@@ -167,7 +173,13 @@ class EvaluateRealWorld(Evaluate):
 
         posterior_samples = []
         for case in tqdm(self.evaluation_list, desc="Sampling posterior"):
-            data = self.results_dict_to_data_for_model(case)
+
+            if is_comparison_model:
+                data = self.result_dict_to_data_for_comparison_models(case)
+
+            else:
+                data = self.results_dict_to_data_for_model(case) 
+            
             samples = model.sample_posterior(*data)
             for key in case.keys():
                 if key not in samples.keys():
