@@ -92,6 +92,9 @@ def result_dict_to_latent_variable_convert_mu_sigma_to_beta(result:dict) -> torc
     """
     mu = result["mu"]
     sigma_sq = result["sigma_squared"]
+    if len(mu.shape) == 3 and len(sigma_sq.shape) == 3:
+        mu = mu.flatten(1)
+        sigma_sq = sigma_sq.flatten(1)
 
     #print(f"mu shape: {mu.shape}")
     #print(f"sigma_sq shape: {sigma_sq.shape}")
