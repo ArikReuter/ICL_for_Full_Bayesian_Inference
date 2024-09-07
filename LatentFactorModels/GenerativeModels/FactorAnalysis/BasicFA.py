@@ -27,7 +27,9 @@ def make_fa_program_normal_weight_prior(
     """
     n = int(n)
     p = int(p)
-    #n_weights = p*z_dim - (z_dim * (z_dim - 1)) //2
+    z_dim = int(z_dim)
+    
+       #n_weights = p*z_dim - (z_dim * (z_dim - 1)) //2
     
     def fa_program(x: torch.tensor = None, p = p, n = n) -> dict:
         """
@@ -124,6 +126,9 @@ def make_fa_program_normal_weight_prior_batched(
     """
     n = int(n)
     p = int(p)
+    z_dim = int(z_dim)
+    batch_size = int(batch_size)
+    
     
     
     def fa_program(x: torch.tensor = None, batch_size = batch_size, p = p, n = n) -> dict:
