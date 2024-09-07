@@ -19,6 +19,7 @@ from PFNExperiments.LinearRegression.ComparisonModels.MakeDefaultListComparison 
 from PFNExperiments.Evaluation.RealWorldEvaluation.PreprocessDataset import Preprocessor
 from PFNExperiments.Evaluation.RealWorldEvaluation.GetDataOpenML import GetDataOpenML
 from PFNExperiments.LinearRegression.GenerativeModels.Name2Pprogram import name2pprogram_maker
+from PFNExperiments.Training.Trainer import visualize_training_results
 import torch
 
 def string2bool(s: str) -> bool:
@@ -211,6 +212,8 @@ class RunExperiments():
         print(f"Initial validation loss: {initial_val_loss}")
 
         r = self.trainer.train()
+
+        visualize_training_results(r, loglog=False)
 
         self.trainer.load_best_model()
         self.model = self.trainer.model

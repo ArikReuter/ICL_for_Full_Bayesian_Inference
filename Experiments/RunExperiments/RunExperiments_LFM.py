@@ -28,6 +28,8 @@ from PFNExperiments.LatentFactorModels.Training.TrainerCurriculumCNF_LatentFacto
 from PFNExperiments.LinearRegression.GenerativeModels.LM_abstract import print_code
 
 from PFNExperiments.Evaluation.RealWorldEvaluation.Preprocess_multivariate_GMM import Preprocessor_GMM_multivariate
+
+from PFNExperiments.Training.Trainer import visualize_training_results
 #from PFNExperiments.Evaluation.RealWorldEvaluation.PreprocessName2Preprocessor import name2preprocessor
 
 def string2bool(s: str) -> bool:
@@ -190,6 +192,8 @@ class RunExperiments_LFM(RunExperiments):
         print(f"Initial validation loss: {initial_val_loss}")
 
         r = self.trainer.train()
+
+        visualize_training_results(r, loglog = False)
 
         self.trainer.load_best_model()
         self.model = self.trainer.model
