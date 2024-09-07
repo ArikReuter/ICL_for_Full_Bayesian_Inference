@@ -94,8 +94,8 @@ class BasicConfigCreator():
                 "p": self.config['BASIC']['P'], # number of features
                 "batch_size": self.config['BASIC']['Batch_size'], # batch size
                 "z_dim": 3, 
-                "w_var": 0.1,
-                "mu_var": 3.0,
+                "w_var": 5,
+                "mu_var": 2,
                 "a1_psi_var": 5.0,
                 "b1_psi_var": 2.0,
             } # parameters for the probabilistic program. Is a dictionary
