@@ -301,7 +301,7 @@ class RunExperiments_LFM(RunExperiments):
         
         print_code(self.pprogram1)
 
-        if "discrete_z" in self.config["EVALUATION"].keys():
+        if "discrete_z" in ast.literal_eval(self.config["EVALUATION"]["discrete_z"]):
             discrete_z = string2bool(self.config["EVALUATION"]["discrete_z"])
         else:
             discrete_z = True
