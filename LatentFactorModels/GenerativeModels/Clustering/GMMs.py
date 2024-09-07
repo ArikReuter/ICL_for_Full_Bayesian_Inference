@@ -293,7 +293,7 @@ def make_gmm_program_spherical_batched(
                 sigma_squared_z = sigma_squared[z, torch.arange(batch_size).expand(n, batch_size)]
 
                 with pyro.plate("components", p):
-                    x = pyro.sample("x", dist.Normal(mu_z, sigma_squared_z), obs=x)
+                    x = pyro.sample("x", dist.Normal(mu_z, sigma_squared_z))
 
             
 
