@@ -25,13 +25,16 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
                  additional_make_guide_args: dict = {},
                  n_steps:int = 2000,
                  n_samples:int = 200,
+                 discrete_z: bool = True,
                  lr: float = 1e-3) -> None:
         """
         Args:
             pprogram
             make_guide_fun : callable: a function that generates the guide
             n_steps: int: the number of steps to take in the optimization
+            discrete_z: bool: whether the latent variable is discrete
             lr: float: the learning rate of the optimizer
+
 
         Returns:
             None
@@ -43,7 +46,7 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         self.n_samples = n_samples
         self.lr = lr
     
-
+        self.discrete_z = discrete_z
         self.generate_guide()
         
         self.optimizer = pyro.optim.Adam({"lr": self.lr})
@@ -57,12 +60,15 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
     def generate_guide(self):
         """
         generate the guide
-        """
+        """ 
+        if self.discrete_z:
+            self.guide = AutoGuideList(self.pprogram)
+            self.guide.append(self.make_guide_fun(block(self.pprogram, hide = ["z"]), **self.additional_make_guide_args))
+            self.guide.append(AutoDiscreteParallel(block(self.pprogram, expose = ["z"])))
+            self.guide = config_enumerate(self.guide, "parallel")
+        else:   
+            self.guide = self.make_guide_fun(self.pprogram, **self.additional_make_guide_args)
 
-        self.guide = AutoGuideList(self.pprogram)
-        self.guide.append(self.make_guide_fun(block(self.pprogram, hide = ["z"]), **self.additional_make_guide_args))
-        self.guide.append(AutoDiscreteParallel(block(self.pprogram, expose = ["z"])))
-        self.guide = config_enumerate(self.guide, "parallel")
 
     def do_inference(self,  
                 x: torch.Tensor,

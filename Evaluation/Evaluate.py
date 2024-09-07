@@ -104,6 +104,17 @@ def result_dict_to_latent_variable_convert_mu_sigma_to_beta(result:dict) -> torc
     #print(beta.shape)
     return result
 
+
+def result_dict_to_latent_variable_convert_z_to_beta(result:dict) -> torch.tensor:
+    """
+    Take the dictionary with results and return the latent variable
+    """
+    z = result["z"]
+    if len(z.shape) == 3:
+        z = z.flatten(1)
+    result["beta"] = z
+    return result
+
 class Evaluate:
     """
     Class to perform evaluation of the probabilistic model

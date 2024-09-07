@@ -11,7 +11,7 @@ from PFNExperiments.LinearRegression.Models.ModelToPosteriorCNF import ModelToPo
 from PFNExperiments.LinearRegression.GenerativeModels.Curriculum import Curriculum
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateDataCurriculumCFM import GenerateDataCurriculumCFM
 from PFNExperiments.Training.TrainerCurriculumCNF import TrainerCurriculumCNF
-from PFNExperiments.Evaluation.Evaluate import Evaluate, result_dict_to_latent_variable_convert_mu_sigma_to_beta, results_dict_to_data_x_tuple, results_dict_to_data_x_tuple_transpose
+from PFNExperiments.Evaluation.Evaluate import Evaluate, result_dict_to_latent_variable_convert_mu_sigma_to_beta, results_dict_to_data_x_tuple, results_dict_to_data_x_tuple_transpose, result_dict_to_latent_variable_convert_z_to_beta
 from PFNExperiments.Evaluation.RealWorldEvaluation.EvaluateRealWorld import EvaluateRealWorld, just_return_results, results_dict_to_latent_variable_beta0_and_beta
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateX_TabPFN.MakeGenerator import MakeGenerator
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateX import simulate_X_uniform
@@ -322,6 +322,12 @@ class RunExperiments_LFM(RunExperiments):
         else:
             results_dict_to_data_x = results_dict_to_data_x_tuple
 
+        if "results_dict_to_latent_variable_comparison_models" in self.config["EVALUATION"].keys():
+            if self.config["EVALUATION"]["results_dict_to_latent_variable_comparison_models"] == "result_dict_to_latent_variable_convert_z_to_beta":
+                result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_z_to_beta
+            else:
+                result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_mu_sigma_to_beta
+
         self.evaluator = Evaluate(
         posterior_model=self.full_model,
         evaluation_loader=self.trainer.testset,
@@ -329,7 +335,7 @@ class RunExperiments_LFM(RunExperiments):
         n_evaluation_cases = int(self.config["EVALUATION"]["N_synthetic_cases"]),
         save_path = self.config["BASIC"]["Save_path"] + "/synthetic_evaluation",
         results_dict_to_data_for_model = results_dict_to_data_x_tuple,
-        results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_convert_mu_sigma_to_beta,
+        results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_comparison,
         result_dict_to_data_for_comparison_models =  results_dict_to_data_x,
         overwrite_results=True
         )
@@ -348,6 +354,12 @@ class RunExperiments_LFM(RunExperiments):
             results_dict_to_data_x = results_dict_to_data_x_tuple_transpose
         else:
             results_dict_to_data_x = results_dict_to_data_x_tuple
+
+        if "results_dict_to_latent_variable_comparison_models" in self.config["EVALUATION"].keys():
+            if self.config["EVALUATION"]["results_dict_to_latent_variable_comparison_models"] == "result_dict_to_latent_variable_convert_z_to_beta":
+                result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_z_to_beta
+            else:
+                result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_mu_sigma_to_beta
 
         if self.config["EVALUATION"]["real_world_preprocessor"] == "gmm_preprocessor_univariate":
             self.getdata = GetDataOpenML(
@@ -384,7 +396,7 @@ class RunExperiments_LFM(RunExperiments):
             evaluation_datasets = self.datasets,
             comparison_models = self.comparison_models,
             results_dict_to_data_for_model = results_dict_to_data_x_tuple,
-            results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_convert_mu_sigma_to_beta, 
+            results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_comparison, 
             result_dict_to_data_for_comparison_models = results_dict_to_data_x,           
             n_evaluation_cases = n_evaluation_cases,
             save_path = self.config["BASIC"]["Save_path"] + "/real_world_evaluation",

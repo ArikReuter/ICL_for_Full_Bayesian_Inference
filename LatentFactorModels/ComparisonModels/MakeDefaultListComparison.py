@@ -5,7 +5,8 @@ from PFNExperiments.LatentFactorModels.ComparisonModels.Variational_InferenceAut
 
 def make_default_list_comparison(
         pprogram,
-        n_samples: int = 1000
+        n_samples: int = 1000,
+        discrete_z: bool = True
         ):
     """
     Create the default list of comparison models.
@@ -21,7 +22,8 @@ def make_default_list_comparison(
         make_guide_fun=AutoDiagonalNormal,
         n_steps=2000,
         n_samples=n_samples,
-        lr=1e-2
+        lr=1e-2,
+        discrete_z=discrete_z
     )
 
     vi_multivariate_normal = Variational_InferenceAutoguide(
@@ -29,14 +31,16 @@ def make_default_list_comparison(
         make_guide_fun=AutoMultivariateNormal,
         n_steps=2000,
         n_samples=n_samples,
-        lr=1e-2
+        lr=1e-2,
+        discrete_z=discrete_z
     )
     vi_laplace = Variational_InferenceAutoguide(
         pprogram=pprogram,
         make_guide_fun=AutoLaplaceApproximation,
         n_steps=2000,
         n_samples=n_samples,
-        lr=1e-2
+        lr=1e-2,
+        discrete_z=discrete_z   
     )
 
     vi_autoIAF = Variational_InferenceAutoguide(
@@ -44,7 +48,8 @@ def make_default_list_comparison(
         make_guide_fun=AutoIAFNormal,
         n_steps=2000,
         n_samples=n_samples,
-        lr=1e-3
+        lr=1e-3,
+        discrete_z=discrete_z
     )
 
     vi_autostrucured = Variational_InferenceAutoguide(
@@ -52,7 +57,8 @@ def make_default_list_comparison(
         make_guide_fun=AutoStructured,
         n_steps=2000,
         n_samples=n_samples,
-        lr=1e-2
+        lr=1e-2,
+        discrete_z=discrete_z
     )
 
     model_list = [
@@ -69,7 +75,8 @@ def make_default_list_comparison(
 
 def make_reduced_list_comparison(
         pprogram,
-        n_samples: int = 1000
+        n_samples: int = 1000,
+        discrete_z: bool = True
         ):
     """
     Create the reduced list of comparison models.
@@ -83,7 +90,8 @@ def make_reduced_list_comparison(
         make_guide_fun=AutoDiagonalNormal,
         n_steps=2000,
         n_samples=n_samples,
-        lr=1e-2
+        lr=1e-2,
+        discrete_z=discrete_z
     )
 
     vi_multivariate_normal = Variational_InferenceAutoguide(
@@ -91,7 +99,8 @@ def make_reduced_list_comparison(
         make_guide_fun=AutoMultivariateNormal,
         n_steps=2000,
         n_samples=n_samples,
-        lr=1e-2
+        lr=1e-2,
+        discrete_z=discrete_z
     )
 
     model_list = [
