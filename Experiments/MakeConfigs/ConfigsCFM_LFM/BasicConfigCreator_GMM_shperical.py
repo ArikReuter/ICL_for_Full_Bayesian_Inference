@@ -63,7 +63,7 @@ class BasicConfigCreator():
 
 
         self.config['BASIC'] = {
-            "N" : 10,
+            "N" : 50,
             "P" : 5,
             "Batch_size": 1024,  # batch size for training
             "N_epochs": 100,  # number of epochs for training
@@ -178,7 +178,7 @@ class BasicConfigCreator():
 
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
-        config_name = "basic_config_gmm_spherical",
+        config_name = "basic_config_gmm_spherical_v2",
         config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\GMM_Configs"
     )
     config_creator.create_config()
