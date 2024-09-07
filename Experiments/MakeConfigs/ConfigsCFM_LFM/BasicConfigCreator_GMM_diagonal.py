@@ -63,10 +63,10 @@ class BasicConfigCreator():
 
 
         self.config['BASIC'] = {
-            "N" : 50,
-            "P" : 5,
+            "N" : 25,
+            "P" : 3,
             "Batch_size": 1024,  # batch size for training
-            "N_epochs": 100,  # number of epochs for training
+            "N_epochs": 150,  # number of epochs for training
             "N_samples_per_epoch": 500_000, # number of samples to use per epoch
             "N_samples_to_generate_at_once": 250_000, # number of samples to generate at once
             "Shuffle": False, # shuffle the data before training
@@ -180,7 +180,7 @@ class BasicConfigCreator():
 
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
-        config_name = "basic_config_gmm_diagonal",
+        config_name = "basic_config_gmm_diagonal_small",
         config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\GMM_Configs"
     )
     config_creator.create_config()
