@@ -301,15 +301,22 @@ class RunExperiments_LFM(RunExperiments):
         
         print_code(self.pprogram1)
 
+        if "discrete_z" in self.config["EVALUATION"].keys():
+            discrete_z = string2bool(self.config["EVALUATION"]["discrete_z"])
+        else:
+            discrete_z = True
+
         if string2bool(self.config["EVALUATION"]["do_full_evaluation"]) is True:
             self.comparison_models = make_default_list_comparison(
                 pprogram=self.pprogram1_y,
-                n_samples=int(self.config["EVALUATION"]["N_samples_per_model"])
+                n_samples=int(self.config["EVALUATION"]["N_samples_per_model"]),
+                discrete_z = discrete_z
             )
         else:
             self.comparison_models = make_reduced_list_comparison(
                 pprogram_y=self.pprogram1_y,
-                n_samples=int(self.config["EVALUATION"]["N_samples_per_model"])
+                n_samples=int(self.config["EVALUATION"]["N_samples_per_model"]),
+                discrete_z = discrete_z
             )
 
     def evaluate_synthetic(self):

@@ -158,7 +158,8 @@ class BasicConfigCreator():
             "real_world_preprocessor": "gmm_preprocessor_multivariate", # preprocessor for the real world data
             "results_dict_to_data_for_model": "results_dict_to_data_x_tuple",
             "result_dict_to_data_for_comparison_models": "results_dict_to_data_x_tuple",
-            "results_dict_to_latent_variable_comparison_models": "result_dict_to_latent_variable_convert_z_to_beta"
+            "results_dict_to_latent_variable_comparison_models": "result_dict_to_latent_variable_convert_z_to_beta",
+            "discrete_z": False,
         }
 
     def set_full_model_params(self):
