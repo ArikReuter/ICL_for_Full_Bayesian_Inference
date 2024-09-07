@@ -6,6 +6,7 @@ from PFNExperiments.LinearRegression.GenerativeModels.GenerateData_LogReg import
 from PFNExperiments.LatentFactorModels.GenerativeModels.Clustering.GMMs import make_gmm_program_univariate_batched, make_gmm_program_univariate
 from PFNExperiments.LatentFactorModels.GenerativeModels.Clustering.GMMs import make_gmm_program_spherical_batched, make_gmm_program_spherical
 from PFNExperiments.LatentFactorModels.GenerativeModels.Clustering.GMMs import make_gmm_program_diagonal_batched, make_gmm_program_diagonal
+from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA import make_fa_program_normal_weight_prior_batched, make_fa_program_normal_weight_prior
 
 """
 This file provides the mapping from the name of the program to the probabilistic program.
@@ -22,5 +23,6 @@ name2pprogram_maker = {
     "logreg_ig_intercept": (make_logreg_program_ig_intercept_batched, make_logreg_program_ig_intercept),
     "gmm_univariate": (make_gmm_program_univariate_batched, make_gmm_program_univariate),
     "gmm_spherical": (make_gmm_program_spherical_batched, make_gmm_program_spherical),
-    "gmm_diagonal": (make_gmm_program_diagonal_batched, make_gmm_program_diagonal)
+    "gmm_diagonal": (make_gmm_program_diagonal_batched, make_gmm_program_diagonal),
+    "fa_basic": (make_fa_program_normal_weight_prior_batched, make_fa_program_normal_weight_prior),
 }   
