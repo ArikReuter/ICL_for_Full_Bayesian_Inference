@@ -63,7 +63,7 @@ class BasicConfigCreator():
 
 
         self.config['BASIC'] = {
-            "N" : 25,
+            "N" : 50,
             "P" : 3,
             "Batch_size": 1024,  # batch size for training
             "N_epochs": 150,  # number of epochs for training
@@ -94,10 +94,10 @@ class BasicConfigCreator():
                 "p": self.config['BASIC']['P'], # number of features
                 "batch_size": self.config['BASIC']['Batch_size'], # batch size
                 "z_dim": 3, 
-                "w_var": 5,
-                "mu_var": 2,
+                "w_var": 10,
+                "mu_var": 0.1,
                 "a1_psi_var": 5.0,
-                "b1_psi_var": 2.0,
+                "b1_psi_var": 1.0,
             } # parameters for the probabilistic program. Is a dictionary
         }
 
