@@ -11,7 +11,7 @@ def make_basic_model_config(P:int, K: int) -> dict:
     config = {
             "Type": "TransformerCNFConditionalDecoder", 
             "n_input_features_encoder": P,
-            "n_input_features_decoder": K,
+            "n_input_features_decoder": 2*P*K,
             "d_model_encoder": 512,
             "d_model_decoder": 512,
             "n_heads_encoder": 8,
@@ -28,7 +28,7 @@ def make_basic_model_config(P:int, K: int) -> dict:
             "use_positional_encoding_encoder": True,
             "use_positional_encoding_decoder": False,
             "use_self_attention_decoder": False,
-            "output_dim": K,
+            "output_dim": 2*P*  K,
             "d_final_processing": 512,
             "n_final_layers": 3,
             "dropout_final": 0.1,
