@@ -7,6 +7,8 @@ from PFNExperiments.LatentFactorModels.GenerativeModels.Clustering.GMMs import m
 from PFNExperiments.LatentFactorModels.GenerativeModels.Clustering.GMMs import make_gmm_program_spherical_batched, make_gmm_program_spherical
 from PFNExperiments.LatentFactorModels.GenerativeModels.Clustering.GMMs import make_gmm_program_diagonal_batched, make_gmm_program_diagonal
 from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA import make_fa_program_normal_weight_prior_batched, make_fa_program_normal_weight_prior
+from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA import make_fa_program_laplace_weight_prior_batched, make_fa_program_laplace_weight_prior
+
 
 """
 This file provides the mapping from the name of the program to the probabilistic program.
@@ -25,4 +27,5 @@ name2pprogram_maker = {
     "gmm_spherical": (make_gmm_program_spherical_batched, make_gmm_program_spherical),
     "gmm_diagonal": (make_gmm_program_diagonal_batched, make_gmm_program_diagonal),
     "fa_basic": (make_fa_program_normal_weight_prior_batched, make_fa_program_normal_weight_prior),
+    "fa_laplace": (make_fa_program_laplace_weight_prior_batched, make_fa_program_laplace_weight_prior),
 }   
