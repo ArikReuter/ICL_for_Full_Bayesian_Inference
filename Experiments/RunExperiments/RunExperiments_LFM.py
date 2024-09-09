@@ -303,11 +303,8 @@ class RunExperiments_LFM(RunExperiments):
 
         if "discrete_z" in self.config["EVALUATION"].keys():
             discrete_z = string2bool(self.config["EVALUATION"]["discrete_z"])
-            print(f"discrete_z: {discrete_z}")
         else:
             discrete_z = True
-            print(f"discrete_z: {discrete_z}")
-            print(ast.literal_eval(self.config["EVALUATION"]["discrete_z"]))
 
         if string2bool(self.config["EVALUATION"]["do_full_evaluation"]) is True:
             self.comparison_models = make_default_list_comparison(
