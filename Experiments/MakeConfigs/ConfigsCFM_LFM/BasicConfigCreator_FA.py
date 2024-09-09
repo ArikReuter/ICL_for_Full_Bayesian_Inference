@@ -1,6 +1,6 @@
 import configparser
 import time 
-from PFNExperiments.Experiments.MakeConfigs.ConfigsCFM_LFM.ModelConfigCreator_GMM_diagonal import make_basic_model_config
+from PFNExperiments.Experiments.MakeConfigs.ConfigsCFM_LFM.ModelConfigCreator_FA import make_basic_model_config
 import ast
 
 class BasicConfigCreator():
