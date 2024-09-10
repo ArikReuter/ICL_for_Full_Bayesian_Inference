@@ -334,6 +334,8 @@ class RunExperiments_LFM(RunExperiments):
                 result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_z_to_beta
             else:
                 result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_mu_sigma_to_beta
+        else: 
+            result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_mu_sigma_to_beta
 
         self.evaluator = Evaluate(
         posterior_model=self.full_model,
@@ -367,6 +369,8 @@ class RunExperiments_LFM(RunExperiments):
                 result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_z_to_beta
             else:
                 result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_mu_sigma_to_beta
+        else: 
+            result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_mu_sigma_to_beta
 
         if self.config["EVALUATION"]["real_world_preprocessor"] == "gmm_preprocessor_univariate":
             self.getdata = GetDataOpenML(
