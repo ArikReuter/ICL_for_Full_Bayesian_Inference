@@ -94,11 +94,9 @@ def make_fa_program_normal_weight_prior(
             "w": w,
             "psi": psi_diag
         }
-
-
-
-    return fa_program
-
+    
+    return fa_program	
+    
 
 def make_fa_program_normal_weight_prior_batched(
         n: int = 100,

@@ -51,7 +51,10 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         
         self.optimizer = pyro.optim.Adam({"lr": self.lr})
 
-        elbo = TraceEnum_ELBO(max_plate_nesting=2)
+        if self.discrete_z:
+            elbo = TraceEnum_ELBO(max_plate_nesting=2)
+        else:
+            elbo = Trace_ELBO()
 
         self.svi = SVI(self.pprogram, self.guide, self.optimizer, loss=elbo)
 
