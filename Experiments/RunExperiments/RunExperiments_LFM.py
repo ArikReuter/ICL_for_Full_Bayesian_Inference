@@ -315,7 +315,7 @@ class RunExperiments_LFM(RunExperiments):
                 discrete_z = discrete_z
             )
             if "numpyro_hmc" in self.config["EVALUATION"].keys() and string2bool(self.config["EVALUATION"]["numpyro_hmc"]) is True:
-                make_pprogram_numpyro = pyro_ppgram2_numpyro_ppgram[str(self.pprogram1.__name__)] 
+                make_pprogram_numpyro = pyro_ppgram2_numpyro_ppgram[str(self.name2pprogram_maker[self.config["DATA_GENERATION"]["Pprogram"]][1].__name__)] 
                 pprogram_numpyro = make_pprogram_numpyro(**benchmark_params_ppgrogram)
 
                 hmc_sampler = Hamiltionian_MC_NumpyroVersion(
