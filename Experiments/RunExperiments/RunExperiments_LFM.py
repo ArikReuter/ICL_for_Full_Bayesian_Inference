@@ -21,6 +21,8 @@ from PFNExperiments.Evaluation.RealWorldEvaluation.PreprocessDataset import Prep
 from PFNExperiments.Evaluation.RealWorldEvaluation.GetDataOpenML import GetDataOpenML
 from PFNExperiments.LinearRegression.GenerativeModels.Name2Pprogram import name2pprogram_maker
 from PFNExperiments.Experiments.RunExperiments.RunExperiments import RunExperiments
+from PFNExperiments.LatentFactorModels.GenerativeModels.Numpyro_Versions.Pyro2Numpyro import pyro_ppgram2_numpyro_ppgram
+from PFNExperiments.LatentFactorModels.ComparisonModels.Hamiltionian_MC_Numpyro import Hamiltionian_MC as Hamiltionian_MC_NumpyroVersion
 import torch
 
 from PFNExperiments.Evaluation.RealWorldEvaluation.Preprocess_univariate_GMM import Preprocessor_GMM_univariate
@@ -312,6 +314,18 @@ class RunExperiments_LFM(RunExperiments):
                 n_samples=int(self.config["EVALUATION"]["N_samples_per_model"]),
                 discrete_z = discrete_z
             )
+            if "numpyro_hmc" in self.config["EVALUATION"].keys() and string2bool(self.config["EVALUATION"]["numpyro_hmc"]) is True:
+                make_pprogram_numpyro = pyro_ppgram2_numpyro_ppgram[str(self.pprogram1.__name__)] 
+                pprogram_numpyro = make_pprogram_numpyro(**benchmark_params_ppgrogram)
+
+                hmc_sampler = Hamiltionian_MC_NumpyroVersion(
+                    pprogram=pprogram_numpyro,
+                    n_samples =int(self.config["EVALUATION"]["N_samples_per_model"]),
+                    n_warmup = int(self.config["EVALUATION"]["N_samples_per_model"])//2
+                )
+
+                self.comparison_models[0] = hmc_sampler
+
         else:
             self.comparison_models = make_reduced_list_comparison(
                 pprogram_y=self.pprogram1_y,
