@@ -64,7 +64,7 @@ class BasicConfigCreator():
 
         self.config['BASIC'] = {
             "N" : 50,
-            "P" : 3,
+            "P" : 5,
             "Batch_size": 1024,  # batch size for training
             "N_epochs": 150,  # number of epochs for training
             "N_samples_per_epoch": 500_000, # number of samples to use per epoch
@@ -94,10 +94,10 @@ class BasicConfigCreator():
                 "p": self.config['BASIC']['P'], # number of features
                 "batch_size": self.config['BASIC']['Batch_size'], # batch size
                 "z_dim": 3, 
-                "w_var": 10,
-                "mu_var": 0.1,
+                "w_var": 1.0,
+                "mu_var": 1.0,
                 "a1_psi_var": 5.0,
-                "b1_psi_var": 1.0,
+                "b1_psi_var": 2.0,
             } # parameters for the probabilistic program. Is a dictionary
         }
 
@@ -181,7 +181,7 @@ class BasicConfigCreator():
 
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
-        config_name = "basic_config_fa_small",
+        config_name = "basic_config_fa_big_v3",
         config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\GMM_Configs"
     )
     config_creator.create_config()
