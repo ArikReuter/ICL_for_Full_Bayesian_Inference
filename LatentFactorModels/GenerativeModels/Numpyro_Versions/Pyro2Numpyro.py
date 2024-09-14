@@ -16,3 +16,6 @@ pyro_ppgram2_numpyro_ppgram = {
     str(make_fa_program_laplace_weight_prior_pyro.__name__): make_fa_program_laplace_weight_prior_numpyro,
     str(make_fa_program_normal_weight_prior_laplace_z_prior_pyro.__name__): make_fa_program_normal_weight_prior_laplace_z_prior_numpyro
 }
+
+if __name__ == "__main__":
+    print(pyro_ppgram2_numpyro_ppgram)
