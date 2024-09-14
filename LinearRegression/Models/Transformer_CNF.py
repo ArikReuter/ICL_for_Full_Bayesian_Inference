@@ -1032,7 +1032,6 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
       else:
           res_trafo = torch.mean(res_trafo, dim=1)
 
-
       res = self.final_processing(res_trafo, condition)
 
       return res
