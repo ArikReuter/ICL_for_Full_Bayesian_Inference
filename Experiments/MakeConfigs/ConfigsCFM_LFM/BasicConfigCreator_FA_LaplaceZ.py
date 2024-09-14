@@ -24,7 +24,7 @@ class BasicConfigCreator():
         self.config["confic_created_on"] = {"time": {time.asctime()}}
 
         if config_name is None:
-            self.config_name = "basic_config_gmm_spherical"
+            self.config_name = "basic_config_fa_laplace"
         else:
             self.config_name = config_name
 
@@ -64,7 +64,7 @@ class BasicConfigCreator():
 
         self.config['BASIC'] = {
             "N" : 25,
-            "P" : 15,
+            "P" : 5,
             "Batch_size": 1024,  # batch size for training
             "N_epochs": 150,  # number of epochs for training
             "N_samples_per_epoch": 500_000, # number of samples to use per epoch
@@ -85,7 +85,7 @@ class BasicConfigCreator():
         """
 
         self.config['DATA_GENERATION'] = {
-            "Pprogram": "fa_basic", # probabilistic program to generate the data
+            "Pprogram": "fa_normal_laplace", # probabilistic program to generate the data
             #"Pprogram_batched": None, # probabilistic program to generate the data in batches
             "Scheduler_behaviour": "All_constant", # behaviour of the scheduler of the probabilistic program's parameters
             "Generate_X_behaviour": "uniform", # behaviour of the data generation process
@@ -93,7 +93,7 @@ class BasicConfigCreator():
                 "n": self.config['BASIC']['N'], # number of data points
                 "p": self.config['BASIC']['P'], # number of features
                 "batch_size": self.config['BASIC']['Batch_size'], # batch size
-                "z_dim": 5, 
+                "z_dim": 3, 
                 "w_var": 3.0,
                 "mu_var": 0.1,
                 "a1_psi_var": 5.0,
@@ -182,7 +182,7 @@ class BasicConfigCreator():
 
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
-        config_name = "basic_config_fa_high_dim",
+        config_name = "basic_config_fa_big_laplace",
         config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\GMM_Configs"
     )
     config_creator.create_config()

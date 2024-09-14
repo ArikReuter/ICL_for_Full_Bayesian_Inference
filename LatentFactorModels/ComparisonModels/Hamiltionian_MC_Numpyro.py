@@ -2,6 +2,7 @@ from numpyro.infer import MCMC, NUTS
 import torch
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel
 from jax import random
+import jax.numpy as jnp
 import numpy as np
 
 class Hamiltionian_MC(PosteriorComparisonModel):
@@ -60,7 +61,7 @@ class Hamiltionian_MC(PosteriorComparisonModel):
         Returns:
             torch.Tensor: the samples from the posterior distribution
         """
-        x = x.numpy()
+        x = jnp.asarray(x)
         self.mcmc.run(rng_key=self.sample_key, x=x)
         posterior_samples = self.mcmc.get_samples()
 
