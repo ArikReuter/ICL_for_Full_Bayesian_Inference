@@ -5,7 +5,7 @@ import os
 import sys
 
 from PFNExperiments.LinearRegression.GenerativeModels.LM_abstract import return_only_y, print_code
-from PFNExperiments.LinearRegression.Models.Transformer_CNF import TransformerCNFConditionalDecoder
+from PFNExperiments.LinearRegression.Models.Transformer_CNF import TransformerCNFConditionalDecoder, TransformerCNFConditionalDecoderSequenceZ
 from PFNExperiments.Training.FlowMatching.CFMLossOT2 import CFMLossOT2
 from PFNExperiments.LinearRegression.Models.ModelToPosteriorCNF import ModelToPosteriorCNF
 from PFNExperiments.LinearRegression.GenerativeModels.Curriculum import Curriculum
@@ -157,7 +157,7 @@ class RunExperiments():
             )
 
         if model_kwargs["type"] == "TransformerCNFConditionalDecoderSequenceZ":
-            self.model = TransformerCNFConditionalDecoder(
+            self.model = TransformerCNFConditionalDecoderSequenceZ(
                 n_input_features_encoder = int(model_kwargs["n_input_features_encoder"]),
                 n_input_features_decoder = int(model_kwargs["n_input_features_decoder"]),
                 d_model_encoder = int(model_kwargs["d_model_encoder"]),
