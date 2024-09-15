@@ -9,7 +9,7 @@ from PFNExperiments.LatentFactorModels.GenerativeModels.Clustering.GMMs import m
 from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA import make_fa_program_normal_weight_prior_batched, make_fa_program_normal_weight_prior
 from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA import make_fa_program_laplace_weight_prior_batched, make_fa_program_laplace_weight_prior
 from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA import make_fa_program_normal_weight_prior_laplace_z_prior_batched, make_fa_program_normal_weight_prior_laplace_z_prior
-
+from PFNExperiments.LatentFactorModels.GenerativeModels.Numpyro_Versions.LDA_NumPyro import make_lda_program, make_lda_program_batched
 
 """
 This file provides the mapping from the name of the program to the probabilistic program.
@@ -29,5 +29,6 @@ name2pprogram_maker = {
     "gmm_diagonal": (make_gmm_program_diagonal_batched, make_gmm_program_diagonal),
     "fa_basic": (make_fa_program_normal_weight_prior_batched, make_fa_program_normal_weight_prior),
     "fa_laplace": (make_fa_program_laplace_weight_prior_batched, make_fa_program_laplace_weight_prior),
-    "fa_normal_laplace": (make_fa_program_normal_weight_prior_laplace_z_prior_batched, make_fa_program_normal_weight_prior_laplace_z_prior)
+    "fa_normal_laplace": (make_fa_program_normal_weight_prior_laplace_z_prior_batched, make_fa_program_normal_weight_prior_laplace_z_prior),
+    "lda_basic": (make_lda_program_batched, make_lda_program)
 }   

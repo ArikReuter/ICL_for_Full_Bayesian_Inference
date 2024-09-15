@@ -23,6 +23,8 @@ class CFMLossOT2(torch.nn.Module):
         """
         assert z.shape == z_1.shape, f"z shape {z.shape} does not match z_1 shape {z_1.shape}"
 
+        if len(t.shape) == 2 and len(z_1.shape) == 3:
+            t = t.unsqueeze(-1)
 
         z_t = (1 - (1 - self.sigma_min)*t)*z + t*z_1
 

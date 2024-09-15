@@ -905,6 +905,11 @@ class TransformerConditionalDecoder(nn.Module):
           condition = self.condition_embedding_layer(condition)
 
           x_encoder = self.transformer_encoder(x_encoder)
+          
+          #print(f"x_encoder: {x_encoder.shape}")
+          #print(f"condition: {condition.shape}")
+          #print(f"x_decoder: {x_decoder.shape}")
+
           x_decoder = self.transformer_decoder(x_decoder, x_encoder, condition)
     
           return x_decoder, condition
@@ -985,6 +990,7 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
          n_final_layers: int = 1,
          dropout_final: float = 0.1,
          treat_z_as_sequence: bool = False,
+         average_decoder_output: bool = True,
          **kwargs
     ):
         """
@@ -999,6 +1005,7 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
 
         d_model_decoder = self.transformer_decoder.d_model_decoder
         self.treat_z_as_sequence = treat_z_as_sequence
+        self.average_decoder_output = average_decoder_output
     
         self.final_processing = MLPConditional(
             n_input_units=d_model_decoder,
@@ -1030,9 +1037,61 @@ class TransformerCNFConditionalDecoder(TransformerConditionalDecoder):
       if not self.treat_z_as_sequence:
             res_trafo = res_trafo.squeeze(1)
       else:
-          res_trafo = torch.mean(res_trafo, dim=1)
+          if self.average_decoder_output:
+            res_trafo = torch.mean(res_trafo, dim=1)
 
       res = self.final_processing(res_trafo, condition)
 
       return res
 
+
+
+class TransformerCNFConditionalDecoderSequenceZ(TransformerConditionalDecoder):
+   """
+   Use the TransformerConditional as a model for the CNF
+   """
+
+   def __init__(
+         self,
+         output_dim: int,
+         **kwargs
+    ):
+        """
+        Args:
+                output_dim: int: the output dimension
+                d_final_processing: int: the hidden dimension of the final processing MLP
+                n_final_layers: int: the number of layers in the final processing MLP
+                dropout_final: float: the dropout rate of the final processing MLP
+                treat_z_as_sequence: bool: whether to treat the latent variable z as a sequence. This transposes the latent variable z in the forward pass
+        """
+        super(TransformerCNFConditionalDecoderSequenceZ, self).__init__(**kwargs)
+
+        d_model_decoder = self.transformer_decoder.d_model_decoder
+    
+        self.final_processing = PositionwiseFeedForward(
+            d_model_in=d_model_decoder,
+            d_ff = d_model_decoder,
+            d_model_out=output_dim
+        )
+
+   def forward(self, z:torch.Tensor, x: torch.tensor, t: torch.tensor):
+      """
+      Args:
+            z: torch.Tensor: the input latent variable of shape (BATCH_SIZE, 1, N_Latents)
+            x: torch.Tensor: the data to condition on of shape (BATCH_SIZE, SEQ_LEN, N_INPUT_FEATURES)
+            t: torch.Tensor: the time to condition on of shape (BATCH_SIZE, 1)
+      """
+
+      if not len(z.shape) == 3:
+            z = z.unsqueeze(1)
+
+      #if self.treat_z_as_sequence:
+      #      z = z.permute(0, 2, 1)
+      
+      t = t.view(-1, 1)
+
+      res_trafo, condition = super().forward(x, z, t)
+      
+      res = self.final_processing(res_trafo)
+
+      return res
