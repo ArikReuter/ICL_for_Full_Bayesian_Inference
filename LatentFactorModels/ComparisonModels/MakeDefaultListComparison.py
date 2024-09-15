@@ -1,6 +1,7 @@
 from PFNExperiments.LatentFactorModels.ComparisonModels.Hamiltionian_MC import Hamiltionian_MC
 from pyro.infer.autoguide import AutoDiagonalNormal, AutoMultivariateNormal, AutoLaplaceApproximation, AutoIAFNormal, AutoStructured
 from PFNExperiments.LatentFactorModels.ComparisonModels.Variational_InferenceAutoguide import Variational_InferenceAutoguide
+from PFNExperiments.LatentFactorModels.ComparisonModels.Hamiltionian_MC_Numpyro import Hamiltionian_MC as Hamiltionian_MC_Numpyro
 
 
 def make_default_list_comparison(
@@ -109,3 +110,12 @@ def make_reduced_list_comparison(
     ]
 
     return model_list
+
+
+def make_hmc_numpyro_comparison(
+        pprogram,
+        n_samples: int = 1000,
+        ):
+    hmc = Hamiltionian_MC_Numpyro(pprogram=pprogram, n_samples=n_samples, n_warmup=n_samples//2)
+
+    return [hmc]

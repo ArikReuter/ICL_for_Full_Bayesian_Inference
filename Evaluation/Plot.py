@@ -69,8 +69,10 @@ class Plot:
             for model, samples in model_samples.items():
                 samples_per_model[model] = self.results_to_dict_latent_variable(samples[i])
 
+            
             if gt_samples is not None:
                 gt_parameter = self.results_to_dict_latent_variable(gt_samples[i]).squeeze()
+                gt_parameter = gt_parameter.flatten()
                 gt_parameter = gt_parameter.cpu().detach().numpy()
 
             n_dims = samples_per_model[model].shape[1]

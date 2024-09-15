@@ -11,12 +11,12 @@ from PFNExperiments.LinearRegression.Models.ModelToPosteriorCNF import ModelToPo
 from PFNExperiments.LinearRegression.GenerativeModels.Curriculum import Curriculum
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateDataCurriculumCFM import GenerateDataCurriculumCFM
 from PFNExperiments.Training.TrainerCurriculumCNF import TrainerCurriculumCNF
-from PFNExperiments.Evaluation.Evaluate import Evaluate, result_dict_to_latent_variable_convert_mu_sigma_to_beta, results_dict_to_data_x_tuple, results_dict_to_data_x_tuple_transpose, result_dict_to_latent_variable_convert_z_to_beta
+from PFNExperiments.Evaluation.Evaluate import Evaluate, result_dict_to_latent_variable_convert_mu_sigma_to_beta, results_dict_to_data_x_tuple, results_dict_to_data_x_tuple_transpose, result_dict_to_latent_variable_convert_z_to_beta, result_dict_to_latent_variable_convert_phi_to_beta_flatten, just_return_results_flatten_beta
 from PFNExperiments.Evaluation.RealWorldEvaluation.EvaluateRealWorld import EvaluateRealWorld, just_return_results, results_dict_to_latent_variable_beta0_and_beta
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateX_TabPFN.MakeGenerator import MakeGenerator
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateX import simulate_X_uniform
 from torch.optim.lr_scheduler import OneCycleLR
-from PFNExperiments.LatentFactorModels.ComparisonModels.MakeDefaultListComparison import make_default_list_comparison, make_reduced_list_comparison
+from PFNExperiments.LatentFactorModels.ComparisonModels.MakeDefaultListComparison import make_default_list_comparison, make_reduced_list_comparison, make_hmc_numpyro_comparison
 from PFNExperiments.Evaluation.RealWorldEvaluation.PreprocessDataset import Preprocessor
 from PFNExperiments.Evaluation.RealWorldEvaluation.GetDataOpenML import GetDataOpenML
 from PFNExperiments.LinearRegression.GenerativeModels.Name2Pprogram import name2pprogram_maker
@@ -333,6 +333,12 @@ class RunExperiments_LFM(RunExperiments):
                 discrete_z = discrete_z
             )
 
+        if "only_use_hmc_numpyro" in self.config["EVALUATION"].keys() and string2bool(self.config["EVALUATION"]["only_use_hmc_numpyro"]) is True:
+            self.comparison_models = make_hmc_numpyro_comparison(
+                pprogram=self.pprogram1,
+                n_samples=int(self.config["EVALUATION"]["N_samples_per_model"]),
+            )
+
     def evaluate_synthetic(self):
         """
         Evaluate the synthetic data.
@@ -346,10 +352,19 @@ class RunExperiments_LFM(RunExperiments):
         if "results_dict_to_latent_variable_comparison_models" in self.config["EVALUATION"].keys():
             if self.config["EVALUATION"]["results_dict_to_latent_variable_comparison_models"] == "result_dict_to_latent_variable_convert_z_to_beta":
                 result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_z_to_beta
+
+            elif self.config["EVALUATION"]["results_dict_to_latent_variable_comparison_models"] == "result_dict_to_latent_variable_convert_phi_to_beta_flatten":
+                result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_phi_to_beta_flatten
             else:
                 result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_mu_sigma_to_beta
         else: 
             result_dict_to_latent_variable_comparison = result_dict_to_latent_variable_convert_mu_sigma_to_beta
+
+        if "results_dict_to_latent_variable_posterior_model" in self.config["EVALUATION"].keys():
+            if self.config["EVALUATION"]["results_dict_to_latent_variable_posterior_model"] == "just_return_results_flatten_beta":
+                results_dict_to_latent_variable_posterior_model = just_return_results_flatten_beta
+            else:
+                results_dict_to_latent_variable_posterior_model = just_return_results
 
         self.evaluator = Evaluate(
         posterior_model=self.full_model,
@@ -357,6 +372,7 @@ class RunExperiments_LFM(RunExperiments):
         comparison_models=self.comparison_models,
         n_evaluation_cases = int(self.config["EVALUATION"]["N_synthetic_cases"]),
         save_path = self.config["BASIC"]["Save_path"] + "/synthetic_evaluation",
+        results_dict_to_latent_variable_posterior_model = results_dict_to_latent_variable_posterior_model,
         results_dict_to_data_for_model = results_dict_to_data_x_tuple,
         results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_comparison,
         result_dict_to_data_for_comparison_models =  results_dict_to_data_x,

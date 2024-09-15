@@ -24,6 +24,15 @@ def just_return_results(result:dict) -> dict:
     """
     return result
 
+def just_return_results_flatten_beta(result:dict) -> dict:
+    """
+    Just return the results
+    """
+    beta = result["beta"]
+    beta = beta.reshape(beta.shape[0], -1)
+    result["beta"] = beta
+    return result
+
 
 def results_dict_to_latent_variable_beta(result:dict) ->  torch.tensor:
     """
@@ -113,6 +122,18 @@ def result_dict_to_latent_variable_convert_z_to_beta(result:dict) -> torch.tenso
     if len(z.shape) == 3:
         z = z.flatten(1)
     result["beta"] = z
+    return result
+
+
+def result_dict_to_latent_variable_convert_phi_to_beta_flatten(result:dict) -> torch.tensor:
+    """
+    Take the dictionary with results and return the latent variable
+    """
+    phi = result["phi"]
+    phi = phi.reshape(phi.shape[0], -1)
+
+    result["beta"] = phi
+    #print(result["beta"].shape)
     return result
 
 class Evaluate:
@@ -465,6 +486,13 @@ class Evaluate:
 
                 df1 = comparison_to_gt_df[k1]
                 df2 = comparison_to_gt_df[k2]
+
+                # fill all columns that completely coincide with nan
+                for column in df1.columns:
+                    if np.all(df1[column] == df2[column]):
+                        df1[column] = np.nan
+                        df2[column] = np.nan
+
 
                 test_unpaired_res = test_unpaired(df1, df2)[1] # the p-values 
                 

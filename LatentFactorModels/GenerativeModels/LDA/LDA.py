@@ -9,7 +9,7 @@ def make_lda_pprogram(
         alpha_dir: float = 0.1,
         beta_dir: float = 0.1,
         doc_len_rate: float = 10.0
-):
+    ):
     """
     Make a probabilistic program for LDA.
     n_docs: int, number of documents

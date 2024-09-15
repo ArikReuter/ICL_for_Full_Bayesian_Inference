@@ -113,6 +113,7 @@ class CompareModelToGT():
                         "MAP diff": compare_to_gt_MAP,
                         "Mean diff": try_otherwise_return_error(compare_to_gt_mean_difference)
                 },
+                flatten_gt_parameter_results: bool = True
 
                     ) -> None:
         
@@ -123,6 +124,7 @@ class CompareModelToGT():
             metrics_joint: dict: a dictionary of metrics to compare the model samples to the ground truth samples
             n_draws_poterior_to_sample_joint: int: the number of draws from the posterior to sample the joint distribution. there can be serveral those draws because for the model we have several posterior samples per data point
             metrics_gt_parameter: dict: a dictionary of metrics to compare the model samples to the ground truth parameters
+            flatten_gt_parameter_results: bool: whether to flatten the results of the gt parameter comparison
         """
         
         self.results_dict_to_latent_variable = results_dict_to_latent_variable
@@ -131,6 +133,8 @@ class CompareModelToGT():
         self.metrics_joint = metrics_joint
         self.n_draws_posterior_to_sample_joint = n_draws_posterior_to_sample_joint
         self.metrics_gt_parameter = metrics_gt_parameter
+
+        self.flatten_gt_parameter_results = flatten_gt_parameter_results
 
     def compare_joint_samples(
                 self,
@@ -180,6 +184,9 @@ class CompareModelToGT():
 
             model_data_sample = torch.stack(model_data_sample_list).squeeze().flatten(start_dim=1)
             gt_data = torch.stack(gt_data_sample_list).squeeze().flatten(start_dim=1)
+
+            if self.flatten_gt_parameter_results:
+                gt_latent_variable = gt_latent_variable.flatten(start_dim=1)
 
             joint_samples_model = torch.cat([model_latent_variable_sample, model_data_sample], dim = -1)
             joint_samples_gt = torch.cat([gt_latent_variable, gt_data], dim = -1)
@@ -234,6 +241,9 @@ class CompareModelToGT():
             assert torch.all(gt_data == model_data), "The data for the ground truth and model samples should match. but got {} and {}".format(gt_data, model_data)
             
             r = {}
+
+            if self.flatten_gt_parameter_results:
+                gt_latent_variable = gt_latent_variable.flatten(start_dim=1)
 
             for metric_name, metric in self.metrics_gt_parameter.items():
                 r[metric_name] = metric(model_latent_variable, gt_latent_variable)
