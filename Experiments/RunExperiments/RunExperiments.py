@@ -156,6 +156,29 @@ class RunExperiments():
                 treat_z_as_sequence =  string2bool(model_kwargs["treat_z_as_sequence"]),
             )
 
+        if model_kwargs["type"] == "TransformerCNFConditionalDecoderSequenceZ":
+            self.model = TransformerCNFConditionalDecoder(
+                n_input_features_encoder = int(model_kwargs["n_input_features_encoder"]),
+                n_input_features_decoder = int(model_kwargs["n_input_features_decoder"]),
+                d_model_encoder = int(model_kwargs["d_model_encoder"]),
+                d_model_decoder = int(model_kwargs["d_model_decoder"]),
+                n_heads_encoder = int(model_kwargs["n_heads_encoder"]),
+                n_heads_decoder = int(model_kwargs["n_heads_decoder"]),
+                d_ff_encoder = int(model_kwargs["d_ff_encoder"]),
+                d_ff_decoder = int(model_kwargs["d_ff_decoder"]),
+                dropout_encoder = float(model_kwargs["dropout_encoder"]),
+                dropout_decoder = float(model_kwargs["dropout_decoder"]),
+                n_conditional_input_features =  int(model_kwargs["n_conditional_input_features"]),
+                n_condition_features = int(model_kwargs["n_condition_features"]),
+                n_layers_condition_embedding = int(model_kwargs["n_layers_condition_embedding"]),
+                n_layers_encoder = int(model_kwargs["n_layers_encoder"]),
+                n_layers_decoder = int(model_kwargs["n_layers_decoder"]),
+                use_positional_encoding_encoder = string2bool(model_kwargs["use_positional_encoding_encoder"]),
+                use_positional_encoding_decoder = string2bool(model_kwargs["use_positional_encoding_decoder"]),
+                use_self_attention_decoder = string2bool(model_kwargs["use_self_attention_decoder"]),
+                output_dim = int(model_kwargs["output_dim"]),
+            )
+
     def setup_training(self):
         """
         Setup the training.
