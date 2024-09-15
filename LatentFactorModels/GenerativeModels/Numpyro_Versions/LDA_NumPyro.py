@@ -31,6 +31,7 @@ def make_lda_program(
     n_docs = int(n_docs)
     n_words = int(n_words)
     n_topics = int(n_topics)
+    doc_len_max = int(doc_len_max)
 
     def lda_program(
             x: jnp.ndarray = None, 
