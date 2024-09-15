@@ -2,7 +2,7 @@ import configparser
 import time 
 import ast
 
-from PFNExperiments.Experiments.MakeConfigs.ConfigsCFM_LFM.BasicConfigCreator_LDA import make_basic_model_config
+from PFNExperiments.Experiments.MakeConfigs.ConfigsCFM_LFM.ModelConfigCreator_LDA import make_basic_model_config
 
 class BasicConfigCreator():
     """
