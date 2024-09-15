@@ -103,6 +103,7 @@ def make_lda_program_batched(
     n_words = int(n_words)
     n_topics = int(n_topics)
     batch_size = int(batch_size)
+    doc_len_max = int(doc_len_max)
 
     def lda_program(
             x: jnp.ndarray = None, 
