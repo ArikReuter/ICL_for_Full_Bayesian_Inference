@@ -387,7 +387,10 @@ class RunExperiments_LFM(RunExperiments):
         )
 
         self.eval_res_synthetic = self.evaluator.run_evaluation()
-        self.evaluator.plot_results(max_number_plots=int(self.config["EVALUATION"]["N_synthetic_cases"]))
+        try:
+            self.evaluator.plot_results(max_number_plots=int(self.config["EVALUATION"]["N_synthetic_cases"]))
+        except Exception as e:
+            print("Error in plotting: {e}")
 
     def evaluate_real_world(self):
         """
@@ -452,8 +455,11 @@ class RunExperiments_LFM(RunExperiments):
         )
 
         self.eval_res_real_world = self.eval_rw.run_evaluation()
+        try:
+            self.eval_rw.plot_results()
 
-        self.eval_rw.plot_results()
+        except Exception as e:
+            print("Error in plotting: {e}")
 
     def run(self):
         """
