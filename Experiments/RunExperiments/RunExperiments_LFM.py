@@ -130,6 +130,7 @@ class RunExperiments_LFM(RunExperiments):
             )
         except Exception as e:
             print(f"Error in check_model: {e}")
+            
         self.epoch_loader = self.data_generator.make_epoch_loader(
             n = N,
             p = P,
@@ -368,6 +369,9 @@ class RunExperiments_LFM(RunExperiments):
                 results_dict_to_latent_variable_posterior_model = just_return_results_flatten_beta
             else:
                 results_dict_to_latent_variable_posterior_model = just_return_results
+
+        else:
+            results_dict_to_latent_variable_posterior_model = just_return_results
 
         self.evaluator = Evaluate(
         posterior_model=self.full_model,
