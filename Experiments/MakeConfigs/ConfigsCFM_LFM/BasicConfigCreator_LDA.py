@@ -25,7 +25,7 @@ class BasicConfigCreator():
         self.config["confic_created_on"] = {"time": {time.asctime()}}
 
         if config_name is None:
-            self.config_name = "basic_config_lda"
+            self.config_name = "basic_config_lda_small_eval"
         else:
             self.config_name = config_name
 
@@ -65,11 +65,11 @@ class BasicConfigCreator():
 
         self.config['BASIC'] = {
             "N" : 50,
-            "P" : 5,
-            "Batch_size": 1024,  # batch size for training
+            "P" : 100,
+            "Batch_size": 512,  # batch size for training
             "N_epochs": 150,  # number of epochs for training
             "N_samples_per_epoch": 500_000, # number of samples to use per epoch
-            "N_samples_to_generate_at_once": 250_000, # number of samples to generate at once
+            "N_samples_to_generate_at_once": 1_000, # number of samples to generate at once
             "Shuffle": False, # shuffle the data before training
             "Save_path": "/content/drive/MyDrive/PFN_Experiments/Training_RunsCFM" + f"/{self.config_name}_{datetime}",
             "Train_frac": 0.5, # fraction of the data to use for training
@@ -95,8 +95,8 @@ class BasicConfigCreator():
                 "n_words": self.config['BASIC']['P'], # number of features
                 "batch_size": self.config['BASIC']['Batch_size'], # batch size
                 "n_topics": 3, 
-                "alpha_dir": 0.1,
-                "beta_dir": 0.1,
+                "alpha_dir": 0.5,
+                "beta_dir": 0.5,
                 "doc_len_max": 100,
                 "doc_len_mean": 10.0,
             } # parameters for the probabilistic program. Is a dictionary
@@ -184,7 +184,7 @@ class BasicConfigCreator():
 
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
-        config_name = "basic_config_lda",
+        config_name = "basic_config_lda_small_eval",
         config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\GMM_Configs"
     )
     config_creator.create_config()

@@ -24,7 +24,7 @@ class BasicConfigCreator():
         self.config["confic_created_on"] = {"time": {time.asctime()}}
 
         if config_name is None:
-            self.config_name = "basic_config_gmm_spherical"
+            self.config_name = "basic_config_gmm_diagonal_multichain"
         else:
             self.config_name = config_name
 
@@ -63,7 +63,7 @@ class BasicConfigCreator():
 
 
         self.config['BASIC'] = {
-            "N" : 50,
+            "N" : 25,
             "P" : 3,
             "Batch_size": 1024,  # batch size for training
             "N_epochs": 100,  # number of epochs for training
@@ -92,11 +92,11 @@ class BasicConfigCreator():
             "pprogram_params": {
                 "n": self.config['BASIC']['N'], # number of data points
                 "p": self.config['BASIC']['P'], # number of features
-                "k": 5, # number of components for the GMM
+                "k": 3, # number of components for the GMM
                 "batch_size": self.config['BASIC']['Batch_size'], # batch size
                 "a1": 5.0, # parameter for the InverseGamma distribution
                 "b1": 2.0, # parameter for the InverseGamma distribution
-                "dirichlet_beta": 0.1, # parameter for the Dirichlet distribution
+                "dirichlet_beta": 1.0, # parameter for the Dirichlet distribution
                 "lambda1": 5.0, # parameter for the Normal distribution
             } # parameters for the probabilistic program. Is a dictionary
         }
@@ -149,16 +149,18 @@ class BasicConfigCreator():
 
         self.config["EVALUATION"] = {
             "N_samples_per_model": 1_000, # number of samples to generate per model
-            "N_synthetic_cases": 10, # number of synthetic cases to generate and evaluate on
+            "N_synthetic_cases": 50, # number of synthetic cases to generate and evaluate on
             "Real_world_eval": "Basic1", # real world evaluation to perform,
-            "n_evaluation_cases_real_world": 5, # number of real world evaluation cases to use
+            "n_evaluation_cases_real_world": "All", # number of real world evaluation cases to use
             "do_full_evaluation": True, # whether to do a full evaluation
             "save_path_data_real_world_eval": "/content/drive/MyDrive/PFN_Experiments/RealWorldEvaluationData/DatasetsOpenML/numerical_regression.pkl", # path to save the data for real world evaluation
             "real_world_benchmark_id": 336, # id of the real world benchmark,
             "real_world_preprocessor": "gmm_preprocessor_multivariate", # preprocessor for the real world data
             "results_dict_to_data_for_model": "results_dict_to_data_x_tuple",
             "result_dict_to_data_for_comparison_models": "results_dict_to_data_x_tuple",
-            "discrete_z": True
+            "discrete_z": True,
+            "numpyro_hmc": True,
+            "multi_chain": True
         }
 
     def set_full_model_params(self):
@@ -181,7 +183,7 @@ class BasicConfigCreator():
 
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
-        config_name = "basic_config_gmm_diagonal_big_small_dir_param",
+        config_name = "basic_config_gmm_multi_chain",
         config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\GMM_Configs"
     )
     config_creator.create_config()

@@ -292,7 +292,7 @@ class RunExperiments_LFM(RunExperiments):
         """
         Setup the evaluation.
         """
-
+        
         benchmark_params_ppgrogram = self.data_generator.curriculum.get_params(-1)
 
         del benchmark_params_ppgrogram["batch_size"]
@@ -327,6 +327,23 @@ class RunExperiments_LFM(RunExperiments):
                     n_samples =int(self.config["EVALUATION"]["N_samples_per_model"]),
                     n_warmup = int(self.config["EVALUATION"]["N_samples_per_model"])//2
                 )
+
+                if "multi_chain" in self.config["EVALUATION"].keys() and string2bool(self.config["EVALUATION"]["multi_chain"]) is True:
+                    
+                    try:
+                        K = int(ast.literal_eval(self.config['DATA_GENERATION']['pprogram_params'])['k'])
+                    except Exception as e:
+                        print(f"Error in getting K: {e}")
+                        print(f"Using K = 3")
+                        K = 3
+                    hmc_sampler = Hamiltionian_MC_NumpyroVersion(
+                        pprogram=pprogram_numpyro,
+                        n_samples =int(self.config["EVALUATION"]["N_samples_per_model"]),
+                        n_warmup = int(self.config["EVALUATION"]["N_samples_per_model"])//2,
+                        mcmc_kwargs={
+                            "num_chains":K*3
+                        },
+                    )
 
                 self.comparison_models[0] = hmc_sampler
 
