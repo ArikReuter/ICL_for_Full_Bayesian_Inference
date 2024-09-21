@@ -38,6 +38,7 @@ class Plot:
             gt_samples: list[dict],
             plot_gt: bool = True,
             max_number_plots: int = 5,
+            suptitle: bool = True,
     ) -> None:
         """
         A function to plot the density of the samples by the models
@@ -111,7 +112,8 @@ class Plot:
                 handles.append(plt.Line2D([0], [0], color = "black", label = "GT"))
             fig.legend(handles=handles, loc='center left', fontsize=self.fontsize, bbox_to_anchor=(-0.17, 0.5))
             # set title 
-            fig.suptitle(f"Dataset Id: {i}", fontsize = self.fontsize)
+            if suptitle:
+                fig.suptitle(f"Dataset Id: {i}", fontsize = self.fontsize)
           
             # use tight layout
 

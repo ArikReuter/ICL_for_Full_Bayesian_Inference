@@ -242,7 +242,7 @@ class Evaluate:
         model_names_dict = {model: name for model, name in zip([self.posterior_model] + self.comparison_models, model_names)}
         self.model_names_dict = model_names_dict
 
-        
+
 
     def _convert_dataloader_samples_to_list(self) -> list[dict]:
         """
@@ -461,7 +461,7 @@ class Evaluate:
 
         return res
     
-    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12) -> None:
+    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12, suptitle: bool = True) -> None:
         """
         Plot the results
         Args:
@@ -488,7 +488,8 @@ class Evaluate:
             model_samples= model_samples_dict,
             gt_samples=None,
             plot_gt=False,
-            max_number_plots = max_number_plots
+            max_number_plots = max_number_plots,
+            suptitle=suptitle
         )
 
     def run_tests(self, res_df: dict, test_paired = mannwhitneyu, test_unpaired = wilcoxon) -> dict:
