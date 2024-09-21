@@ -461,12 +461,14 @@ class Evaluate:
 
         return res
     
-    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12, suptitle: bool = True) -> None:
+    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12, suptitle: bool = True, bbox_to_anchor=(-0.17, 0.5)) -> None:
         """
         Plot the results
         Args:
             max_number_plots: int: the maximum number of plots to show
             fontsize: int: the fontsize of the plots
+            suptitle: bool: whether to show the suptitle
+            bbox_to_anchor: tuple: the position of the legend
         
         """
         self.plot.fontsize = fontsize
@@ -489,7 +491,8 @@ class Evaluate:
             gt_samples=None,
             plot_gt=False,
             max_number_plots = max_number_plots,
-            suptitle=suptitle
+            suptitle=suptitle,
+            bbox_to_anchor=bbox_to_anchor
         )
 
     def run_tests(self, res_df: dict, test_paired = mannwhitneyu, test_unpaired = wilcoxon) -> dict:
