@@ -84,7 +84,7 @@ class Plot:
 
             n_dims = samples_per_model[model].shape[1]
 
-            fig, ax = plt.subplots(ncols = n_dims, figsize = (5*width, height))
+            fig, ax = plt.subplots(ncols = n_dims, figsize = (width*n_dims, height))
 
             for j in range(n_dims):
                 for model, samples in samples_per_model.items():
