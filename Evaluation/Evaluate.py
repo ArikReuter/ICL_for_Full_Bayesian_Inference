@@ -461,7 +461,7 @@ class Evaluate:
 
         return res
     
-    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12, suptitle: bool = True, bbox_to_anchor=(-0.17, 0.5)) -> None:
+    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12, suptitle: bool = True, bbox_to_anchor=(-0.17, 0.5), width = 5, height = 7) -> None:
         """
         Plot the results
         Args:
@@ -492,7 +492,9 @@ class Evaluate:
             plot_gt=False,
             max_number_plots = max_number_plots,
             suptitle=suptitle,
-            bbox_to_anchor=bbox_to_anchor
+            bbox_to_anchor=bbox_to_anchor,
+            width=width,
+            height=height
         )
 
     def run_tests(self, res_df: dict, test_paired = mannwhitneyu, test_unpaired = wilcoxon) -> dict:

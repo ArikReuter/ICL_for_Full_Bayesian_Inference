@@ -40,7 +40,9 @@ class Plot:
             plot_gt: bool = True,
             max_number_plots: int = 5,
             suptitle: bool = True,
-            bbox_to_anchor: tuple = (-0.17, 0.5)
+            bbox_to_anchor: tuple = (-0.17, 0.5),
+            width: int = 5,
+            height: int = 7
     ) -> None:
         """
         A function to plot the density of the samples by the models
@@ -82,7 +84,7 @@ class Plot:
 
             n_dims = samples_per_model[model].shape[1]
 
-            fig, ax = plt.subplots(ncols = n_dims, figsize = (5*n_dims, 7))
+            fig, ax = plt.subplots(ncols = n_dims, figsize = (5*width, height))
 
             for j in range(n_dims):
                 for model, samples in samples_per_model.items():
