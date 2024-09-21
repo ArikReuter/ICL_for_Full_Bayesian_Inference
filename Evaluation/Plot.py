@@ -17,6 +17,7 @@ class Plot:
         results_to_dict_latent_variable: callable = results_dict_to_latent_variable_beta,
         save_path: str = None,
         fontsize: int = 12,
+        bbox_to_anchor=(-0.17, 0.5)
     ):
         """
         Args:
@@ -24,12 +25,14 @@ class Plot:
             results_to_dict_latent_variable: callable: a function that takes the results dictionary and returns the latent variable
             save_path: str: the path to save the plots
             fontsize: int: the fontsize of the plots
+            bbox_to_anchor: tuple: the position of the legend
         """
 
         self.results_to_dict_data_x_y = results_to_dict_data_x_y
         self.results_to_dict_latent_variable = results_to_dict_latent_variable
         self.save_path = save_path
         self.fontsize = fontsize
+        self.bbox_to_anchor = bbox_to_anchor
 
 
     def density_plot_marginals(
@@ -110,7 +113,7 @@ class Plot:
             handles = [plt.Line2D([0], [0], color = model_color[model], label = model) for model in model_samples.keys()]
             if gt_samples is not None and plot_gt:
                 handles.append(plt.Line2D([0], [0], color = "black", label = "GT"))
-            fig.legend(handles=handles, loc='center left', fontsize=self.fontsize, bbox_to_anchor=(-0.17, 0.5))
+            fig.legend(handles=handles, loc='center left', fontsize=self.fontsize, bbox_to_anchor=self.bbox_to_anchor)
             # set title 
             if suptitle:
                 fig.suptitle(f"Dataset Id: {i}", fontsize = self.fontsize)
