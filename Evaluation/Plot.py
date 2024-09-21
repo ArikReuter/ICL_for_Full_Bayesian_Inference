@@ -17,7 +17,6 @@ class Plot:
         results_to_dict_latent_variable: callable = results_dict_to_latent_variable_beta,
         save_path: str = None,
         fontsize: int = 12,
-        bbox_to_anchor=(-0.17, 0.5)
     ):
         """
         Args:
@@ -32,7 +31,6 @@ class Plot:
         self.results_to_dict_latent_variable = results_to_dict_latent_variable
         self.save_path = save_path
         self.fontsize = fontsize
-        self.bbox_to_anchor = bbox_to_anchor
 
 
     def density_plot_marginals(
@@ -42,6 +40,7 @@ class Plot:
             plot_gt: bool = True,
             max_number_plots: int = 5,
             suptitle: bool = True,
+            bbox_to_anchor: tuple = (-0.17, 0.5)
     ) -> None:
         """
         A function to plot the density of the samples by the models
@@ -50,6 +49,8 @@ class Plot:
             gt_samples: list[dict]: the ground truth samples
             plot_gt: bool: whether to plot the ground truth samples
             max_number_plots: int: the maximum number of plots to show
+            suptitle: bool: whether to show the suptitle
+            bbox_to_anchor: tuple: the position of the legend
         """
 
         n_cases = len(model_samples[list(model_samples.keys())[0]])
@@ -113,7 +114,7 @@ class Plot:
             handles = [plt.Line2D([0], [0], color = model_color[model], label = model) for model in model_samples.keys()]
             if gt_samples is not None and plot_gt:
                 handles.append(plt.Line2D([0], [0], color = "black", label = "GT"))
-            fig.legend(handles=handles, loc='center left', fontsize=self.fontsize, bbox_to_anchor=self.bbox_to_anchor)
+            fig.legend(handles=handles, loc='center left', fontsize=self.fontsize, bbox_to_anchor=bbox_to_anchor)
             # set title 
             if suptitle:
                 fig.suptitle(f"Dataset Id: {i}", fontsize = self.fontsize)
