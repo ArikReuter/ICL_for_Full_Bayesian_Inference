@@ -57,24 +57,30 @@ class RunExperiments_LFM(RunExperiments):
     def __init__(
                 self,
                 config_path: str = "./config_lfm.ini",
+                save_nothing: bool = False,
         ):
         """
         Constructor of the RunExperimentsColab class.
         Args:
         config_path: str: the path to save the configuration file
+        save_nothing: bool: whether to save nothing
         """
         self.config_path = config_path
         self.config = configparser.ConfigParser() # Create a ConfigParser object
         
         self.config.read(f"{self.config_path}")
 
+        self.save_nothing = save_nothing
+
         # save config at the save path
         # if target forlder does not exist, create it
-        if not os.path.exists(self.config["BASIC"]["Save_path"]):
-            os.makedirs(self.config["BASIC"]["Save_path"])
 
-        with open(f"{self.config['BASIC']['Save_path']}/config.ini", "w") as configfile:
-            self.config.write(configfile)
+        if not self.save_nothing:
+            if not os.path.exists(self.config["BASIC"]["Save_path"]):
+                os.makedirs(self.config["BASIC"]["Save_path"])
+
+            with open(f"{self.config['BASIC']['Save_path']}/config.ini", "w") as configfile:
+                self.config.write(configfile)
 
 
     def setup_data_generation(self):
@@ -175,6 +181,8 @@ class RunExperiments_LFM(RunExperiments):
 
         )
 
+        save_path = self.config["BASIC"]["Save_path"] if not self.save_nothing else None
+
         self.trainer = TrainerCurriculumCNF_LatentFactor(
             model = self.model,
             optimizer = self.optimizer,
@@ -185,7 +193,7 @@ class RunExperiments_LFM(RunExperiments):
             n_epochs = int(self.config["BASIC"]["N_epochs"]),
             early_stopping_patience = int(self.config["TRAINING"]["Early_stopping_patience"]),
             schedule_step_on = "batch",
-            save_path = self.config["BASIC"]["Save_path"],
+            save_path = save_path,
             coupling = None,
             use_same_timestep_per_batch = False,
             use_train_mode_during_validation = False,
@@ -389,13 +397,14 @@ class RunExperiments_LFM(RunExperiments):
 
         else:
             results_dict_to_latent_variable_posterior_model = just_return_results
-
+        
+        save_path = self.config["BASIC"]["Save_path"] + "/synthetic_evaluation" if not self.save_nothing else None
         self.evaluator = Evaluate(
         posterior_model=self.full_model,
         evaluation_loader=self.trainer.testset,
         comparison_models=self.comparison_models,
         n_evaluation_cases = int(self.config["EVALUATION"]["N_synthetic_cases"]),
-        save_path = self.config["BASIC"]["Save_path"] + "/synthetic_evaluation",
+        save_path = save_path,
         results_dict_to_latent_variable_posterior_model = results_dict_to_latent_variable_posterior_model,
         results_dict_to_data_for_model = results_dict_to_data_x_tuple,
         results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_comparison,
@@ -459,6 +468,7 @@ class RunExperiments_LFM(RunExperiments):
         else:
             n_evaluation_cases = int(self.config["EVALUATION"]["n_evaluation_cases_real_world"])
 
+        save_path = self.config["BASIC"]["Save_path"] + "/real_world_evaluation" if not self.save_nothing else None
         self.eval_rw = EvaluateRealWorld(
             posterior_model = self.full_model,
             evaluation_datasets = self.datasets,
@@ -467,7 +477,7 @@ class RunExperiments_LFM(RunExperiments):
             results_dict_to_latent_variable_comparison_models= result_dict_to_latent_variable_comparison, 
             result_dict_to_data_for_comparison_models = results_dict_to_data_x,           
             n_evaluation_cases = n_evaluation_cases,
-            save_path = self.config["BASIC"]["Save_path"] + "/real_world_evaluation",
+            save_path = save_path,
             overwrite_results = True
         )
 
