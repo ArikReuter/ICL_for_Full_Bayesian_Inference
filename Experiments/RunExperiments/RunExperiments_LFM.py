@@ -373,8 +373,11 @@ class RunExperiments_LFM(RunExperiments):
         Evaluate the synthetic data.
         """
 
-        if self.config["EVALUATION"]["result_dict_to_data_for_comparison_models"] == "results_dict_to_data_x_tuple_transpose":
-            results_dict_to_data_x = results_dict_to_data_x_tuple_transpose
+        if "result_dict_to_data_for_comparison_models" in self.config["EVALUATION"].keys():
+            if self.config["EVALUATION"]["result_dict_to_data_for_comparison_models"] == "results_dict_to_data_x_tuple_transpose":
+                results_dict_to_data_x = results_dict_to_data_x_tuple_transpose
+            else:
+                results_dict_to_data_x = results_dict_to_data_x_tuple
         else:
             results_dict_to_data_x = results_dict_to_data_x_tuple
 
