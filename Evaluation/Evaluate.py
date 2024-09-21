@@ -157,7 +157,8 @@ class Evaluate:
             verbose = True,
             compare_comparison_models_among_each_other = True,
             save_path: str = None,
-            overwrite_results: bool = False
+            overwrite_results: bool = False,
+            model_names: list[str] = None
             
     ):
         """
@@ -222,6 +223,26 @@ class Evaluate:
         else:
             plot_save_path = None
         self.plot = Plot(save_path=plot_save_path)
+
+        if model_names is None:
+            comparison_models_names = [str(model) for model in comparison_models]
+            model_names = [str(posterior_model)] + comparison_models_names
+
+        assert len(model_names) == len(comparison_models) +1, f"The number of model names must be equal to the number of comparison models + 1. But got {len(model_names)} and {len(comparison_models) +1}"
+        model_names_dict = {model: name for model, name in zip([posterior_model] + comparison_models, model_names)}
+        self.model_names_dict = model_names_dict
+
+    def set_model_names(self, model_names: list[str]) -> None:
+        """
+        Set the model names
+        Args:
+            model_names: list[str]: the model names
+        """
+        assert len(model_names) == len(self.comparison_models) +1, f"The number of model names must be equal to the number of comparison models + 1. But got {len(model_names)} and {len(self.comparison_models) +1}"
+        model_names_dict = {model: name for model, name in zip([self.posterior_model] + self.comparison_models, model_names)}
+        self.model_names_dict = model_names_dict
+
+        
 
     def _convert_dataloader_samples_to_list(self) -> list[dict]:
         """
@@ -440,24 +461,33 @@ class Evaluate:
 
         return res
     
-    def plot_results(self, max_number_plots = 5) -> None:
+    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12) -> None:
+        """
+        Plot the results
+        Args:
+            max_number_plots: int: the maximum number of plots to show
+            fontsize: int: the fontsize of the plots
+        
+        """
+        self.plot.fontsize = fontsize
 
         assert self.posterior_model_samples is not None, "You need to run the evaluation first"
         assert self.comparison_model_samples is not None, "You need to run the evaluation first"
 
         assert len(self.comparison_models) == len(self.comparison_model_samples), "The number of comparison models and comparison model samples must be equal"
         comparison_model_samples_dict = {
-            model: samples for model, samples in zip(self.comparison_models, self.comparison_model_samples)
+            self.model_names_dict[model]: samples for model, samples in zip(self.comparison_models, self.comparison_model_samples)
         }
 
         model_samples_dict = {
-            self.posterior_model: self.posterior_model_samples,
+            self.model_names_dict[self.posterior_model]: self.posterior_model_samples,
             **comparison_model_samples_dict
         }
 
         self.plot.density_plot_marginals(
             model_samples= model_samples_dict,
-            gt_samples=self.evaluation_list,
+            gt_samples=None,
+            plot_gt=False,
             max_number_plots = max_number_plots
         )
 
