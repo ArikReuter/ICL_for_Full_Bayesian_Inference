@@ -179,7 +179,7 @@ class BasicConfigCreator():
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
         config_name = "basic_config",
-        config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\LM_Configs"
+        config_path = r""
     )
     config_creator.create_config()
     config_creator.save_config()

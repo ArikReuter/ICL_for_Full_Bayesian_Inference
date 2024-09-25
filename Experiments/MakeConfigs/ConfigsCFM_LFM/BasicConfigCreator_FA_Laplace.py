@@ -183,7 +183,7 @@ class BasicConfigCreator():
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
         config_name = "basic_config_fa_big_laplace",
-        config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\GMM_Configs"
+        config_path = r""
     )
     config_creator.create_config()
     config_creator.save_config()

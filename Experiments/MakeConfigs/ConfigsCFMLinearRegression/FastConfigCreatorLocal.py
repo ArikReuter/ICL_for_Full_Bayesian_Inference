@@ -33,7 +33,7 @@ class FastConfigCreatorLocal(FastConfigCreator):
             "N_samples_per_epoch": 20, # number of samples to use per epoch
             "N_samples_to_generate_at_once": 1_000, # number of samples to generate at once
             "Shuffle": False, # shuffle the data before training
-            "Save_path": r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Runs" + f"\\{self.config_name}_{datetime}", # path to save the results
+            "Save_path": r"" + f"\\{self.config_name}_{datetime}", # path to save the results
             "Train_frac": 0.5, # fraction of the data to use for training
             "Val_frac": 0.1 # fraction of the data to use for validation
         }
@@ -54,7 +54,7 @@ class FastConfigCreatorLocal(FastConfigCreator):
             "Scheduler_behaviour": "All_constant", # behaviour of the scheduler of the probabilistic program's parameters
             "Generate_X_behaviour": "TabPFNX_extended1", # behaviour of the data generation process
             "X_data_files": [
-                r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\LinearRegression\GenerativeModels\GenerateX_TabPFN\Saved_Data\X_tabpfn_n50_p5_1_000_000_v2.pt"
+                r""
             ],
             "pprogram_params": {
                 "a": 5.0,
@@ -114,7 +114,7 @@ class FastConfigCreatorLocal(FastConfigCreator):
             "Real_world_eval": "Basic1", # real world evaluation to perform,
             "n_evaluation_cases_real_world": 3, # number of real world evaluation cases to use
             "do_full_evaluation": False, # whether to do a full evaluation
-            "save_path_data_real_world_eval": r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Evaluation\RealWorldEvaluation\DatasetsOpenML2", # path to save the data for real world evaluation
+            "save_path_data_real_world_eval": r"", # path to save the data for real world evaluation
             "real_world_benchmark_id": 336 # id of the real world benchmark
         }
 
@@ -137,7 +137,7 @@ class FastConfigCreatorLocal(FastConfigCreator):
 if __name__ == "__main__":
     config_creator = FastConfigCreatorLocal(
         config_name = "test_config_v1",
-        config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\TestConfigs"
+        config_path = r""
     )
     config_creator.create_config()
     config_creator.save_config()
