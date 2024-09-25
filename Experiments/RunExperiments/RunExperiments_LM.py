@@ -37,7 +37,7 @@ def string2bool(s: str) -> bool:
     else:
         raise ValueError(f"String {s} not recognized as boolean!")
 
-class RunExperiments():
+class RunExperiments_LM():
     """
     A class to run experiments in Colab.
     """
