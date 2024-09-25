@@ -56,6 +56,8 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         else:
             elbo = Trace_ELBO()
 
+        self.elbo = elbo
+
         self.svi = SVI(self.pprogram, self.guide, self.optimizer, loss=elbo)
 
 
@@ -83,7 +85,7 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         Returns:
             torch.Tensor: the samples from the posterior distribution
         """
-        pyro.clear_param_store()
+        self.svi = SVI(self.pprogram, self.guide, self.optimizer, loss=self.elbo)
         for step in range(self.n_steps):
             self.loss = self.svi.step(x)
             if step % 100 == 0:
