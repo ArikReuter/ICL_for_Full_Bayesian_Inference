@@ -461,7 +461,7 @@ class Evaluate:
 
         return res
     
-    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12, suptitle: bool = True, bbox_to_anchor=(-0.17, 0.5), width = 5, height = 7, n_rows = 1) -> None:
+    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12, suptitle: bool = True, bbox_to_anchor=(-0.17, 0.5), width = 5, height = 7, n_rows = 1, plot_gt = False) -> None:
         """
         Plot the results
         Args:
@@ -489,7 +489,7 @@ class Evaluate:
         self.plot.density_plot_marginals(
             model_samples= model_samples_dict,
             gt_samples=None,
-            plot_gt=False,
+            plot_gt=plot_gt,
             max_number_plots = max_number_plots,
             suptitle=suptitle,
             bbox_to_anchor=bbox_to_anchor,
