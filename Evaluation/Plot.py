@@ -34,17 +34,17 @@ class Plot:
 
 
     def density_plot_marginals(
-        self,
-        model_samples: dict[list[dict]],
-        gt_samples: list[dict],
-        plot_gt: bool = True,
-        max_number_plots: int = 5,
-        suptitle: bool = True,
-        bbox_to_anchor: tuple = (-0.17, 0.5),
-        width: int = 5,
-        height: int = 7,
-        n_rows: int = 1  # New parameter to define the number of rows
-    ) -> None:
+    self,
+    model_samples: dict[list[dict]],
+    gt_samples: list[dict],
+    plot_gt: bool = True,
+    max_number_plots: int = 5,
+    suptitle: bool = True,
+    bbox_to_anchor: tuple = (-0.17, 0.5),
+    width: int = 5,
+    height: int = 7,
+    n_rows: int = 1  # New parameter to define the number of rows
+) -> None:
         """
         A function to plot the density of the samples by the models
         Args:
@@ -84,8 +84,13 @@ class Plot:
             n_dims = samples_per_model[model].shape[1]
             n_cols = (n_dims + n_rows - 1) // n_rows  # Determine how many columns based on rows
 
-            fig, ax = plt.subplots(n_rows, n_cols, figsize=(width * n_cols, height * n_rows))
-            ax = ax.flatten() if n_rows > 1 else [ax]  # Flatten in case of multiple rows
+            # Handle cases with 1 row and 1 column separately
+            if n_rows == 1 and n_cols == 1:
+                fig, ax = plt.subplots(figsize=(width, height))
+                ax = [ax]  # Wrap in list to maintain consistency
+            else:
+                fig, ax = plt.subplots(n_rows, n_cols, figsize=(width * n_cols, height * n_rows))
+                ax = ax.flatten() if n_rows > 1 or n_cols > 1 else [ax]  # Flatten if necessary
 
             for j in range(n_dims):
                 for model, samples in samples_per_model.items():
@@ -129,6 +134,7 @@ class Plot:
                 plt.savefig(f"{self.save_path}/density_plot_example_{i}.png", dpi=300, bbox_inches="tight")
 
             plt.show()
+
 
 
         
