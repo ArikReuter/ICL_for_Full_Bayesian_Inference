@@ -364,12 +364,14 @@ class EvaluateRealWorld(Evaluate):
 
         return res
     
-    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12) -> None:
+    def plot_results(self, max_number_plots:int = 5, fontsize: int = 12, suptitle: bool = True, bbox_to_anchor=(-0.17, 0.5), width = 5, height = 7, n_rows = 1, plot_gt = False) -> None:
         """
         Plot the results
         Args:
             max_number_plots: int: the maximum number of plots to show
             fontsize: int: the fontsize of the plots
+            suptitle: bool: whether to show the suptitle
+            bbox_to_anchor: tuple: the position of the legend
         
         """
         self.plot.fontsize = fontsize
@@ -390,8 +392,13 @@ class EvaluateRealWorld(Evaluate):
         self.plot.density_plot_marginals(
             model_samples= model_samples_dict,
             gt_samples=None,
-            plot_gt=False,
-            max_number_plots = max_number_plots
+            plot_gt=plot_gt,
+            max_number_plots = max_number_plots,
+            suptitle=suptitle,
+            bbox_to_anchor=bbox_to_anchor,
+            width=width,
+            height=height,
+            n_rows=n_rows
         )
 
     def run_evaluation(self, print_results: bool = True) -> dict:
