@@ -88,12 +88,15 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         Returns:
             torch.Tensor: the samples from the posterior distribution
         """
+
+
         self.svi = SVI(self.pprogram, self.guide, self.optimizer, loss=self.elbo)
         for step in range(self.n_steps):
             self.loss = self.svi.step(x)
             if step % 100 == 0:
                 print('.', end='')
         print()
+
         return self.loss
     
     def sample_posterior(self,
@@ -108,7 +111,12 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
             torch.Tensor: the samples from the posterior distribution
         """
         self.do_inference(x)
-        posterior_samples = pyro.infer.Predictive(self.guide, num_samples=self.n_samples)(x)
+        try:
+            posterior_samples = pyro.infer.Predictive(self.guide, num_samples=self.n_samples)(x)
+
+        except ValueError as e:
+            print(e)
+            posterior_samples = None
         return posterior_samples
     
     def __repr__(self) -> str:
