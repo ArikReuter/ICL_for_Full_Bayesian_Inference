@@ -110,8 +110,9 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         Returns:
             torch.Tensor: the samples from the posterior distribution
         """
-        self.do_inference(x)
         try:
+            self.do_inference(x)
+        
             posterior_samples = pyro.infer.Predictive(self.guide, num_samples=self.n_samples)(x)
 
         except ValueError as e:
