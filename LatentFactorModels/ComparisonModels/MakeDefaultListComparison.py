@@ -119,3 +119,81 @@ def make_hmc_numpyro_comparison(
     hmc = Hamiltionian_MC_Numpyro(pprogram=pprogram, n_samples=n_samples, n_warmup=n_samples//2)
 
     return [hmc]
+
+
+def make_vi_list_lr(
+        pprogram_y,
+        n_samples: int = 1000,
+        n_steps: int = 2000,
+        lr: float = 1e-3,
+        print_lr: bool = False,
+        discrete_z: bool = True
+        ):
+    """
+    Create the default list of comparison models.
+    Args:
+        pprogram_y: a probabilistic program for the response variable
+        n_steps : int: the number of steps to take in the optimization
+        n_samples: int: the number of samples to draw
+        lr: float: the learning rate of the optimizer
+        print_lr: bool: whether to print the learning rate
+    """
+
+    vi_diag = Variational_InferenceAutoguide(
+        pprogram=pprogram_y,
+        make_guide_fun=AutoDiagonalNormal,
+        n_steps=n_steps,
+        n_samples=n_samples,
+        lr=lr,
+        print_lr=print_lr,
+        discrete_z=discrete_z
+    )
+
+    vi_multivariate_normal = Variational_InferenceAutoguide(
+        pprogram=pprogram_y,
+        make_guide_fun=AutoMultivariateNormal,
+        n_steps=n_steps,
+        n_samples=n_samples,
+        lr=lr,
+        print_lr=print_lr,
+        discrete_z=discrete_z
+    )
+    vi_laplace = Variational_InferenceAutoguide(
+        pprogram=pprogram_y,
+        make_guide_fun=AutoLaplaceApproximation,
+        n_steps=n_steps,
+        n_samples=n_samples,
+        lr=lr,
+        print_lr=print_lr,
+        discrete_z=discrete_z
+    )
+
+    vi_autoIAF = Variational_InferenceAutoguide(
+        pprogram=pprogram_y,
+        make_guide_fun=AutoIAFNormal,
+        n_steps=n_steps,
+        n_samples=n_samples,
+        lr=lr,
+        print_lr=print_lr,
+        discrete_z=discrete_z
+    )
+
+    vi_autostrucured = Variational_InferenceAutoguide(
+        pprogram=pprogram_y,
+        make_guide_fun=AutoStructured,
+        n_steps=n_steps,
+        n_samples=n_samples,
+        lr=lr,
+        print_lr=print_lr,
+        discrete_z=discrete_z
+    )
+
+    model_list = [
+        vi_diag,
+        vi_multivariate_normal,
+        vi_laplace,
+        vi_autoIAF,
+        vi_autostrucured
+    ]
+
+    return model_list
