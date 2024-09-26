@@ -21,13 +21,15 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
                  additional_make_guide_args: dict = {},
                  n_steps:int = 2000,
                  n_samples:int = 200,
-                 lr: float = 1e-3) -> None:
+                 lr: float = 1e-3,
+                 print_lr: bool = False) -> None:
         """
         Args:
             pprogram: ppgram_linear_model_return_y: the probabilistic program
             make_guide_fun : callable: a function that generates the guide
             n_steps: int: the number of steps to take in the optimization
             lr: float: the learning rate of the optimizer
+            print_lr: bool: whether to print the learning rate
 
         Returns:
             None
@@ -38,6 +40,7 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         self.n_steps = n_steps
         self.n_samples = n_samples
         self.lr = lr
+        self.print_lr = print_lr
     
 
 
@@ -93,4 +96,9 @@ class Variational_InferenceAutoguide(PosteriorComparisonModel):
         return posterior_samples
     
     def __repr__(self) -> str:
-        return "Variational Inference with guide: {}".format(self.guide)
+        rep = "Variational Inference with guide: {}".format(self.guide)
+
+        if self.print_lr:
+            rep = f"Variational Inference with learning rate: {self.lr} and guide: {self.guide}"
+
+        return rep
