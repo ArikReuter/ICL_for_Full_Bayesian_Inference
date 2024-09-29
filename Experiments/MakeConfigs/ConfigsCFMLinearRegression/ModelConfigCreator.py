@@ -1,4 +1,4 @@
-    make_basic_model_config(P:int, use_intercept:bool = False) -> dict:-
+def make_basic_model_config(P:int, use_intercept:bool = False) -> dict:
     """
     make a basic model configuration for the CFM model.
     Args:
@@ -19,7 +19,7 @@
             "d_ff_encoder": 1024,
             "d_ff_decoder": 1024,
             "dropout_encoder": 0.1,
-            "dropout_deco": 0.1,-
+            "dropout_deco": 0.1,
             "n_conditional_input_features":  1,
             "n_condition_features": 512,
             "n_layers_condition_embedding": 3,
