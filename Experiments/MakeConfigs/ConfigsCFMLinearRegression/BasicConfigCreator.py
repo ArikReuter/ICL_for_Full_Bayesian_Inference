@@ -66,7 +66,7 @@ class BasicConfigCreator():
             "N": 50,   # number of samples per in-context dataset
             "P": 5,    # number of features per in-context dataset
             "Batch_size": 1024,  # batch size for training
-            "N_epochs": 100,  # number of epochs for training
+            "N_epochs": 150,  # number of epochs for training
             "N_samples_per_epoch": 500_000, # number of samples to use per epoch
             "N_samples_to_generate_at_once": 250_000, # number of samples to generate at once
             "Shuffle": False, # shuffle the data before training
@@ -178,7 +178,7 @@ class BasicConfigCreator():
 
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
-        config_name = "basic_config",
+        config_name = "redo_ig",
         config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\LM_Configs"
     )
     config_creator.create_config()
