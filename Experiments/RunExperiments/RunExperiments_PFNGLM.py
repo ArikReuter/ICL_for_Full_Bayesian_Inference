@@ -89,7 +89,7 @@ class RunExperiments_PFNGLM(RunExperiments):
                 paths = X_files_paths
             ).load_data()  # only load the data to obtain X_tabpfn
 
-        pprogram_maker_class = name2pprogram_maker[gen_config["pprogram"]]  # load a pprogram_maker_class
+        pprogram_maker_class, _ = name2pprogram_maker[gen_config["pprogram"]]  # load a pprogram_maker_class
 
         pprogram_maker = pprogram_maker_class(X_data)  # this class takes the data as input and yields a function that generates probabilistic programs
 
