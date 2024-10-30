@@ -37,6 +37,7 @@ def results_dict_to_data_x_y_tuple(result:dict) -> (torch.tensor, torch.tensor):
       y = y.squeeze(0)
     return x, y
 
+
 def results_dict_to_latent_variable_beta(result:dict) ->  torch.tensor:
     """
     Take the dictionary with results and return the latent variable

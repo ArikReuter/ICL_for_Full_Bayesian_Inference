@@ -24,6 +24,33 @@ class MakeGenerator():
         self.paths = paths
         self.set_nan_to_zero = set_nan_to_zero
 
+    def load_data(self):
+        """
+        Only load the data to obtain X_tabpfn.
+        """
+
+        with open(self.paths[0], "rb") as f:
+            X_tabpfn = torch.load(f)
+
+        final_res_ten = torch.zeros(X_tabpfn.shape)
+
+        for data_path in self.paths:
+            with open(data_path, "rb") as f:
+                X_tabpfn_new = torch.load(f)
+
+            final_res_ten = torch.cat((final_res_ten, X_tabpfn_new), dim=0)
+
+
+        X_tabpfn = final_res_ten
+
+        
+        print(f"got {X_tabpfn.isnan().sum()} NaNs")
+        print(f"got shape {X_tabpfn.shape}")
+
+        X_tabpfn[torch.isnan(X_tabpfn)] = 0.0
+
+        return X_tabpfn
+
     def make_generator(self) -> callable:
         """
         Make the generator function for the X data.

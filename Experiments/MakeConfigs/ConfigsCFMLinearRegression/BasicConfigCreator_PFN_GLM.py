@@ -24,7 +24,7 @@ class BasicConfigCreator():
         self.config["confic_created_on"] = {"time": {time.asctime()}}
 
         if config_name is None:
-            self.config_name = "basic_config"
+            self.config_name = "basic_config_pfnglm_v1"
         else:
             self.config_name = config_name
 
@@ -85,9 +85,9 @@ class BasicConfigCreator():
         """
 
         self.config['DATA_GENERATION'] = {
-            "Pprogram": "ig", # probabilistic program to generate the data
+            "Pprogram": "ig_intercept_tabpfn_noise", # probabilistic program to generate the data
             #"Pprogram_batched": None, # probabilistic program to generate the data in batches
-            "Use_intercept": False, # whether to use an intercept in the model
+            "Use_intercept": True, # whether to use an intercept in the model
             "Scheduler_behaviour": "All_constant", # behaviour of the scheduler of the probabilistic program's parameters
             "Generate_X_behaviour": "TabPFNX_extended1", # behaviour of the data generation process
             "X_data_files": [
@@ -100,7 +100,8 @@ class BasicConfigCreator():
             "pprogram_params": {
                 "a": 5.0,
                 "b": 2.0,
-                "tau": 1.0
+                "tau": 1.0,
+                "tau_beta0": 3.0
             } # parameters for the probabilistic program. Is a dictionary
         }
 
@@ -178,8 +179,8 @@ class BasicConfigCreator():
 
 if __name__ == "__main__":
     config_creator = BasicConfigCreator(
-        config_name = "redo_ig",
-        config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\LM_Configs"
+        config_name = "pfn_glm_v1",
+        config_path = r"C:\Users\arik_\Documents\Dokumente\Job_Clausthal\PFNs\Repository\PFNExperiments\Experiments\Configs\PFN_GLM_Configs"
     )
     config_creator.create_config()
     config_creator.save_config()

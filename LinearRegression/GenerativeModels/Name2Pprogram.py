@@ -10,6 +10,7 @@ from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA i
 from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA import make_fa_program_laplace_weight_prior_batched, make_fa_program_laplace_weight_prior
 from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA import make_fa_program_normal_weight_prior_laplace_z_prior_batched, make_fa_program_normal_weight_prior_laplace_z_prior
 from PFNExperiments.LatentFactorModels.GenerativeModels.Numpyro_Versions.LDA_NumPyro import make_lda_program, make_lda_program_batched
+from PFNExperiments.PFN_GLM.GenerativeModels.GenerateData_LM_TabpfnNoise import make_lm_program_ig_intercept_tabpfn_noise_batched
 
 """
 This file provides the mapping from the name of the program to the probabilistic program.
@@ -30,5 +31,6 @@ name2pprogram_maker = {
     "fa_basic": (make_fa_program_normal_weight_prior_batched, make_fa_program_normal_weight_prior),
     "fa_laplace": (make_fa_program_laplace_weight_prior_batched, make_fa_program_laplace_weight_prior),
     "fa_normal_laplace": (make_fa_program_normal_weight_prior_laplace_z_prior_batched, make_fa_program_normal_weight_prior_laplace_z_prior),
-    "lda_basic": (make_lda_program_batched, make_lda_program)
+    "lda_basic": (make_lda_program_batched, make_lda_program),
+    "ig_intercept_tabpfn_noise": (make_lm_program_ig_intercept_tabpfn_noise_batched, None),
 }   
