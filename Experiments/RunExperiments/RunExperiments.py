@@ -22,7 +22,7 @@ from PFNExperiments.LinearRegression.GenerativeModels.Name2Pprogram import name2
 from PFNExperiments.Training.Trainer import visualize_training_results
 import torch
 
-from Training.FlowMatching.CFMLossDiffusionVP import CFMLossDiffusionVP
+from PFNExperiments.Training.FlowMatching.CFMLossDiffusionVP import CFMLossDiffusionVP
 
 def string2bool(s: str) -> bool:
     """
