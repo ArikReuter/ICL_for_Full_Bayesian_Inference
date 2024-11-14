@@ -125,7 +125,7 @@ class CFMLossDiffusionVP(torch.nn.Module):
         if len(t.shape) == 2 and len(z_1.shape) == 3:
             t = t.unsqueeze(-1)
 
-        first_term = - 0.5 * self.T_t_prime(1-t) * z**2
+        first_term = - 0.5 * self.T_t_prime(1-t) 
 
         second_term = torch.exp(- self.T_t(1-t)) * z - torch.exp(- 0.5 * self.T_t(1-t)) * z_1
 
