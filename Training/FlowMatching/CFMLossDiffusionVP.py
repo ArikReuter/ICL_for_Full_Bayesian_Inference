@@ -59,14 +59,12 @@ class CFMLossDiffusionVP(torch.nn.Module):
     def sigma_t(
             self,
             t: float, 
-            z_1: torch.Tensor,
     ):
         """
         Compute the sigma t function
         Args:
             t: float: the time step has shape (batch_size, 1)
-            z_1: torch.Tensor: the tensor from the data distribution has shape (batch_size, n_features)
-        """
+                            """
 
         return torch.sqrt(1 - self.alpha_t(1 - t)**2)
     
@@ -103,7 +101,7 @@ class CFMLossDiffusionVP(torch.nn.Module):
         if len(t.shape) == 2 and len(z_1.shape) == 3:
             t = t.unsqueeze(-1)
 
-        z_t = self.sigma_t(t, z_1) * z + self.mu_t(t, z_1)
+        z_t = self.sigma_t(t) * z + self.mu_t(t, z_1)
 
         return z_t
     
@@ -152,10 +150,10 @@ class CFMLossDiffusionVP(torch.nn.Module):
             t: float: the time step
         """
 
-        t = t * (1 - self.epsilon_for_t) # make sure that t is in [0, 1 - epsilon_for_t]
+        tr = t * (1 - self.epsilon_for_t) # make sure that t is in [0, 1 - epsilon_for_t]
 
-        psi_t_z_0 = self.psi_t_conditional_fun(z = z_0, z_1 = z_1, t = t)
-        target = self.u_t(t = t, z = psi_t_z_0, z_1 = z_1)
+        psi_t_z_0 = self.psi_t_conditional_fun(z = z_0, z_1 = z_1, t = tr)
+        target = self.u_t(t = tr, z = psi_t_z_0, z_1 = z_1)
 
         loss = torch.mean((vector_field_prediction - target)**2)
 
