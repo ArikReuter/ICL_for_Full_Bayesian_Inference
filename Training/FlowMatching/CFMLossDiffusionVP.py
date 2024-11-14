@@ -83,7 +83,7 @@ class CFMLossDiffusionVP(torch.nn.Module):
             z_1: torch.Tensor: the tensor from the data distribution has shape (batch_size, n_features)
         """
         
-        return self.alpha_t(1 - t, z_1) * z_1
+        return self.alpha_t(1 - t) * z_1
 
     def psi_t_conditional_fun(
             self,
