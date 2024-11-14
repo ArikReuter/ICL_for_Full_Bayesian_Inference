@@ -332,7 +332,7 @@ class RunExperiments():
         full_model_kwargs = self.config["FULL_MODEL"]
 
         if self.config["TRAINING"]["Loss_function"] == "CFMLossDiffusionVP":
-            epsilon_for_t = float(full_model_kwargs["epsilon_for_t"])
+            epsilon_for_t = float(self.config["TRAINING"]["epsilon_for_t"])
 
         else:
             epsilon_for_t = 0.0
