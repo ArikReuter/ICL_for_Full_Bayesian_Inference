@@ -35,7 +35,8 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
                  rtol: float = 1e-7,
                  device: str = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu"),
                  target_device: str = torch.device("cpu"),
-                 solve_adjoint: bool = False
+                 solve_adjoint: bool = False,
+                 epsilon_for_t: float = 0.0, 
                  ) -> None:
         """
         Args:
@@ -50,6 +51,7 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
             adjoint: bool: whether to use the adjoint method for the ODE solver
             device: str: the device to use for the computation
             tarfet_device: str: the device to use for the final output samples
+            epsilon_for_t: float: the epsilon for the time step that scales the time to be in [0, 1 - epsilon_for_t]
         """
         self.model = model.to(device)
         self.sample_shape = sample_shape
@@ -64,6 +66,7 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
         self.n_samples = n_samples
         self.batch_size = batch_size
         self.solve_adjoint = solve_adjoint
+        self.epsilon_for_t = epsilon_for_t
 
     def generate_vector_field_function_cond_x(self, x: torch.tensor) -> torch.nn.Module:
         """
@@ -105,9 +108,7 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
         z_0 = z_0.to(self.device)
         x = x.to(self.device)
 
-        timepoints = torch.tensor([0., 1.]).to(self.device)
-
-
+        timepoints = torch.tensor([0., 1. - self.epsilon_for_t]).to(self.device)
 
         vector_field_function = self.generate_vector_field_function_cond_x(x)
         vector_field_function = vector_field_function.to(x.device)
