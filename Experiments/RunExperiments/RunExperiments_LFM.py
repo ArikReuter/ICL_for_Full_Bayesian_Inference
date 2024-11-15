@@ -34,6 +34,9 @@ from PFNExperiments.Evaluation.RealWorldEvaluation.Preprocess_multivariate_GMM i
 from PFNExperiments.Training.Trainer import visualize_training_results
 #from PFNExperiments.Evaluation.RealWorldEvaluation.PreprocessName2Preprocessor import name2preprocessor
 
+from PFNExperiments.Training.FlowMatching.CFMLossDiffusionVP import CFMLossDiffusionVP
+
+
 def string2bool(s: str) -> bool:
     """
     Convert a string to a boolean.
@@ -161,8 +164,16 @@ class RunExperiments_LFM(RunExperiments):
             self.loss_function = CFMLossOT2(
                 sigma_min = float(train_config["Sigma_min"])
             )
+
+        elif train_config["Loss_function"] == "CFMLossDiffusionVP":
+            self.loss_function = CFMLossDiffusionVP(
+                epsilon_for_t = float(train_config["epsilon_for_t"]),
+                beta_min = float(train_config["beta_min"]),
+                beta_max = float(train_config["beta_max"]),
+            )
         else:
             raise ValueError(f"Loss function {train_config['Loss_function']} not implemented yet!")
+        
         
         self.optimizer = torch.optim.Adam(
                                           self.model.parameters(), 
@@ -231,8 +242,16 @@ class RunExperiments_LFM(RunExperiments):
             self.loss_function = CFMLossOT2(
                 sigma_min = float(train_config["Sigma_min"])
             )
+
+        elif train_config["Loss_function"] == "CFMLossDiffusionVP":
+            self.loss_function = CFMLossDiffusionVP(
+                epsilon_for_t = float(train_config["epsilon_for_t"]),
+                beta_min = float(train_config["beta_min"]),
+                beta_max = float(train_config["beta_max"]),
+            )
         else:
             raise ValueError(f"Loss function {train_config['Loss_function']} not implemented yet!")
+        
         
         self.optimizer = torch.optim.Adam(
                                           self.model.parameters(), 
@@ -285,6 +304,13 @@ class RunExperiments_LFM(RunExperiments):
         """
         full_model_kwargs = self.config["FULL_MODEL"]
 
+        if self.config["TRAINING"]["Loss_function"] == "CFMLossDiffusionVP":
+            epsilon_for_t = float(self.config["TRAINING"]["epsilon_for_t"])
+            print("epsilon_for_t: ", epsilon_for_t)
+
+        else:
+            epsilon_for_t = 0.0
+
         self.full_model = ModelToPosteriorCNF(
             model = self.model,
             sample_shape= ast.literal_eval(full_model_kwargs["sample_shape"]),
@@ -294,6 +320,7 @@ class RunExperiments_LFM(RunExperiments):
             solve_adjoint= string2bool(full_model_kwargs["solve_adjoint"]),
             atol = float(full_model_kwargs["atol"]),
             rtol = float(full_model_kwargs["rtol"]),
+            epsilon_for_t = epsilon_for_t,
         )
 
     def setup_evaluation(self):
