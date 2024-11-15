@@ -333,6 +333,7 @@ class RunExperiments():
 
         if self.config["TRAINING"]["Loss_function"] == "CFMLossDiffusionVP":
             epsilon_for_t = float(self.config["TRAINING"]["epsilon_for_t"])
+            print("epsilon_for_t: ", epsilon_for_t)
 
         else:
             epsilon_for_t = 0.0
