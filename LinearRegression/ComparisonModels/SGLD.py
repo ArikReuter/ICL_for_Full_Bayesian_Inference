@@ -3,6 +3,8 @@ from pyro.infer.autoguide import AutoDelta
 from pyro.infer import SVI, Trace_ELBO
 import torch
 
+from pyro.infer.autoguide.initialization import init_to_sample
+
 from PFNExperiments.LinearRegression.GenerativeModels.LM_abstract import ppgram_linear_model_return_y
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel
 
@@ -125,7 +127,7 @@ class SGLD(PosteriorComparisonModel):
         self.optim_kwargs = optim_kwargs
         self.n_batches = n_batches
 
-        self.guide = AutoDelta(self.pprogram)
+        self.guide = AutoDelta(self.pprogram, init_loc_fn=init_to_sample)
 
 
 
