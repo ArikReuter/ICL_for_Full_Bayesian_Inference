@@ -12,6 +12,10 @@ from pyro.optim import PyroOptim
 from torch.optim.optimizer import Optimizer, required
 from copy import deepcopy
 
+from pyro.poutine import block
+from pyro.infer import SVI, Trace_ELBO, TraceEnum_ELBO, config_enumerate, infer_discrete
+from pyro.infer.autoguide import AutoGuideList, AutoDiagonalNormal, AutoDiscreteParallel
+
 
 class SGLD_optim(Optimizer):
     """Implements SGLD algorithm based on
@@ -105,7 +109,8 @@ class SGLD(PosteriorComparisonModel):
                  n_warmup:int = 100,
                  n_batches:int = 1,
                  shuffle_samples: bool = True,
-                 optim_kwargs: dict = {"lr": 1e-4}
+                 optim_kwargs: dict = {"lr": 1e-4},
+                 discrete_z: bool = False,
                  ) -> None:
         
         """
@@ -126,8 +131,15 @@ class SGLD(PosteriorComparisonModel):
         self.shuffle_samples = shuffle_samples
         self.optim_kwargs = optim_kwargs
         self.n_batches = n_batches
+        self.discrete_z = discrete_z
 
         self.guide = AutoDelta(self.pprogram, init_loc_fn=init_to_sample)
+
+        if self.discrete_z:
+            self.guide = AutoGuideList(self.pprogram)
+            self.guide.append(self.AutoDelta(block(self.pprogram, hide = ["z"]), **self.additional_make_guide_args))
+            self.guide.append(AutoDiscreteParallel(block(self.pprogram, expose = ["z"])))
+            self.guide = config_enumerate(self.guide, "parallel")
 
 
 
@@ -148,6 +160,20 @@ class SGLD(PosteriorComparisonModel):
         optim = PyroOptim(SGLD_optim, self.optim_kwargs)
 
         svi = SVI(self.pprogram, self.guide, optim, loss=Trace_ELBO())
+
+        if self.discrete_z:
+            elbo = TraceEnum_ELBO(max_plate_nesting=2)
+
+            elbo.differentiable_loss(self.pprogram, self.guide, X)
+            optim = PyroOptim(SGLD_optim, self.optim_kwargs)
+
+            svi = SVI(self.pprogram, self.guide, optim, loss=elbo)
+        else:
+            Trace_ELBO().differentiable_loss(self.pprogram, self.guide, X)
+
+            optim = PyroOptim(SGLD_optim, self.optim_kwargs)
+
+            svi = SVI(self.pprogram, self.guide, optim, loss=Trace_ELBO())
 
         for i in range(self.n_warmup):
             loss = svi.step(X)
