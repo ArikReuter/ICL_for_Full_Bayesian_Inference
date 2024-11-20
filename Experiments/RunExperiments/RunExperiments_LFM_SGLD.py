@@ -16,7 +16,7 @@ from PFNExperiments.Evaluation.RealWorldEvaluation.EvaluateRealWorld import Eval
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateX_TabPFN.MakeGenerator import MakeGenerator
 from PFNExperiments.LinearRegression.GenerativeModels.GenerateX import simulate_X_uniform
 from torch.optim.lr_scheduler import OneCycleLR
-from PFNExperiments.LinearRegression.ComparisonModels.Make_HMC_SGLD_List import make_hmc_sgld_list
+from PFNExperiments.LatentFactorModels.ComparisonModels.Make_HMC_SGLD_List import make_hmc_sgld_list
 from PFNExperiments.Evaluation.RealWorldEvaluation.PreprocessDataset import Preprocessor
 from PFNExperiments.Evaluation.RealWorldEvaluation.GetDataOpenML import GetDataOpenML
 from PFNExperiments.LinearRegression.GenerativeModels.Name2Pprogram import name2pprogram_maker
