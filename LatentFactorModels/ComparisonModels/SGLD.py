@@ -137,7 +137,7 @@ class SGLD(PosteriorComparisonModel):
 
         if self.discrete_z:
             self.guide = AutoGuideList(self.pprogram)
-            self.guide.append(self.AutoDelta(block(self.pprogram, hide = ["z"]), **self.additional_make_guide_args))
+            self.guide.append(AutoDelta(block(self.pprogram, hide = ["z"]), **self.additional_make_guide_args))
             self.guide.append(AutoDiscreteParallel(block(self.pprogram, expose = ["z"])))
             self.guide = config_enumerate(self.guide, "parallel")
 
