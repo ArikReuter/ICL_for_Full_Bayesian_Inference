@@ -85,7 +85,7 @@ class RunExperiments_SGLD():
         self.curriculum.add_param_list(
             param_list
         )
-        self.curriculum.plot_all_schedules()
+        #self.curriculum.plot_all_schedules()
 
         if gen_config["Generate_X_behaviour"] == "TabPFNX_extended1":
             X_files_paths_str = gen_config["X_data_files"]
