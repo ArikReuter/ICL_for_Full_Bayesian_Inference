@@ -2,6 +2,7 @@ import pyro
 from pyro.infer.autoguide import AutoDelta
 from pyro.infer import SVI, Trace_ELBO
 import torch
+import pyro.infer
 
 from pyro.infer.autoguide.initialization import init_to_sample
 
