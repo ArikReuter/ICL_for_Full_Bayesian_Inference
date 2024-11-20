@@ -13,6 +13,7 @@ from torch.optim.optimizer import Optimizer, required
 from copy import deepcopy
 
 from pyro.poutine import block
+import pyro
 from pyro.infer import SVI, Trace_ELBO, TraceEnum_ELBO, config_enumerate, infer_discrete
 from pyro.infer.autoguide import AutoGuideList, AutoDiagonalNormal, AutoDiscreteParallel
 
@@ -184,10 +185,10 @@ class SGLD(PosteriorComparisonModel):
             if not self.discrete_z:
                 samples.append(deepcopy(self.guide.median()))
             else:
-                mu = self.guide.get_parameter("mu")
-                sigma = self.guide.get_parameter("sigma")
-                samples.append({"mu": mu, "sigma": sigma})
-                print(samples)
+                s = pyro.infer.Predictive(self.guide, num_samples=self.n_samples)(X)
+                print(s)
+                samples.append(s)
+
             svi.step(X)
 
         samples = {k: torch.stack([s[k] for s in samples]) for k in samples[0].keys()}
