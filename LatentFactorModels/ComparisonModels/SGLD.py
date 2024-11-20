@@ -192,7 +192,7 @@ class SGLD(PosteriorComparisonModel):
 
             svi.step(X)
 
-        samples = {k: torch.stack([s[k] for s in samples]) for k in samples[0].keys()}
+        samples = {k: torch.stack([s[k].squeeze() for s in samples]) for k in samples[0].keys()}
     
         if self.shuffle_samples:
             for k in samples.keys():
