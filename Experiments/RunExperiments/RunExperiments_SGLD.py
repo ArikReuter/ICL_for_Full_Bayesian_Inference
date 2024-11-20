@@ -251,9 +251,9 @@ class RunExperiments_SGLD():
         self.model = self.trainer.model
         #self.model.eval()
 
-        test_res = self.trainer.test()
+        #test_res = self.trainer.test()
 
-        print(f"Test results: {test_res}")
+        #print(f"Test results: {test_res}")
 
     def load_model_from_path(self, new_save_path: str, validate = True):
         """
@@ -320,10 +320,6 @@ class RunExperiments_SGLD():
         self.model = self.trainer.model
         self.model.eval()
 
-        if validate:
-            initial_val_loss = self.trainer.validate()
-
-            print(f"Initial validation loss: {initial_val_loss}")
 
     def setup_full_model(self):
         """
