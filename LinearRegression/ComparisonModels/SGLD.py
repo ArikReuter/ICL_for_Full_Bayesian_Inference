@@ -3,8 +3,6 @@ from pyro.infer.autoguide import AutoDelta
 from pyro.infer import SVI, Trace_ELBO
 import torch
 
-from langevin_sampling.SGLD import SGLD as SGLD_Langevin
-
 from PFNExperiments.LinearRegression.GenerativeModels.LM_abstract import ppgram_linear_model_return_y
 from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel import PosteriorComparisonModel
 
