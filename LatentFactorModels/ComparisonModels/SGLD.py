@@ -185,7 +185,6 @@ class SGLD(PosteriorComparisonModel):
                 samples.append(deepcopy(self.guide.median()))
             else:
                 r = self.guide.named_parameters()
-                print(r)
                 samples.append({k: v for k, v in r})
             svi.step(X)
 
@@ -195,6 +194,7 @@ class SGLD(PosteriorComparisonModel):
             for k in samples.keys():
                 samples[k] = samples[k][torch.randperm(samples[k].shape[0])]
 
+        print(samples)
         return samples
 
     def __repr__(self) -> str:
