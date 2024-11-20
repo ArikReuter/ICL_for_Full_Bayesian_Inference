@@ -239,13 +239,13 @@ class RunExperiments_SGLD():
 
         )
 
-        initial_val_loss = self.trainer.validate()
+        #initial_val_loss = self.trainer.validate()
 
-        print(f"Initial validation loss: {initial_val_loss}")
+        #print(f"Initial validation loss: {initial_val_loss}")
 
-        r = self.trainer.train()
+        #r = self.trainer.train()
 
-        visualize_training_results(r, loglog=False)
+        #visualize_training_results(r, loglog=False)
 
         self.trainer.load_best_model()
         self.model = self.trainer.model
@@ -381,9 +381,9 @@ class RunExperiments_SGLD():
         use_intercept = string2bool(self.config["DATA_GENERATION"]["Use_intercept"])
 
         self.evaluator = Evaluate(
-            posterior_model=[self.comparison_models[1]],
-            evaluation_loader=self.trainer.testset,
-            comparison_models=[self.comparison_models[0]],
+            posterior_model = self.comparison_models[0],
+            evaluation_loader = self.trainer.testset,
+            comparison_models=[self.comparison_models[1]],
             n_evaluation_cases = int(self.config["EVALUATION"]["N_synthetic_cases"]),
             save_path = self.config["BASIC"]["Save_path"] + "/synthetic_evaluation",
             results_dict_to_latent_variable_comparison_models = just_return_results if not use_intercept else results_dict_to_latent_variable_beta0_and_beta,
@@ -422,9 +422,9 @@ class RunExperiments_SGLD():
             n_evaluation_cases = int(self.config["EVALUATION"]["n_evaluation_cases_real_world"])
 
         self.eval_rw = EvaluateRealWorld(
-            posterior_model = [self.comparison_models[1]],
+            posterior_model = self.comparison_models[0],
             evaluation_datasets = self.datasets,
-            comparison_models = [self.comparison_models[0]],
+            comparison_models = [self.comparison_models[1]],
             results_dict_to_latent_variable_comparison_models = just_return_results if not use_intercept else results_dict_to_latent_variable_beta0_and_beta,
             results_dict_to_latent_variable_posterior_model = just_return_results if not use_intercept else results_dict_to_latent_variable_beta0_and_beta,
             n_evaluation_cases = n_evaluation_cases,
