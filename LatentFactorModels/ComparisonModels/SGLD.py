@@ -183,6 +183,10 @@ class SGLD(PosteriorComparisonModel):
         for i in range(self.n_samples):
             if not self.discrete_z:
                 samples.append(deepcopy(self.guide.median()))
+            else:
+                r = self.guide.named_parameters()
+                print(r)
+                samples.append({k: v for k, v in r})
             svi.step(X)
 
         samples = {k: torch.stack([s[k] for s in samples]) for k in samples[0].keys()}
