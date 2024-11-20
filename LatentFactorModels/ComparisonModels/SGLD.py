@@ -187,7 +187,6 @@ class SGLD(PosteriorComparisonModel):
                 samples.append(deepcopy(self.guide.median()))
             else:
                 s = pyro.infer.Predictive(self.guide, num_samples=1)(X)
-                print(s)
                 samples.append(s)
 
             svi.step(X)
