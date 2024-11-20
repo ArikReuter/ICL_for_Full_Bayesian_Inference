@@ -197,7 +197,6 @@ class SGLD(PosteriorComparisonModel):
             for k in samples.keys():
                 samples[k] = samples[k][torch.randperm(samples[k].shape[0])]
 
-        print(samples)
         return samples
 
     def __repr__(self) -> str:
