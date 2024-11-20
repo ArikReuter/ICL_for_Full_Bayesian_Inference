@@ -350,9 +350,11 @@ class RunExperiments_LFM_SGLD(RunExperiments_SGLD):
             discrete_z = True
 
         if string2bool(self.config["EVALUATION"]["do_full_evaluation"]) is True:
+            
             self.comparison_models = make_hmc_sgld_list(
             self.pprogram1_y,
-            n_samples = int(self.config["EVALUATION"]["N_samples_per_model"])
+            n_samples = int(self.config["EVALUATION"]["N_samples_per_model"]),
+            discrete_z = discrete_z
         )
          
             if "numpyro_hmc" in self.config["EVALUATION"].keys() and string2bool(self.config["EVALUATION"]["numpyro_hmc"]) is True:
