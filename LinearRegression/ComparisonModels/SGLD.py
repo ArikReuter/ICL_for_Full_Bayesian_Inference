@@ -101,6 +101,7 @@ class SGLD(PosteriorComparisonModel):
                  pprogram: ppgram_linear_model_return_y,
                  n_samples:int = 200,
                  n_warmup:int = 100,
+                 n_batches:int = 1,
                  shuffle_samples: bool = True,
                  optim_kwargs: dict = {"lr": 1e-4}
                  ) -> None:
@@ -122,6 +123,7 @@ class SGLD(PosteriorComparisonModel):
         self.n_warmup = n_warmup
         self.shuffle_samples = shuffle_samples
         self.optim_kwargs = optim_kwargs
+        self.n_batches = n_batches
 
         self.guide = AutoDelta(self.pprogram)
 
@@ -163,4 +165,4 @@ class SGLD(PosteriorComparisonModel):
         return samples
 
     def __repr__(self) -> str:
-        return "Hamiltonian Monte Carlo"
+        return "SGLD"
