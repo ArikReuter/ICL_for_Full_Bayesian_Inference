@@ -8,6 +8,7 @@ from PFNExperiments.LinearRegression.ComparisonModels.PosteriorComparisonModel i
 
 from pyro.optim import PyroOptim
 from torch.optim.optimizer import Optimizer, required
+from copy import deepcopy
 
 
 class SGLD_optim(Optimizer):
@@ -145,16 +146,16 @@ class SGLD(PosteriorComparisonModel):
         svi = SVI(self.pprogram, self.guide, optim, loss=Trace_ELBO())
 
         for i in range(self.n_warmup):
-            svi.step(X, y)
+            loss = svi.step(X, y)
 
         samples = []
 
         for i in range(self.n_samples):
-            samples.append(self.guide.median())
+            samples.append(deepcopy(self.guide.median()))
             svi.step(X, y)
 
         samples = {k: torch.stack([s[k] for s in samples]) for k in samples[0].keys()}
-
+    
         if self.shuffle_samples:
             for k in samples.keys():
                 samples[k] = samples[k][torch.randperm(samples[k].shape[0])]
