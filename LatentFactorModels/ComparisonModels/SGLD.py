@@ -139,7 +139,7 @@ class SGLD(PosteriorComparisonModel):
             self.guide = AutoGuideList(self.pprogram)
             self.guide.append(AutoDelta(block(self.pprogram, hide = ["z"])))
             self.guide.append(AutoDiscreteParallel(block(self.pprogram, expose = ["z"])))
-            self.guide = config_enumerate(self.guide, "parallel")
+            #self.guide = config_enumerate(self.guide, "parallel")
 
 
 
@@ -181,7 +181,8 @@ class SGLD(PosteriorComparisonModel):
         samples = []
 
         for i in range(self.n_samples):
-            samples.append(deepcopy(self.guide.median()))
+            if not self.discrete_z:
+                samples.append(deepcopy(self.guide.median()))
             svi.step(X)
 
         samples = {k: torch.stack([s[k] for s in samples]) for k in samples[0].keys()}
