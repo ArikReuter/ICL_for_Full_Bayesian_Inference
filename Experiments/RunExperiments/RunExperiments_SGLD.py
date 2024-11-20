@@ -388,7 +388,8 @@ class RunExperiments_SGLD():
             save_path = self.config["BASIC"]["Save_path"] + "/synthetic_evaluation",
             results_dict_to_latent_variable_comparison_models = just_return_results if not use_intercept else results_dict_to_latent_variable_beta0_and_beta,
             results_dict_to_latent_variable_posterior_model = just_return_results if not use_intercept else results_dict_to_latent_variable_beta0_and_beta,
-            overwrite_results=True
+            overwrite_results=True,
+            model_names = ["SGLD", "HMC"]
         )
 
         self.eval_res_synthetic = self.evaluator.run_evaluation()
@@ -429,7 +430,8 @@ class RunExperiments_SGLD():
             results_dict_to_latent_variable_posterior_model = just_return_results if not use_intercept else results_dict_to_latent_variable_beta0_and_beta,
             n_evaluation_cases = n_evaluation_cases,
             save_path = self.config["BASIC"]["Save_path"] + "/real_world_evaluation",
-            overwrite_results = True
+            overwrite_results = True,
+            model_names = ["SGLD", "HMC"]
         )
 
         self.eval_res_real_world = self.eval_rw.run_evaluation()
