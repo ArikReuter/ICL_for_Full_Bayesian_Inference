@@ -330,6 +330,8 @@ class RunExperiments_LFM_SGLD(RunExperiments_SGLD):
         
         benchmark_params_ppgrogram = self.data_generator.curriculum.get_params(-1)
 
+        del benchmark_params_ppgrogram["batch_size"]
+
         #del benchmark_params_ppgrogram["batch_size"]
 
         print(f"params for pprogram: {benchmark_params_ppgrogram}")
