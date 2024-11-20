@@ -103,14 +103,15 @@ class RunExperiments_SGLD():
             pprogram_covariates = self.generate_X,
         )
 
-        #self.check_model_res = self.data_generator.check_model(
-        #    n_samples_per_epoch=N_SAMPLES_PER_EPOCH,
-        #    epochs_to_check = [0, N_EPOCHS-1],
-         #   p = P,
-        #    n = N,
-        #    used_batch_samples = 3,
-        #    save_path_plots=self.config["BASIC"]["Save_path"] + "/check_model"
-        #)
+        self.check_model_res = self.data_generator.check_model(
+            n_samples_per_epoch=N_SAMPLES_PER_EPOCH,
+            epochs_to_check = [0, N_EPOCHS-1],
+            p = P,
+           n = N,
+          used_batch_samples = 3,
+            save_path_plots=self.config["BASIC"]["Save_path"] + "/check_model",
+
+        )
         self.epoch_loader = self.data_generator.make_epoch_loader(
             n = N,
             p = P,
