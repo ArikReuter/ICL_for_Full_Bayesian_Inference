@@ -15,7 +15,7 @@ def make_hmc_sgld_list(
 
     hmc_sampler = Hamiltionian_MC(pprogram=pprogram_y, n_warmup=n_samples//2, n_samples=n_samples)
 
-    sgld_sampler = SGLD(pprogram=pprogram_y, n_warmup = 1000, n_samples = n_samples, optim_kwargs = {"lr": 1e-4})
+    sgld_sampler = SGLD(pprogram=pprogram_y, n_warmup = 50, n_samples = n_samples, optim_kwargs = {"lr": 1e-4})
 
     model_list = [
         hmc_sampler,

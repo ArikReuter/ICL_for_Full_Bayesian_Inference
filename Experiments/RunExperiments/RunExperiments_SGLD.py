@@ -247,7 +247,7 @@ class RunExperiments_SGLD():
 
         #visualize_training_results(r, loglog=False)
 
-        self.trainer.load_best_model()
+        #self.trainer.load_best_model()
         self.model = self.trainer.model
         #self.model.eval()
 
