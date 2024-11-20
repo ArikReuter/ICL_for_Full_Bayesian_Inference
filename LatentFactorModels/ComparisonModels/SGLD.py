@@ -186,7 +186,7 @@ class SGLD(PosteriorComparisonModel):
             if not self.discrete_z:
                 samples.append(deepcopy(self.guide.median()))
             else:
-                s = pyro.infer.Predictive(self.guide, num_samples=self.n_samples)(X)
+                s = pyro.infer.Predictive(self.guide, num_samples=1)(X)
                 print(s)
                 samples.append(s)
 
