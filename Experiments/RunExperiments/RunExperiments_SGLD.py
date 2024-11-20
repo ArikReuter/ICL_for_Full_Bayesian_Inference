@@ -249,7 +249,7 @@ class RunExperiments_SGLD():
 
         self.trainer.load_best_model()
         self.model = self.trainer.model
-        self.model.eval()
+        #self.model.eval()
 
         test_res = self.trainer.test()
 
@@ -369,7 +369,7 @@ class RunExperiments_SGLD():
       
         self.comparison_models = make_hmc_sgld_list(
             self.pprogram1_y,
-            n_samples = int(self.config["EVALUATION"]["N_samples"])
+            n_samples = int(self.config["EVALUATION"]["N_samples_per_model"])
         )
          
 
