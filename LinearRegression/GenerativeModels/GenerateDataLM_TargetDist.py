@@ -210,8 +210,8 @@ def make_lm_program_ig_gamma_response_reparam(
                 mean = torch.matmul(x, beta)
                 mean = torch.exp(mean)
 
-                beta_target = mean/(sigma_squared + 1e-5)
-                alpha_target = mean**2/(sigma_squared + 1e-5)
+                beta_target = mean/(sigma_squared) + 100 
+                alpha_target = mean**2/(sigma_squared + 1e-5) + 100
 
                 y_dist = dist.Gamma(alpha_target, beta_target).to_event(1)
 
