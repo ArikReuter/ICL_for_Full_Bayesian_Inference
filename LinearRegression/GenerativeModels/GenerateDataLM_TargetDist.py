@@ -203,7 +203,7 @@ def make_lm_program_ig_gamma_response_reparam(
 
                 sigma_squared = pyro.sample("sigma_squared", sigma_squared_dist).squeeze()
 
-                beta_dist = dist.MultivariateNormal(torch.zeros(x.shape[1]), beta_cov)
+                beta_dist = dist.MultivariateNormal(torch.ones(x.shape[1])*10, beta_cov)
                 beta = pyro.sample("beta", beta_dist)
 
                 # Compute mean using matrix multiplication
