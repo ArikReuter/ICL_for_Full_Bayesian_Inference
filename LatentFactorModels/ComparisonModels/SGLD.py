@@ -164,7 +164,7 @@ class SGLD(PosteriorComparisonModel):
         svi = SVI(self.pprogram, self.guide, optim, loss=Trace_ELBO())
 
         if self.discrete_z:
-            elbo = TraceEnum_ELBO(max_plate_nesting=2)
+            elbo = TraceEnum_ELBO(max_plate_nesting=10)
 
             elbo.differentiable_loss(self.pprogram, self.guide, X)
             optim = PyroOptim(SGLD_optim, self.optim_kwargs)
