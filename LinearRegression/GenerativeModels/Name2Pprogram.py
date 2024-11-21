@@ -11,6 +11,7 @@ from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA i
 from PFNExperiments.LatentFactorModels.GenerativeModels.FactorAnalysis.BasicFA import make_fa_program_normal_weight_prior_laplace_z_prior_batched, make_fa_program_normal_weight_prior_laplace_z_prior
 from PFNExperiments.LatentFactorModels.GenerativeModels.Numpyro_Versions.LDA_NumPyro import make_lda_program, make_lda_program_batched
 from PFNExperiments.PFN_GLM.GenerativeModels.GenerateData_LM_TabpfnNoise import make_lm_program_ig_intercept_tabpfn_noise_batched
+from PFNExperiments.LinearRegression.GenerativeModels.GenerateDataLM_TargetDist import make_lm_program_ig_gamma_response_reparam, make_lm_program_ig_gamma_response_reparam_batched
 
 """
 This file provides the mapping from the name of the program to the probabilistic program.
@@ -25,6 +26,7 @@ name2pprogram_maker = {
     "Gamma_ig_intercept": (make_lm_program_gamma_prior_intercept_batched, make_lm_program_gamma_prior_intercept),
     "logreg_ig": (make_logreg_program_ig_batched, make_logreg_program_ig),
     "logreg_ig_intercept": (make_logreg_program_ig_intercept_batched, make_logreg_program_ig_intercept),
+    'ig_gamma_response_reparam': (make_lm_program_ig_gamma_response_reparam_batched, make_lm_program_ig_gamma_response_reparam),
     "gmm_univariate": (make_gmm_program_univariate_batched, make_gmm_program_univariate),
     "gmm_spherical": (make_gmm_program_spherical_batched, make_gmm_program_spherical),
     "gmm_diagonal": (make_gmm_program_diagonal_batched, make_gmm_program_diagonal),
