@@ -155,7 +155,7 @@ class BasicConfigCreator():
             "n_evaluation_cases_real_world": "All", # number of real world evaluation cases to use
             "do_full_evaluation": True, # whether to do a full evaluation
             "only_use_hmc_numpyro": True, # whether to only use hmc_numpyro for the real world evaluation
-            "save_path_data_real_world_eval": "/content/drive/MyDrive/PFN_Experiments/RealWorldEvaluationData/DatasetsOpenML/numerical_regression.pkl", # path to save the data for real world evaluation
+            "save_path_data_real_world_eval": "/", # path to save the data for real world evaluation
             "real_world_benchmark_id": 336, # id of the real world benchmark,
             "real_world_preprocessor": "gmm_preprocessor_multivariate", # preprocessor for the real world data
             "results_dict_to_latent_variable_posterior_model" : "just_return_results_flatten_beta",
