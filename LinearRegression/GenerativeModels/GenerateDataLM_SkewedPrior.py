@@ -71,7 +71,7 @@ def make_lm_program_gamma_prior_batched(
 
         return multivariate_lm_return_dict
 
-def make_lm_program_gamma_prior(
+def     make_lm_program_gamma_prior(
         tau: float = 1.0,
         a: float = 5.0,
         b: float = 2.0,

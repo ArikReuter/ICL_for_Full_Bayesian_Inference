@@ -98,7 +98,9 @@ class RunExperiments_LFM(RunExperiments):
         N = int(self.config["BASIC"]["N"])
         N_SAMPLES_PER_EPOCH = int(self.config["BASIC"]["N_samples_per_epoch"])
 
-        pprogram_params = ast.literal_eval(gen_config["pprogram_params"])
+        pprogram_params = ast.literal_eval(gen_config["pprogram_params_ood"])
+
+        print(f"params for data generation: {pprogram_params}")
 
         self.curriculum = Curriculum(max_iter=int(N_EPOCHS*N_BATCHES_PER_EPOCH*BATCH_SIZE*0.5))
         param_list = [(name, self.curriculum.constant_scheduler(float(value))) for name, value in pprogram_params.items()]
@@ -328,7 +330,8 @@ class RunExperiments_LFM(RunExperiments):
         Setup the evaluation.
         """
         
-        benchmark_params_ppgrogram = self.data_generator.curriculum.get_params(-1)
+        benchmark_params_ppgrogram = ast.literal_eval(self.config["DATA_GENERATION"]["pprogram_params"])
+        print(f"params for pprogram: {benchmark_params_ppgrogram}")
 
         del benchmark_params_ppgrogram["batch_size"]
 
