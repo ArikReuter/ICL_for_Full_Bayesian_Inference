@@ -68,3 +68,7 @@ experiment.run()  # run the experiment
 
 This will create a directory where the training logs and the results are saved.
 
+## Ablation into Diffusion objective using variance preserving paths
+
+To reproduce the ablation on the role of using a diffusion objective with variance preserving paths compared to the standard OT objective, simply run the configs from 'Experiments/Configs/Diffuion_Experiments/LM_Configs' and 'Experiments/Configs/Diffuion_Experiments/LFM_Configs' directories in the same way as the previous experiments.
+
