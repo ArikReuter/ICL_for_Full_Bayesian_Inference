@@ -70,5 +70,17 @@ This will create a directory where the training logs and the results are saved.
 
 ## Ablation into Diffusion objective using variance preserving paths
 
-To reproduce the ablation on the role of using a diffusion objective with variance preserving paths compared to the standard OT objective, simply run the configs from 'Experiments/Configs/Diffuion_Experiments/LM_Configs' and 'Experiments/Configs/Diffuion_Experiments/LFM_Configs' directories in the same way as the previous experiments.
+To reproduce the ablation on the role of using a diffusion objective with variance preserving paths compared to the standard OT objective, simply run the configs from `Experiments/Configs/Diffuion_Experiments/LM_Configs` and `Experiments/Configs/Diffuion_Experiments/LFM_Configs` directories in the same way as the previous experiments.
 
+## Ablation into SGLD 
+
+To obtain results for SGLD, just choose a standard configuration file from the `Experiments/Configs/LM_Configs` or `Experiments/Configs/LFM_Configs`. Then run the file `Experiments/RunExperiments_SGLD.py` for the LMs and run the file `Experiments/RunExperiments_LFM_SGLD.py` for the LFMs.
+
+We use SGLD from [1] with preconditioning introduces in [2].
+
+
+# References
+
+[1] Welling, Max, and Yee W. Teh. "Bayesian learning via stochastic gradient Langevin dynamics." Proceedings of the 28th international conference on machine learning (ICML-11). 2011.
+
+[2] Li, Chunyuan, et al. "Preconditioned stochastic gradient Langevin dynamics for deep neural networks." Proceedings of the AAAI conference on artificial intelligence. Vol. 30. No. 1. 2016.
