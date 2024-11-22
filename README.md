@@ -80,7 +80,7 @@ We use SGLD from [2] with preconditioning introduced in [3].
 
 ## Run the OOD experiments
 
-To run the OOD experiments, choose a config file from `Experiments/Configs/LM_Configs_OOD` or `Experiments/Configs/FA_Configs_OOD` or `Experiments/Configs/GMM_Configs_OOD` and run `Experiments/RunExperiments_OOD.py` for the LM configs, `Experiments/RunExperiments_LFM_ood.py` for the FA and GMM configs. 
+To run the OOD experiments, choose a config file from `Experiments/Configs/LM_Configs_OOD` or `Experiments/Configs/FA_Configs_OOD` or `Experiments/Configs/GMM_Configs_OOD` and run `Experiments/RunExperiments_OOD.py` for the LM configs, and `Experiments/RunExperiments_LFM_ood.py` for the FA and GMM configs. 
 
 
 # References
