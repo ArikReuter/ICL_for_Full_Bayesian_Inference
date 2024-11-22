@@ -42,7 +42,7 @@ class Hamiltionian_MC(PosteriorComparisonModel):
             kernel_kwargs["adapt_step_size"] = True
 
         self.nuts_kernel = NUTS(self.pprogram, **kernel_kwargs)
-        self.mcmc = MCMC(self.nuts_kernel, num_samples=self.n_samples, warmup_steps=self.n_warmup, **mcmc_kwargs)
+        self.mcmc = MCMC(self.nuts_kernel, num_samples=self.n_samples, warmup_steps=self.n_warmup, **mcmc_kwargs, disable_progbar=True)
         self.shuffle_samples = shuffle_samples
 
 
