@@ -84,7 +84,7 @@ To run the OOD experiments, choose a config file from `Experiments/Configs/LM_Co
 
 ## Run the experiments using an MLP instead of a transformer encoder
 
-To run the experiments where an MLP encoder instead of a transformer encoder is used, choose a config file from `Experiments/Configs/LM_Configs_MLP` or `Experiments/Configs/LFM_Configs_MLP` and run `Experiments/RunExperiments_LM_MLP.py` for the LM configs, and `Experiments/RunExperiments_LFM_MLP.py` for the LFM configs.
+To run the experiments where an MLP encoder instead of a transformer encoder is used, choose a config file from `Experiments/Configs/LM_Configs_MLP` or `Experiments/Configs/FA_Configs_MLP`, or `Experiments/Configs/GMM_Configs_MLP` and run `Experiments/RunExperiments_LM_MLP.py` for the LM configs, and `Experiments/RunExperiments_LFM_MLP.py` for the FA and GMM configs.
 
 
 # References
