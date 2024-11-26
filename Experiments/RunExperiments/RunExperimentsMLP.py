@@ -134,6 +134,7 @@ class RunExperiments():
         if model_kwargs["type"] == "SkipMLPCNFConditionalDecoder":
             self.model = SkipMLPCNFConditionalDecoder(
                 n_input_features_encoder = int(model_kwargs["n_input_features_encoder"]),
+                seq_len_encoder = int(self.config["BASIC"]["N"]),
                 n_input_features_decoder = int(model_kwargs["n_input_features_decoder"]),
                 d_model_encoder = int(model_kwargs["d_model_encoder"]),
                 d_model_decoder = int(model_kwargs["d_model_decoder"]),

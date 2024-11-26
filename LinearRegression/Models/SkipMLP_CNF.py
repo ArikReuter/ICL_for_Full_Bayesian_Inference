@@ -302,6 +302,7 @@ class SkipMLPConditionalDecoder(nn.Module):
    def __init__(
          self,
             n_input_features_encoder: int,
+            seq_len_encoder: int,
             n_input_features_decoder: int,
             d_model_encoder: int = 256,
             d_model_decoder: int = 256,
@@ -320,6 +321,7 @@ class SkipMLPConditionalDecoder(nn.Module):
       """
       Args:
             d_model_encoder: int: the model dimension of the encoder
+            seq_len_encoder: int: the sequence length of the encoder
             d_model_decoder: int: the model dimension of the decoder
             n_heads_encoder: int: the number of heads in the multihead attention of the encoder
             n_heads_decoder: int: the number of heads in the multihead attention of the decoder
@@ -344,6 +346,7 @@ class SkipMLPConditionalDecoder(nn.Module):
 
       self.encoder = SkipMLPEncoder(
           n_input_features=n_input_features_encoder, 
+            seq_len=seq_len_encoder,
           d_model=d_model_encoder, 
           n_layers=n_layers_encoder, 
           dropout=dropout_encoder, 
