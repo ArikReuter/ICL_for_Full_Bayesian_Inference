@@ -110,13 +110,15 @@ class SkipMLPEncoder(nn.Module):
         self.d_model = d_model
         
         # Embedding layer to transform input to the model dimension
-        self.embedding_layer = nn.Linear(n_input_features, d_model)
+        self.embedding_layer = nn.Linear(n_input_features, d_model//seq_len)
         
-        # Stacked SkipMLP blocks
+        #Stacked SkipMLP blocks
         self.mlp_blocks = nn.ModuleList([
-            SkipMLPBlock(d_model * seq_len, dropout, use_bn, use_skip_connection)
+            SkipMLPBlock(d_model, dropout, use_bn, use_skip_connection)
             for _ in range(n_layers)
         ])
+
+
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
