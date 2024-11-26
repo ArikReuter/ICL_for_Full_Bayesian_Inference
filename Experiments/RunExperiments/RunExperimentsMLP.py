@@ -346,12 +346,20 @@ class RunExperiments():
                 pprogram_y=self.pprogram1_y,
                 n_samples=int(self.config["EVALUATION"]["N_samples_per_model"])
             )
+
+        elif string2bool(self.config["EVALUATION"]["only_hmc"]) is True: 
+            comparison_models = make_default_list_comparison(
+                pprogram_y=self.pprogram1_y,
+                n_samples=int(self.config["EVALUATION"]["N_samples_per_model"])
+            )
+            
+            self.comparison_models = [comparison_models[0]]
         else:
             self.comparison_models = make_reduced_list_comparison(
                 pprogram_y=self.pprogram1_y,
                 n_samples=int(self.config["EVALUATION"]["N_samples_per_model"])
             )
-
+        
         
     def evaluate_synthetic(self):
         """
