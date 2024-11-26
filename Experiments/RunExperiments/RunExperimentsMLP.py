@@ -146,7 +146,6 @@ class RunExperiments():
                 n_layers_condition_embedding = int(model_kwargs["n_layers_condition_embedding"]),
                 n_layers_encoder = int(model_kwargs["n_layers_encoder"]),
                 n_layers_decoder = int(model_kwargs["n_layers_decoder"]),
-                use_positional_encoding_encoder = string2bool(model_kwargs["use_positional_encoding_encoder"]),
                 use_self_attention_decoder = string2bool(model_kwargs["use_self_attention_decoder"]),
                 output_dim = int(model_kwargs["output_dim"]),
                 d_final_processing = int(model_kwargs["d_final_processing"]),
