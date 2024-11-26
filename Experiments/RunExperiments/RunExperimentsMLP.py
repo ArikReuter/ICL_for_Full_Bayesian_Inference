@@ -137,7 +137,6 @@ class RunExperiments():
                 n_input_features_decoder = int(model_kwargs["n_input_features_decoder"]),
                 d_model_encoder = int(model_kwargs["d_model_encoder"]),
                 d_model_decoder = int(model_kwargs["d_model_decoder"]),
-                n_heads_encoder = int(model_kwargs["n_heads_encoder"]),
                 n_heads_decoder = int(model_kwargs["n_heads_decoder"]),
                 d_ff_decoder = int(model_kwargs["d_ff_decoder"]),
                 dropout_encoder = float(model_kwargs["dropout_encoder"]),
