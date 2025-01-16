@@ -1,10 +1,6 @@
-# PFNExperiments
+# ICL for Full Bayesian Inference
 
 Welcome to the official code repository for our submission: "In-context Learning for Full Bayesian Inference". This repository contains the code for all experiments conducted in the paper.
-
-# Repository Status
-
-This repository currently serves as the code basis for our submission and is therefore maintained in an anonymized format to comply with review requirements. Upon acceptance of our work, we plan to release the complete code in a more comprehensive package format, making it publicly available for the community. 
 
 # Installation
 
