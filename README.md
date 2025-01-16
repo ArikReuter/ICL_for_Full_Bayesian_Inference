@@ -1,6 +1,6 @@
 # ICL for Full Bayesian Inference
 
-Welcome to the official code repository for our submission: "In-context Learning for Full Bayesian Inference". This repository contains the code for all experiments conducted in the paper which demonstrate that in-context learning is effective for full Bayesian inference with real-world datasets.
+Welcome to the official code repository for our paper: "In-context Learning for Full Bayesian Inference". This repository contains the code for all experiments conducted in the paper which demonstrate that in-context learning is effective for full Bayesian inference with real-world datasets.
 
 # Installation
 
