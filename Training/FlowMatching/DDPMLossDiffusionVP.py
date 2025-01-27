@@ -107,7 +107,7 @@ class DDPMLossDiffusionVP(torch.nn.Module):
     
     
     def __call__(self,
-                 noise_prediction: torch.Tensor,
+                 vector_field_prediction: torch.Tensor,
                  z_0: torch.Tensor,
                  z_1: torch.Tensor,
                  t: float,
@@ -116,7 +116,7 @@ class DDPMLossDiffusionVP(torch.nn.Module):
         """
         Implement the computation of the conditional flow matching loss
         Args:
-            noise_prediction: torch.Tensor: here the prediction for the noise epsilon(sigma_t*z_0 + mu_t)
+            vector_field_prediction: torch.Tensor: here the prediction for the noise epsilon(sigma_t*z_0 + mu_t)
             z_0: torch.Tensor: the input tensor sampled from the base distribution 
             z_1: torch.Tensor: the tensor from the data distribution
             t: float: the time step
@@ -124,7 +124,7 @@ class DDPMLossDiffusionVP(torch.nn.Module):
 
         target = z_0
 
-        loss = torch.mean((noise_prediction - target)**2)
+        loss = torch.mean((vector_field_prediction - target)**2)
 
         return loss
     
