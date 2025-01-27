@@ -373,7 +373,7 @@ class RunExperiments():
                 rtol = float(full_model_kwargs["rtol"]),
                 epsilon_for_t = epsilon_for_t,
                 score_matching = True,
-                DDPMLossDiffusionVP = self.loss_function
+                score_matching_loss = self.loss_function
             )
 
     def setup_evaluation(self):
