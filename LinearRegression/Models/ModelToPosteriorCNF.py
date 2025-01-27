@@ -5,6 +5,7 @@ from torchdiffeq import odeint
 from torchdiffeq import odeint_adjoint
 
 from PFNExperiments.LinearRegression.Evaluation.CompareComparisonModels import PosteriorComparisonModel
+from PFNExperiments.Training.FlowMatching.DDPMLossDiffusionVP import DDPMLossDiffusionVP
 
 class ModelToPosteriorCNF(PosteriorComparisonModel):
     """
@@ -37,6 +38,8 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
                  target_device: str = torch.device("cpu"),
                  solve_adjoint: bool = False,
                  epsilon_for_t: float = 0.0, 
+                 score_matching: bool = False,
+                 score_matching_loss: DDPMLossDiffusionVP = None
                  ) -> None:
         """
         Args:
@@ -52,6 +55,8 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
             device: str: the device to use for the computation
             tarfet_device: str: the device to use for the final output samples
             epsilon_for_t: float: the epsilon for the time step that scales the time to be in [0, 1 - epsilon_for_t]
+            score_matching: bool: whether to use score matching for the loss
+            score_matching_loss: DDPMLossDiffusionVP: the loss function for score matching
         """
         self.model = model.to(device)
         self.sample_shape = sample_shape
@@ -67,6 +72,11 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
         self.batch_size = batch_size
         self.solve_adjoint = solve_adjoint
         self.epsilon_for_t = epsilon_for_t
+        self.score_matching = score_matching
+        self.score_matching_loss = score_matching_loss
+
+        if self.score_matching is True:
+            assert self.score_matching_loss is not None, "Score matching loss is not provided"
 
     def generate_vector_field_function_cond_x(self, x: torch.tensor) -> torch.nn.Module:
         """
@@ -75,20 +85,49 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
             x: torch.tensor: the input to the model that conditions the distribution
         """
 
-        class VectorFieldFunction(torch.nn.Module):
-            def __init__(self, model: torch.nn.Module, x: torch.tensor):
-                super(VectorFieldFunction, self).__init__()
-                self.model = model
-                self.x = x
+        if not self.score_matching:
 
-            def forward(self, t, z):
-                if len(t.shape) == 0:
-                    t = t.unsqueeze(0)
-                    t = t.repeat(z.shape[0], 1)
+            class VectorFieldFunction(torch.nn.Module):
+                def __init__(self, model: torch.nn.Module, x: torch.tensor):
+                    super(VectorFieldFunction, self).__init__()
+                    self.model = model
+                    self.x = x
 
-                return self.model(z, self.x, t)
-            
-        return VectorFieldFunction(self.model, x)
+                def forward(self, t, z):
+                    if len(t.shape) == 0:
+                        t = t.unsqueeze(0)
+                        t = t.repeat(z.shape[0], 1)
+
+                    return self.model(z, self.x, t)
+                
+            return VectorFieldFunction(self.model, x)
+        
+        else:
+
+            model2vf = self.score_matching_loss.model_prediction_to_vector_field
+
+            class VectorFieldFunction(torch.nn.Module):
+                def __init__(self, model: torch.nn.Module, x: torch.tensor):
+                    super(VectorFieldFunction, self).__init__()
+                    self.model = model
+                    self.x = x
+
+                def forward(self, t, z):
+                    if len(t.shape) == 0:
+                        t = t.unsqueeze(0)
+                        t = t.repeat(z.shape[0], 1)
+
+                    vf = model2vf(
+                        model=self.model,
+                        z=z,
+                        x=self.x,
+                        t=t
+                    )
+
+                    return vf
+                
+            return VectorFieldFunction(self.model, x)
+
 
     def sample_posterior_x_batch(self, x: torch.tensor, n_samples: int) -> torch.Tensor:
         """
