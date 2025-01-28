@@ -147,7 +147,7 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
         z_0 = z_0.to(self.device)
         x = x.to(self.device)
 
-        timepoints = torch.tensor([self.epsilon_for_t, 1.0 - self.epsilon_for_t]).to(self.device)
+        timepoints = torch.tensor([0, 1.0 - self.epsilon_for_t]).to(self.device)
 
         vector_field_function = self.generate_vector_field_function_cond_x(x)
         vector_field_function = vector_field_function.to(x.device)
