@@ -129,7 +129,8 @@ class SMLossDiffusionVP(torch.nn.Module):
         mu_t = self.mu_t(t, z_1)
         sigma_t_sq = self.sigma_t(t)**2
 
-        loss =  torch.mean(sigma_t_sq * (vector_field_prediction - (zt - mu_t)/sigma_t_sq)**2)
+        loss = sigma_t_sq * torch.sum((vector_field_prediction - (zt - mu_t)/sigma_t_sq)**2, dim = 1)
+        loss = torch.mean(loss)
 
         return loss
     
