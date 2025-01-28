@@ -122,7 +122,6 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
                     vf = model2vf(
                         model_prediction_noise=model_prediction,
                         z=z,
-                        x=self.x,
                         t=t
                     )
 
