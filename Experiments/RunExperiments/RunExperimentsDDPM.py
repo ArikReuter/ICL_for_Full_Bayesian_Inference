@@ -24,7 +24,7 @@ import torch
 
 from PFNExperiments.Training.FlowMatching.CFMLossDiffusionVP import CFMLossDiffusionVP
 from PFNExperiments.Training.FlowMatching.DDPMLossDiffusionVP import DDPMLossDiffusionVP
-
+from PFNExperiments.Training.FlowMatching.SMLossDiffusionVP import SMLossDiffusionVP
 
 def string2bool(s: str) -> bool:
     """
@@ -209,6 +209,13 @@ class RunExperiments():
                 beta_min = float(train_config["beta_min"]),
                 beta_max = float(train_config["beta_max"]),
             )
+        elif train_config["Loss_function"] == "SMLossDiffusionVP":
+            self.loss_function = SMLossDiffusionVP(
+                epsilon_for_t = float(train_config["epsilon_for_t"]),
+                beta_min = float(train_config["beta_min"]),
+                beta_max = float(train_config["beta_max"]),
+            )
+
         else:
             raise ValueError(f"Loss function {train_config['Loss_function']} not implemented yet!")
         
@@ -292,6 +299,14 @@ class RunExperiments():
                 beta_min = float(train_config["beta_min"]),
                 beta_max = float(train_config["beta_max"]),
             )
+
+        elif train_config["Loss_function"] == "SMLossDiffusionVP":
+            self.loss_function = SMLossDiffusionVP(
+                epsilon_for_t = float(train_config["epsilon_for_t"]),
+                beta_min = float(train_config["beta_min"]),
+                beta_max = float(train_config["beta_max"]),
+            )
+            
         else:
             raise ValueError(f"Loss function {train_config['Loss_function']} not implemented yet!")
         
