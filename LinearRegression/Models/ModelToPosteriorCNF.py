@@ -103,9 +103,6 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
             return VectorFieldFunction(self.model, x)
         
         else:
-
-            model2vf = self.score_matching_loss.model_prediction_to_vector_field
-
             class VectorFieldFunction(torch.nn.Module):
                 def __init__(self, model: torch.nn.Module, x: torch.tensor):
                     super(VectorFieldFunction, self).__init__()
@@ -117,10 +114,11 @@ class ModelToPosteriorCNF(PosteriorComparisonModel):
                         t = t.unsqueeze(0)
                         t = t.repeat(z.shape[0], 1)
 
-                    vf = model2vf(
-                        model=self.model,
+                    model_prediction = self.model(z, self.x, t)
+
+                    vf = self.score_matching_loss.model_prediction_to_vector_field(
+                        model_prediction_noise=model_prediction,
                         z=z,
-                        x=self.x,
                         t=t
                     )
 

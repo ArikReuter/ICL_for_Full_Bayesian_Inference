@@ -132,16 +132,14 @@ class DDPMLossDiffusionVP(torch.nn.Module):
     
     def model_prediction_to_vector_field(
             self,
-            model: torch.nn.Module,
+            model_prediction_noise: torch.Tensor,
             z: torch.Tensor,
-            x: torch.Tensor,
             t: float,
     ):
         """Compute the vector field from the model that outputs the noise prediction
         Args:
-            model: torch.nn.Module: the model that predicts the noise
+            model_prediction_noise: torch.Tensor: the model prediction for the noise
             z: torch.Tensor: the input tensor
-            x: torch.Tensor: the tensor from the data distribution
             t: float: the time step
         """
         if len(z.shape) == 0:
@@ -151,9 +149,15 @@ class DDPMLossDiffusionVP(torch.nn.Module):
 
         tr = (t * (1 - self.epsilon_for_t)).clone() # make sure that t is in [0, 1 - epsilon_for_t]
 
-        score = model(z, x, tr) / self.sigma_t(tr)
+        score = model_prediction_noise / self.sigma_t(tr)
 
-        u_t = - self.T_t_prime(1-tr)/2 * (score - z)
+        u_t = - (self.T_t_prime(1-tr)/2) * (score - z)
 
         return u_t
+    
+
+#if __name__ == "__main__":
+#    loss = DDPMLossDiffusionVP(beta_max = 5)
+
+#    print(loss.sigma_t(torch.tensor(0.001)))
 
