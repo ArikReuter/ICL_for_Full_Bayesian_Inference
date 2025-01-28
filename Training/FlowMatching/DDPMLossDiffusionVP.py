@@ -101,7 +101,7 @@ class DDPMLossDiffusionVP(torch.nn.Module):
         if len(t.shape) == 2 and len(z_1.shape) == 3:
             t = t.unsqueeze(-1)
         
-        tr = t * (1 - self.epsilon_for_t) # make sure that t is in [0, 1 - epsilon_for_t]
+        tr = (t * (1 - self.epsilon_for_t)).clone() # make sure that t is in [0, 1 - epsilon_for_t]
 
         z_t = self.sigma_t(tr) * z + self.mu_t(tr, z_1)
 
@@ -149,7 +149,7 @@ class DDPMLossDiffusionVP(torch.nn.Module):
                     t = t.repeat(z.shape[0], 1)
 
 
-        tr = t * (1 - self.epsilon_for_t) # make sure that t is in [0, 1 - epsilon_for_t]
+        tr = (t * (1 - self.epsilon_for_t)).clone() # make sure that t is in [0, 1 - epsilon_for_t]
 
         score = model(z, x, tr) / self.sigma_t(tr)
 
