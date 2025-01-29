@@ -78,8 +78,10 @@ def make_fa_program_normal_weight_prior(
         psi_diag_dist = dist.InverseGamma(a1_psi_var, b1_psi_var)
         with pyro.plate("n_dims",p):
             psi_diag = pyro.sample("psi", psi_diag_dist)
+        
+        psi_diag += 1e-6
 
-        psi = torch.diag(psi_diag)
+        psi = torch.diag(psi_diag) 
 
         mean_x = mu + W @ z
         x_dist = dist.MultivariateNormal(mean_x, psi)
